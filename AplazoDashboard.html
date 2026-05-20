@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QA Portal — Aplazo</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2/dist/chartjs-plugin-datalabels.min.js"></script>
+  <style>
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      height: auto;
+      min-height: 100%;
+      font-family: Inter, Arial, sans-serif;
+      background: #f4fbff;
+      color: #0f172a;
+    }
+    /* Tell Squarespace parent iframe to grow with content */
+    body { overflow-y: auto; }
+
+    .app {
+      max-width: 1400px;
+      margin: auto;
+      padding: 28px;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: white;
+      padding: 28px 32px;
+      border-radius: 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 { margin: 0; font-size: 30px; }
+    .header p  { margin: 6px 0 0; color: #cbd5e1; font-size: 14px; }
+    .header-meta { text-align: right; color: #94a3b8; font-size: 12px; }
+    .header-meta span { display: block; margin-top: 4px; }
+
+    /* ── SECTION TITLES ── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #94a3b8;
+      margin: 28px 0 12px;
+    }
+
+    /* ── FILTERS ── */
+    .filters-sticky-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      /* slight negative margin so it bleeds to app edges */
+      margin: 0 -4px 22px;
+      padding: 0 4px;
+    }
+    .filters {
+      background: white;
+      border-radius: 20px;
+      padding: 16px 20px;
+      box-shadow: 0 4px 24px rgba(15,23,42,.13);
+      margin-bottom: 0;
+    }
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 14px;
+    }
+    label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      display: block;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    select, input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1.5px solid #e2e8f0;
+      font-size: 13px;
+      background: #f8fafc;
+      color: #0f172a;
+      transition: border-color .2s;
+    }
+    select:focus, input:focus { outline: none; border-color: #62d3f5; background: #fff; }
+    button {
+      padding: 11px 18px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #62d3f5, #38bdf8);
+      color: #0f172a;
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 13px;
+      width: 100%;
+      transition: opacity .2s;
+    }
+    button:hover { opacity: .88; }
+
+    /* ── CARDS ── */
+    .card, .chart-card, .table-card {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(15,23,42,.07);
+      margin-bottom: 22px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .card { margin-bottom: 0; position: relative; overflow: hidden; }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #62d3f5, #38bdf8);
+      border-radius: 20px 20px 0 0;
+    }
+    .card.danger::before  { background: linear-gradient(90deg,#ef4444,#fb7185); }
+    .card.warn::before    { background: linear-gradient(90deg,#f59e0b,#fbbf24); }
+    .card.success::before { background: linear-gradient(90deg,#22c55e,#4ade80); }
+    .metric { font-size: 30px; font-weight: 800; margin: 8px 0 4px; }
+    .muted  { color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    .trend  { font-size: 12px; font-weight: 700; margin-top: 2px; }
+    .trend.up   { color: #22c55e; }
+    .trend.down { color: #ef4444; }
+    .trend.flat { color: #94a3b8; }
+
+    /* ── INSIGHT ── */
+    .insight {
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 22px;
+      color: #164e63;
+      font-weight: 600;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── CHARTS GRID ── */
+    .charts-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .charts-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+    .chart-card h3, .table-card h3 { margin: 0 0 16px; font-size: 15px; }
+
+    /* ── TABLES ── */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; text-align: left; }
+    th { color: #475569; background: #f8fafc; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
+    tr:hover td { background: #f8fafc; }
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-red    { background: #fee2e2; color: #991b1b; }
+    .badge-green  { background: #dcfce7; color: #166534; }
+    .badge-yellow { background: #fef9c3; color: #854d0e; }
+    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+    .badge-gray   { background: #f1f5f9; color: #475569; }
+
+    /* ── RISK PILL ── */
+    .risk-pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .risk-high   { background: #fee2e2; color: #991b1b; }
+    .risk-medium { background: #fef9c3; color: #854d0e; }
+    .risk-low    { background: #dcfce7; color: #166534; }
+
+    /* ── CRITICAL CARDS ── */
+    .critical-list { display: flex; flex-direction: column; gap: 10px; }
+    .critical-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 5px solid #ef4444;
+      border-radius: 14px;
+      padding: 12px 16px;
+    }
+    .critical-card-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .critical-title { font-weight: 800; color: #0f172a; font-size: 13px; }
+    .critical-count { background: #fee2e2; color: #991b1b; border-radius: 999px; padding: 4px 10px; font-weight: 900; font-size: 11px; white-space: nowrap; }
+    .critical-bar { margin-top: 8px; height: 6px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+    .critical-bar-fill { height: 100%; background: linear-gradient(90deg,#ef4444,#fb7185); border-radius: 999px; }
+    .critical-detail { margin-top: 6px; font-size: 11px; color: #64748b; }
+
+    /* ── COMMITMENT CELL ── */
+    .commitment-cell { position: relative; cursor: pointer; max-width: 240px; }
+    .commitment-preview { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .commitment-tooltip {
+      visibility: hidden; opacity: 0;
+      position: absolute; left: 0; top: 100%; margin-top: 6px;
+      background: #0f172a; color: white;
+      padding: 10px 14px; border-radius: 10px; width: 300px;
+      white-space: normal; z-index: 9999; font-size: 12px; line-height: 1.4;
+      box-shadow: 0 8px 24px rgba(0,0,0,.25);
+      transition: opacity .2s;
+    }
+    .commitment-cell:hover .commitment-tooltip { visibility: visible; opacity: 1; }
+
+    /* ── SPARKLINE (tendencia agente) ── */
+    .sparkline-cell canvas { display: block; }
+
+    /* ── WEEKLY COMPARE TABLE ── */
+    .delta-up   { color: #22c55e; font-weight: 700; }
+    .delta-down { color: #ef4444; font-weight: 700; }
+    .delta-flat { color: #94a3b8; }
+
+    /* ── TABS ── */
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab {
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      color: #475569;
+      transition: all .2s;
+    }
+    .tab.active { background: #0f172a; color: white; border-color: #0f172a; }
+
+    /* ── LOADING ── */
+    .loading-spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid #e2e8f0; border-top-color: #62d3f5;
+      border-radius: 50%; animation: spin .7s linear infinite;
+      vertical-align: middle; margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── EVAL DETAIL MODAL ── */
+    .eval-modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%; height: 100%;
+      background: rgba(15,23,42,.55);
+      z-index: 99999;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px 20px;
+      overflow-y: auto;
+    }
+    .eval-modal-overlay.active { display: flex; }
+    .eval-modal {
+      background: white;
+      border-radius: 24px;
+      width: 100%;
+      max-width: 680px;
+      max-height: 88vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(15,23,42,.25);
+      animation: modalIn .2s ease;
+    }
+    @keyframes modalIn {
+      from { transform: translateY(20px); opacity:0; }
+      to   { transform: translateY(0);    opacity:1; }
+    }
+    .eval-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 24px 24px 0;
+      gap: 12px;
+    }
+    .eval-modal-header h2 { margin:0; font-size:18px; color:#0f172a; }
+    .eval-modal-close {
+      background: #f1f5f9;
+      border: none;
+      border-radius: 999px;
+      width: 32px; height: 32px;
+      font-size: 16px;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: #64748b;
+    }
+    .eval-modal-close:hover { background: #e2e8f0; }
+    .eval-modal-body { padding: 20px 24px 24px; }
+    .eval-modal-kpis {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .eval-modal-kpi {
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+    .eval-modal-kpi .label { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.5px; }
+    .eval-modal-kpi .value { font-size:22px; font-weight:800; margin-top:4px; }
+    .eval-modal-section { margin-bottom:18px; }
+    .eval-modal-section h4 { margin:0 0 8px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#94a3b8; }
+    .eval-modal-section p  { margin:0; font-size:14px; line-height:1.6; color:#0f172a; background:#f8fafc; border-radius:12px; padding:14px; }
+    .eval-modal-rubrics { width:100%; border-collapse:collapse; font-size:13px; }
+    .eval-modal-rubrics th { background:#f8fafc; padding:8px 10px; text-align:left; font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:.5px; }
+    .eval-modal-rubrics td { padding:9px 10px; border-bottom:1px solid #f1f5f9; }
+    .eval-feedback-link { display:inline-block; margin-top:8px; color:#0284c7; font-size:13px; font-weight:700; text-decoration:none; }
+    .eval-feedback-link:hover { text-decoration:underline; }
+
+    /* ── RUBRIC TABLE ── */
+    .rubric-table { min-width: 900px; }
+    .rubric-table th { white-space: nowrap; }
+    .rubric-table td { white-space: nowrap; }
+    .rubric-cell-red    { background: #fee2e2; color: #991b1b; font-weight: 700; text-align: center; border-radius: 6px; }
+    .rubric-cell-yellow { background: #fef9c3; color: #854d0e; font-weight: 700; text-align: center; border-radius: 6px; }
+    .rubric-cell-green  { background: #dcfce7; color: #166534; font-weight: 700; text-align: center; border-radius: 6px; }
+    .rubric-cell-gray   { background: #f1f5f9; color: #94a3b8; text-align: center; }
+
+    /* ── CLIENT MODE ── */
+    .client-mode-banner {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: white;
+      border-radius: 16px;
+      padding: 14px 20px;
+      margin-bottom: 18px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .client-mode-banner.active { display: flex; }
+    .client-mode-banner span { flex:1; }
+
+    /* client view sections hidden by default */
+    .client-only { display: none; }
+    /* internal-only: visible normally, hidden in client-mode.
+       Do NOT set display here — let each element use its natural display value */
+    body.client-mode .client-only.tab-section { display: none; }
+    body.client-mode .client-only.tab-section.active { display: block; }
+    body.client-mode .internal-only  { display: none !important; }
+    /* Hide main tabs in client mode — navigation is via the tab bar which stays visible */
+    body.client-mode .main-tabs-wrap { display: none !important; }
+
+    .client-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .client-kpi-card {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(15,23,42,.07);
+      position: relative;
+      overflow: hidden;
+    }
+    .client-kpi-card::before {
+      content:'';
+      position:absolute;
+      top:0;left:0;right:0;height:3px;
+      border-radius:20px 20px 0 0;
+    }
+    .client-kpi-card.blue::before   { background: linear-gradient(90deg,#0ea5e9,#38bdf8); }
+    .client-kpi-card.teal::before   { background: linear-gradient(90deg,#14b8a6,#2dd4bf); }
+    .client-kpi-card.red::before    { background: linear-gradient(90deg,#ef4444,#fb7185); }
+    .client-kpi-card.green::before  { background: linear-gradient(90deg,#22c55e,#4ade80); }
+    .client-kpi-label  { font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px; }
+    .client-kpi-value  { font-size:28px;font-weight:800;margin:6px 0 2px; }
+    .client-kpi-sub    { font-size:11px;color:#94a3b8; }
+    .vs-badge {
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:700;
+      margin-left:6px;
+    }
+    .vs-up   { background:#dcfce7;color:#166534; }
+    .vs-down { background:#fee2e2;color:#991b1b; }
+    .vs-flat { background:#f1f5f9;color:#64748b; }
+
+    /* ── MAIN TABS ── */
+    .main-tabs-wrap {
+      margin-bottom: 22px;
+    }
+    .main-tabs {
+      display: flex;
+      gap: 6px;
+      background: white;
+      border-radius: 18px;
+      padding: 8px;
+      box-shadow: 0 4px 20px rgba(15,23,42,.07);
+      overflow-x: auto;
+    }
+    .main-tab {
+      flex: 1;
+      min-width: 110px;
+      padding: 11px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      text-align: center;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    .main-tab:hover { background: #f1f5f9; color: #0f172a; }
+    .main-tab.active {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: white;
+      box-shadow: 0 4px 12px rgba(15,23,42,.25);
+    }
+    .main-tab.active.tab-analisis  { background: linear-gradient(135deg,#0ea5e9,#38bdf8); color:#0f172a; }
+    .main-tab.active.tab-riesgos   { background: linear-gradient(135deg,#ef4444,#fb7185); color:white; }
+    .main-tab.active.tab-agentes   { background: linear-gradient(135deg,#8b5cf6,#a78bfa); color:white; }
+    .main-tab.active.tab-cliente   { background: linear-gradient(135deg,#0284c7,#0ea5e9); color:white; }
+
+    /* Tab sections */
+    .tab-section { display: none; }
+    .tab-section.active { display: block; }
+
+    /* ── RESPONSIVE ── */    /* ── RESPONSIVE ── */
+    @media(max-width:1100px) {
+      .filters-grid, .cards { grid-template-columns: repeat(2,1fr); }
+      .charts-2, .charts-3  { grid-template-columns: 1fr; }
+    }
+    @media(max-width:640px) {
+      .filters-grid, .cards { grid-template-columns: 1fr; }
+    }
+  
+    /* ── PORTAL OVERRIDES ── */
+    /* Remove client-mode and internal-only logic — not needed here */
+    .client-only, .internal-only { display: block !important; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1>📋 Portal QA — Aplazo</h1>
+      <p>Evaluaciones realizadas por evaluadores @aplazo.mx</p>
+    </div>
+    <div class="header-meta" style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+      <span id="lastUpdated" style="color:#94a3b8;font-size:12px;">–</span>
+      <span id="recordCount" style="color:#62d3f5;font-weight:700;font-size:12px;">–</span>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters-sticky-wrap">
+    <div class="filters">
+      <div class="filters-grid" style="grid-template-columns: repeat(6,1fr);">
+        <div><label>Fecha inicio</label><input type="date" id="startDate"/></div>
+        <div><label>Fecha fin</label><input type="date" id="endDate"/></div>
+        <div><label>LOB</label><select id="lobFilter"><option value="">Todos</option></select></div>
+        <div><label>Queue</label><select id="queueFilter"><option value="">Todas</option></select></div>
+        <div><label>Agente</label><select id="agentFilter"><option value="">Todos</option></select></div>
+        <div><label>&nbsp;</label><button id="btnRefresh">🔄 Actualizar</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN TABS -->
+  <div class="main-tabs-wrap">
+    <div class="main-tabs">
+      <button class="main-tab active"       data-tab="resumen">📊 Resumen</button>
+      <button class="main-tab tab-analisis" data-tab="analisis">📈 Tendencias</button>
+      <button class="main-tab tab-riesgos"  data-tab="fallas">🔴 Fallas</button>
+      <button class="main-tab tab-agentes"  data-tab="agentes">👤 Agentes</button>
+      <button class="main-tab"              data-tab="evaluaciones">📝 Evaluaciones</button>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB: RESUMEN ══════════ -->
+  <div class="tab-section active" id="tab-resumen">
+    <div class="section-title">Resumen ejecutivo</div>
+    <div class="cards">
+      <div class="card">
+        <div class="muted">Avg QA Score</div>
+        <div class="metric" id="kAvgScore">–</div>
+        <div class="trend flat" id="kTrendScore">–</div>
+      </div>
+      <div class="card">
+        <div class="muted">Evaluaciones</div>
+        <div class="metric" id="kTotal">–</div>
+        <div class="trend flat" id="kTrendTotal">–</div>
+      </div>
+      <div class="card danger">
+        <div class="muted">Critical Error Rate</div>
+        <div class="metric" id="kCritRate">–</div>
+        <div class="trend flat" id="kTrendCrit">–</div>
+      </div>
+      <div class="card warn">
+        <div class="muted">Weekly Zero</div>
+        <div class="metric" id="kZeros">–</div>
+        <div class="trend flat" id="kTrendZero">–</div>
+      </div>
+      <div class="card success">
+        <div class="muted">Agentes evaluados</div>
+        <div class="metric" id="kAgents">–</div>
+        <div class="trend flat" id="kTrendAgents">–</div>
+      </div>
+    </div>
+    <div class="insight" id="insightBar">
+      <span class="loading-spinner"></span> Cargando insights...
+    </div>
+    <div class="charts-2">
+      <div class="chart-card">
+        <h3>📅 Comparativa semana vs semana anterior</h3>
+        <table>
+          <thead><tr>
+            <th>Semana</th><th>Evaluaciones</th><th>Avg Score</th><th>Critical %</th><th>Δ Score</th>
+          </tr></thead>
+          <tbody id="tblWeekly"></tbody>
+        </table>
+      </div>
+      <div class="chart-card"><h3>📊 Distribución de scores</h3><canvas id="chartHisto"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB: TENDENCIAS ══════════ -->
+  <div class="tab-section" id="tab-analisis">
+    <div class="section-title">Score semanal y rendimiento por grupo</div>
+    <div class="charts-2">
+      <div class="chart-card"><h3>📈 Score semanal</h3><canvas id="chartWeekly"></canvas></div>
+      <div class="chart-card">
+        <h3>🏢 Rendimiento por grupo</h3>
+        <div class="tabs" id="groupTabs">
+          <div class="tab active" data-group="lob_key">LOB</div>
+          <div class="tab" data-group="queue_key">Queue</div>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Grupo</th><th>Evals</th><th>Avg Score</th><th>Critical %</th><th>Weekly Zero</th>
+          </tr></thead>
+          <tbody id="tblGroup"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>👤 Estadísticas por evaluador (@aplazo.mx)</h3>
+      <table>
+        <thead><tr>
+          <th>Evaluador</th><th>Evaluaciones</th><th>Score prom.</th><th>Críticos</th><th>Zeros</th><th>Agentes únicos</th>
+        </tr></thead>
+        <tbody id="tblEvaluator"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB: FALLAS ══════════ -->
+  <div class="tab-section" id="tab-fallas">
+    <div class="section-title">Análisis de fallas</div>
+    <div class="charts-2">
+      <div class="chart-card" id="paretoCard">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 style="margin:0;" id="paretoCardTitle">🔴 Pareto de fallas</h3>
+          <button id="paretoToggleBtn" style="width:auto;padding:8px 16px;font-size:12px;border-radius:999px;background:#f1f5f9;color:#0f172a;border:1.5px solid #e2e8f0;">
+            📐 Ver detalle por rubro
+          </button>
+        </div>
+        <div id="paretoView"><canvas id="chartPareto"></canvas></div>
+        <div id="rubricDetailView" style="display:none;overflow-x:auto;"></div>
+      </div>
+      <div class="chart-card">
+        <h3>🚨 Top errores críticos</h3>
+        <div id="critList" class="critical-list">
+          <div class="muted"><span class="loading-spinner"></span> Cargando...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB: AGENTES ══════════ -->
+  <div class="tab-section" id="tab-agentes">
+    <div class="section-title">Score promedio por rubro por agente</div>
+    <div class="table-card" style="overflow-x:auto;">
+      <h3>📐 Score promedio por rubro (filtrado por periodo seleccionado)</h3>
+      <div id="rubricTableWrapper">
+        <div class="muted" style="padding:16px 0;"><span class="loading-spinner"></span> Cargando rubros...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB: EVALUACIONES ══════════ -->
+  <div class="tab-section" id="tab-evaluaciones">
+    <div class="section-title">Detalle de evaluaciones</div>
+    <div class="table-card">
+      <h3>📝 Evaluaciones realizadas</h3>
+      <table>
+        <thead><tr>
+          <th>Fecha</th><th>Agente</th><th>LOB</th><th>Queue</th>
+          <th>Score</th><th>EC</th><th>Evaluador</th><th>Feedback</th>
+        </tr></thead>
+        <tbody id="tblEvals"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- AGENT HISTORY MODAL -->
+  <div class="eval-modal-overlay" id="agentHistoryOverlay" style="z-index:100000;">
+    <div class="eval-modal" style="max-width:900px;width:100%;">
+      <div class="eval-modal-header">
+        <div>
+          <h2 id="agentHistoryTitle">Historial del agente</h2>
+          <div id="agentHistorySubtitle" style="font-size:12px;color:#64748b;margin-top:2px;">Últimos 3 meses</div>
+        </div>
+        <button class="eval-modal-close" id="agentHistoryClose">✕</button>
+      </div>
+      <div class="eval-modal-body" id="agentHistoryBody"></div>
+    </div>
+  </div>
+
+  <!-- EVAL DETAIL MODAL -->
+  <div class="eval-modal-overlay" id="evalModalOverlay">
+    <div class="eval-modal">
+      <div class="eval-modal-header">
+        <h2 id="evalModalTitle">Detalle de evaluación</h2>
+        <button class="eval-modal-close" id="evalModalClose">✕</button>
+      </div>
+      <div class="eval-modal-body" id="evalModalBody"></div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+<script>
+const SUPABASE_URL      = "https://kpuqabxmpavxgbzxzlng.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwdXFhYnhtcGF2eGdienh6bG5nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2OTk1NzAsImV4cCI6MjA4MDI3NTU3MH0.CoB4NA6Z8qtTrRzvIqfP-hm3T1m24WpRNI1Xc74all8";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ── ONLY load evals from @aplazo.mx evaluators ── */
+const APLAZO_DOMAIN = "@aplazo.mx";
+
+let allData = [];
+let chartWeekly, chartHisto, chartPareto, agentHistoryChart, riskChart;
+const evalMap = {};
+let groupTabsGroup = "lob_key";
+let paretoShowingDetail = false;
+let rubricDetailBuilt   = false;
+
+/* ── UTILS ── */
+async function fetchAll(q, ps=1000) {
+  let rows=[], from=0, go=true;
+  while(go){
+    const {data,error} = await q.range(from, from+ps-1);
+    if(error){console.error(error);break;}
+    rows=rows.concat(data||[]);
+    if(!data||data.length<ps) go=false; else from+=ps;
+  }
+  return rows;
+}
+function scoreColor(s){ return s>=90?'#22c55e':s>=75?'#f59e0b':'#ef4444'; }
+function destroy(c){ if(c) c.destroy(); }
+function getFilters(){
+  return {
+    start: document.getElementById('startDate').value,
+    end:   document.getElementById('endDate').value,
+    lob:   document.getElementById('lobFilter').value,
+    queue: document.getElementById('queueFilter').value,
+    agent: document.getElementById('agentFilter').value,
+  };
+}
+function deltaArrow(val, prev) {
+  if (prev===null||prev===undefined) return {text:'—',cls:'flat'};
+  const d=val-prev;
+  if(Math.abs(d)<0.01) return {text:'→ sin cambio',cls:'flat'};
+  return d>0?{text:`▲ ${d.toFixed(2)} vs periodo ant.`,cls:'up'}:{text:`▼ ${Math.abs(d).toFixed(2)} vs periodo ant.`,cls:'down'};
+}
+
+/* ── FILTER OPTIONS (only @aplazo.mx evaluators) ── */
+let filterCache=[];
+async function loadFilters(){
+  const q = sb.from('qa_v_evaluations_base')
+    .select('lob_key,queue_key,agent_identifier,agent_name,evaluator_name')
+    .like('evaluator_name', '%' + APLAZO_DOMAIN + '%');
+  filterCache = await fetchAll(q);
+  refreshFilters();
+  ['lobFilter','queueFilter','agentFilter'].forEach(id=>{
+    document.getElementById(id)?.addEventListener('change', refreshFilters);
+  });
+}
+function refreshFilters(){
+  const sel={lob:document.getElementById('lobFilter').value, queue:document.getElementById('queueFilter').value, agent:document.getElementById('agentFilter').value};
+  const filt=(excl)=>filterCache.filter(r=>{
+    if(excl!=='lob'   && sel.lob   && r.lob_key!==sel.lob)    return false;
+    if(excl!=='queue' && sel.queue && r.queue_key!==sel.queue) return false;
+    if(excl!=='agent' && sel.agent && r.agent_identifier!==sel.agent) return false;
+    return true;
+  });
+  const fill=(id,vals,label='Todos')=>{
+    const el=document.getElementById(id); const cur=el.value;
+    el.innerHTML=`<option value="">${label}</option>`;
+    [...new Set(vals)].filter(Boolean).sort().forEach(v=>{ const o=document.createElement('option'); o.value=o.textContent=v; el.appendChild(o); });
+    if([...el.options].some(o=>o.value===cur)) el.value=cur;
+  };
+  fill('lobFilter',   filt('lob').map(r=>r.lob_key));
+  fill('queueFilter', filt('queue').map(r=>r.queue_key));
+  const agents=filt('agent').filter(r=>r.agent_identifier&&r.agent_name)
+    .reduce((a,r)=>{a[r.agent_identifier]=r.agent_name;return a;},{});
+  const agSel=document.getElementById('agentFilter'); const curAg=agSel.value;
+  agSel.innerHTML='<option value="">Todos</option>';
+  Object.entries(agents).sort((a,b)=>a[1].localeCompare(b[1],'es')).forEach(([id,name])=>{
+    const o=document.createElement('option'); o.value=id; o.textContent=`${name}`; agSel.appendChild(o);
+  });
+  if([...agSel.options].some(o=>o.value===curAg)) agSel.value=curAg;
+}
+
+/* ── MAIN LOAD ── */
+async function load(){
+  const f=getFilters();
+  document.getElementById('lastUpdated').textContent='Cargando...';
+
+  /* KEY FILTER: only @aplazo.mx evaluators */
+  let q = sb.from('qa_v_evaluations_base').select('*')
+    .like('evaluator_name', '%' + APLAZO_DOMAIN + '%');
+  if(f.start) q=q.gte('created_date_cdmx',f.start);
+  if(f.end)   q=q.lte('created_date_cdmx',f.end);
+  if(f.lob)   q=q.eq('lob_key',f.lob);
+  if(f.queue) q=q.eq('queue_key',f.queue);
+  if(f.agent) q=q.eq('agent_identifier',f.agent);
+  allData = await fetchAll(q);
+
+  document.getElementById('lastUpdated').textContent=new Date().toLocaleString('es-MX');
+  document.getElementById('recordCount').textContent=`${allData.length} registros`;
+
+  renderKpis(f);
+  renderWeekly();
+  renderHisto();
+  renderWeeklyTable();
+  renderGroupTable();
+  renderEvaluatorTable();
+  renderPareto(f);
+  renderCriticals(f);
+  renderRubricAgent(f);
+  renderEvals();
+
+  /* reset pareto toggle on refresh */
+  paretoShowingDetail=false; rubricDetailBuilt=false;
+  const pv=document.getElementById('paretoView');
+  const dv=document.getElementById('rubricDetailView');
+  const btn=document.getElementById('paretoToggleBtn');
+  const ttl=document.getElementById('paretoCardTitle');
+  if(pv) pv.style.display='block';
+  if(dv){dv.style.display='none';dv.innerHTML='';}
+  if(btn){btn.textContent='📐 Ver detalle por rubro';btn.style.background='#f1f5f9';btn.style.borderColor='#e2e8f0';btn.style.color='#0f172a';}
+  if(ttl) ttl.textContent='🔴 Pareto de fallas';
+}
+
+/* ── KPIS ── */
+async function renderKpis(f){
+  const n=allData.length;
+  const avg=n?allData.reduce((s,r)=>s+Number(r.score_final||0),0)/n:0;
+  const crits=allData.filter(r=>r.critical_error_triggered).length;
+  const zeros=allData.filter(r=>r.weekly_zero_triggered).length;
+  const agents=new Set(allData.map(r=>r.agent_identifier||r.agent_name).filter(Boolean)).size;
+  const critRate=n?(crits/n)*100:0;
+
+  document.getElementById('kAvgScore').textContent=avg.toFixed(2)+'%';
+  document.getElementById('kTotal').textContent=n;
+  document.getElementById('kCritRate').textContent=critRate.toFixed(2)+'%';
+  document.getElementById('kZeros').textContent=zeros;
+  document.getElementById('kAgents').textContent=agents;
+
+  /* prev period */
+  let prevAvg=null,prevTotal=null,prevCritRate=null,prevZero=null;
+  try{
+    const start=new Date(f.start||new Date(Date.now()-7*86400000));
+    const end=new Date(f.end||new Date());
+    const dur=end-start;
+    const ps=new Date(start-dur).toISOString().split('T')[0];
+    const pe=new Date(start-1).toISOString().split('T')[0];
+    let pq=sb.from('qa_v_evaluations_base').select('score_final,critical_error_triggered,weekly_zero_triggered')
+      .like('evaluator_name','%'+APLAZO_DOMAIN+'%')
+      .gte('created_date_cdmx',ps).lte('created_date_cdmx',pe);
+    if(f.lob)   pq=pq.eq('lob_key',f.lob);
+    if(f.queue) pq=pq.eq('queue_key',f.queue);
+    if(f.agent) pq=pq.eq('agent_identifier',f.agent);
+    const pd=await fetchAll(pq);
+    if(pd.length){
+      prevTotal=pd.length;
+      prevAvg=pd.reduce((s,r)=>s+Number(r.score_final||0),0)/pd.length;
+      prevCritRate=(pd.filter(r=>r.critical_error_triggered).length/pd.length)*100;
+      prevZero=pd.filter(r=>r.weekly_zero_triggered).length;
+    }
+  }catch(e){}
+
+  const t1=deltaArrow(avg,prevAvg);
+  const t2=deltaArrow(n,prevTotal);
+  const t3=deltaArrow(critRate,prevCritRate);
+  const t4=deltaArrow(zeros,prevZero);
+  function setTrend(id,t){const el=document.getElementById(id);el.textContent=t.text;el.className=`trend ${t.cls}`;}
+  setTrend('kTrendScore',t1); setTrend('kTrendTotal',t2);
+  setTrend('kTrendCrit',t3);  setTrend('kTrendZero',t4);
+  document.getElementById('kTrendAgents').textContent=`${agents} agentes únicos`;
+  document.getElementById('kTrendAgents').className='trend flat';
+
+  document.getElementById('insightBar').innerHTML=n
+    ?`En el periodo se realizaron <strong>${n}</strong> evaluaciones (evaluadores @aplazo.mx) con un score promedio de <strong>${avg.toFixed(2)}%</strong>. Se detectaron <strong>${crits}</strong> error(es) crítico(s) y <strong>${zeros}</strong> caso(s) de Weekly Zero. <strong>${agents}</strong> agentes únicos evaluados.`
+    :'No hay evaluaciones para los filtros seleccionados.';
+}
+
+/* ── WEEKLY CHART ── */
+function getWeekMonday(d){
+  const dt=new Date(d+'T12:00:00'),dow=dt.getDay();
+  dt.setDate(dt.getDate()+(dow===0?-6:1-dow));
+  return dt.toISOString().split('T')[0];
+}
+function renderWeekly(){
+  const byW={};
+  allData.forEach(r=>{
+    if(!r.created_date_cdmx)return;
+    const w=getWeekMonday(r.created_date_cdmx);
+    if(!byW[w]) byW[w]=[];
+    byW[w].push(Number(r.score_final||0));
+  });
+  const labels=Object.keys(byW).sort();
+  const vals=labels.map(w=>{const a=byW[w];return a.reduce((s,v)=>s+v,0)/a.length;});
+  destroy(chartWeekly);
+  chartWeekly=new Chart(document.getElementById('chartWeekly'),{
+    type:'line',
+    data:{labels,datasets:[{label:'Score',data:vals,borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.1)',borderWidth:3,tension:0.35,pointRadius:5,fill:true}]},
+    options:{responsive:true,plugins:{legend:{display:false},datalabels:{align:'top',anchor:'end',color:'#0f172a',font:{weight:'bold',size:11},formatter:v=>v.toFixed(2)+'%'}},scales:{y:{beginAtZero:false,ticks:{callback:v=>v+'%'}}}},
+    plugins:[ChartDataLabels]
+  });
+}
+
+/* ── HISTOGRAM ── */
+function renderHisto(){
+  const bins=['<60','60–69','70–79','80–89','90–94','95–100'],counts=[0,0,0,0,0,0];
+  allData.forEach(r=>{const s=Number(r.score_final||0);if(s<60)counts[0]++;else if(s<70)counts[1]++;else if(s<80)counts[2]++;else if(s<90)counts[3]++;else if(s<95)counts[4]++;else counts[5]++;});
+  destroy(chartHisto);
+  chartHisto=new Chart(document.getElementById('chartHisto'),{
+    type:'bar',
+    data:{labels:bins,datasets:[{data:counts,backgroundColor:['#ef4444','#f97316','#f59e0b','#84cc16','#22c55e','#16a34a'],borderRadius:8}]},
+    options:{responsive:true,plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',color:'#0f172a',font:{weight:'bold',size:11},formatter:v=>v}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}},
+    plugins:[ChartDataLabels]
+  });
+}
+
+/* ── WEEKLY TABLE ── */
+function renderWeeklyTable(){
+  const byW={};
+  allData.forEach(r=>{
+    if(!r.created_date_cdmx)return;
+    const w=getWeekMonday(r.created_date_cdmx);
+    if(!byW[w]) byW[w]={scores:[],crits:0};
+    byW[w].scores.push(Number(r.score_final||0));
+    if(r.critical_error_triggered) byW[w].crits++;
+  });
+  const weeks=Object.keys(byW).sort().reverse().slice(0,8).reverse();
+  const rows=weeks.map(w=>({week:w,evals:byW[w].scores.length,avg:byW[w].scores.reduce((a,b)=>a+b,0)/byW[w].scores.length,critPct:(byW[w].crits/byW[w].scores.length)*100}));
+  document.getElementById('tblWeekly').innerHTML=rows.map((r,i)=>{
+    const prev=i>0?rows[i-1]:null;
+    const d=prev?deltaArrow(r.avg,prev.avg):null;
+    return `<tr><td><strong>${r.week}</strong></td><td>${r.evals}</td><td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td><td>${r.critPct.toFixed(1)}%</td><td class="${d?`delta-${d.cls}`:'delta-flat'}">${d?d.text:'—'}</td></tr>`;
+  }).join('');
+}
+
+/* ── GROUP TABLE ── */
+function renderGroupTable(){
+  const grp={};
+  allData.forEach(r=>{
+    const g=r[groupTabsGroup]||'Sin clasificar';
+    if(!grp[g]) grp[g]={scores:[],crits:0,zeros:0};
+    grp[g].scores.push(Number(r.score_final||0));
+    if(r.critical_error_triggered) grp[g].crits++;
+    if(r.weekly_zero_triggered)    grp[g].zeros++;
+  });
+  const rows=Object.entries(grp).map(([g,v])=>({g,evals:v.scores.length,avg:v.scores.reduce((a,b)=>a+b,0)/v.scores.length,critPct:(v.crits/v.scores.length)*100,zeros:v.zeros})).sort((a,b)=>b.evals-a.evals);
+  document.getElementById('tblGroup').innerHTML=rows.map(r=>`<tr><td><strong>${r.g}</strong></td><td>${r.evals}</td><td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td><td>${r.critPct.toFixed(1)}%</td><td>${r.zeros}</td></tr>`).join('');
+}
+
+/* ── EVALUATOR TABLE ── */
+function renderEvaluatorTable(){
+  const grp={};
+  allData.forEach(r=>{
+    const ev=r.evaluator_name||'Sin evaluador';
+    if(!grp[ev]) grp[ev]={scores:[],crits:0,zeros:0,agents:new Set()};
+    grp[ev].scores.push(Number(r.score_final||0));
+    if(r.critical_error_triggered) grp[ev].crits++;
+    if(r.weekly_zero_triggered)    grp[ev].zeros++;
+    if(r.agent_identifier||r.agent_name) grp[ev].agents.add(r.agent_identifier||r.agent_name);
+  });
+  const rows=Object.entries(grp).map(([ev,v])=>({evaluator:ev,evals:v.scores.length,avg:v.scores.reduce((a,b)=>a+b,0)/v.scores.length,crits:v.crits,zeros:v.zeros,agents:v.agents.size})).sort((a,b)=>b.evals-a.evals);
+  document.getElementById('tblEvaluator').innerHTML=rows.map(r=>`
+    <tr>
+      <td><strong>${r.evaluator}</strong></td>
+      <td>${r.evals}</td>
+      <td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td>
+      <td>${r.crits} <span class="badge badge-red">${r.evals?((r.crits/r.evals)*100).toFixed(1):0}%</span></td>
+      <td>${r.zeros}</td>
+      <td>${r.agents}</td>
+    </tr>`).join('');
+}
+
+/* ── PARETO ── */
+async function renderPareto(f){
+  let q=sb.from('qa_v_evaluation_responses_detail').select('rubric_item,field_key')
+    .eq('failed_item',true)
+    .like('evaluator_name','%'+APLAZO_DOMAIN+'%');
+  if(f.start) q=q.gte('created_at',f.start+'T00:00:00');
+  if(f.end)   q=q.lte('created_at',f.end+'T23:59:59');
+  if(f.lob)   q=q.eq('lob_key',f.lob);
+  if(f.queue) q=q.eq('queue_key',f.queue);
+  if(f.agent) q=q.eq('agent_identifier',f.agent);
+  const data=await fetchAll(q);
+  const grp={};
+  (data||[]).forEach(r=>{const k=r.rubric_item||r.field_key||'Desconocido'; grp[k]=(grp[k]||0)+1;});
+  const total=Object.values(grp).reduce((s,c)=>s+c,0);
+  const items=Object.entries(grp).map(([l,c])=>({l,c})).sort((a,b)=>b.c-a.c).slice(0,10);
+  let cum=0;
+  const cumPct=items.map(i=>{cum+=i.c; return total?(cum/total*100):0;});
+  destroy(chartPareto);
+  chartPareto=new Chart(document.getElementById('chartPareto'),{
+    type:'bar',
+    data:{labels:items.map(i=>i.l.length>32?i.l.slice(0,32)+'…':i.l),datasets:[
+      {type:'bar',label:'Fallas',data:items.map(i=>i.c),backgroundColor:'rgba(56,189,248,.7)',borderRadius:6,yAxisID:'y'},
+      {type:'line',label:'% acum',data:cumPct,borderColor:'#ef4444',borderWidth:2.5,pointRadius:4,tension:0.25,backgroundColor:'transparent',yAxisID:'y1'}
+    ]},
+    options:{responsive:true,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true},datalabels:{display:ctx=>ctx.dataset.type==='line',align:'top',anchor:'end',color:'#0f172a',font:{weight:'bold',size:10},formatter:v=>v.toFixed(0)+'%'}},scales:{y:{beginAtZero:true,position:'left',ticks:{precision:0}},y1:{beginAtZero:true,max:100,position:'right',grid:{drawOnChartArea:false},ticks:{callback:v=>v+'%'}}}},
+    plugins:[ChartDataLabels]
+  });
+}
+
+/* ── PARETO TOGGLE (rubro detail) ── */
+async function toggleParetoView(){
+  paretoShowingDetail=!paretoShowingDetail;
+  const btn=document.getElementById('paretoToggleBtn');
+  const ttl=document.getElementById('paretoCardTitle');
+  const pv=document.getElementById('paretoView');
+  const dv=document.getElementById('rubricDetailView');
+  if(paretoShowingDetail){
+    pv.style.display='none'; dv.style.display='block';
+    ttl.textContent='📐 Score por rubro';
+    btn.textContent='🔴 Ver Pareto de fallas';
+    btn.style.background='#ecfeff'; btn.style.borderColor='#a5f3fc'; btn.style.color='#164e63';
+    if(!rubricDetailBuilt) await buildRubricDetail();
+  } else {
+    pv.style.display='block'; dv.style.display='none';
+    ttl.textContent='🔴 Pareto de fallas';
+    btn.textContent='📐 Ver detalle por rubro';
+    btn.style.background='#f1f5f9'; btn.style.borderColor='#e2e8f0'; btn.style.color='#0f172a';
+  }
+}
+async function buildRubricDetail(){
+  const dv=document.getElementById('rubricDetailView');
+  dv.innerHTML='<div class="muted" style="padding:12px;"><span class="loading-spinner"></span> Cargando...</div>';
+  const f=getFilters();
+  let q=sb.from('qa_v_evaluation_responses_detail')
+    .select('rubric_item,field_key,calculated_score,weight,failed_item,is_bonus')
+    .like('evaluator_name','%'+APLAZO_DOMAIN+'%');
+  if(f.start) q=q.gte('created_at',f.start+'T00:00:00');
+  if(f.end)   q=q.lte('created_at',f.end+'T23:59:59');
+  if(f.lob)   q=q.eq('lob_key',f.lob);
+  if(f.queue) q=q.eq('queue_key',f.queue);
+  if(f.agent) q=q.eq('agent_identifier',f.agent);
+  const raw=(await fetchAll(q)).filter(r=>!r.is_bonus);
+  if(!raw.length){dv.innerHTML='<div class="muted" style="padding:12px;">Sin datos.</div>';return;}
+  const rm={};
+  raw.forEach(r=>{
+    const k=r.rubric_item||r.field_key||'Sin rubro';
+    const sc=Number(r.calculated_score||0),mx=Number(r.weight||0);
+    if(!rm[k]) rm[k]={sum:0,count:0,maxW:mx,fails:0};
+    rm[k].sum+=sc; rm[k].count++; if(r.failed_item) rm[k].fails++;
+    if(mx>rm[k].maxW) rm[k].maxW=mx;
+  });
+  const rows=Object.entries(rm).map(([rub,v])=>({rub,pct:v.maxW>0?(v.sum/v.count)/v.maxW*100:0,count:v.count,fails:v.fails})).sort((a,b)=>a.pct-b.pct);
+  function rc(p){return p>=90?{bg:'#dcfce7',cl:'#166534'}:p>=70?{bg:'#fef9c3',cl:'#854d0e'}:{bg:'#fee2e2',cl:'#991b1b'};}
+  dv.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr><th style="min-width:200px;background:#f8fafc;padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;">Rubro</th><th style="text-align:center;background:#f8fafc;padding:10px 12px;font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;">Evaluaciones</th><th style="text-align:center;background:#f8fafc;padding:10px 12px;font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;">Penalizaciones</th><th style="text-align:center;min-width:100px;background:#f8fafc;padding:10px 12px;font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;">Score</th></tr></thead><tbody>${rows.map(r=>{const c=rc(r.pct);return `<tr><td style="padding:10px 12px;border-bottom:1px solid #f1f5f9;"><strong>${r.rub}</strong></td><td style="text-align:center;padding:10px 12px;border-bottom:1px solid #f1f5f9;">${r.count}</td><td style="text-align:center;padding:10px 12px;border-bottom:1px solid #f1f5f9;">${r.fails}</td><td style="text-align:center;background:${c.bg};color:${c.cl};font-weight:800;border-radius:8px;padding:10px 12px;border-bottom:1px solid #f1f5f9;">${r.pct.toFixed(2)}%</td></tr>`;}).join('')}</tbody></table>`;
+  rubricDetailBuilt=true;
+}
+
+/* ── RUBRIC PER AGENT ── */
+async function renderRubricAgent(f){
+  const wrapper=document.getElementById('rubricTableWrapper');
+  wrapper.innerHTML='<div class="muted" style="padding:16px;"><span class="loading-spinner"></span> Cargando...</div>';
+  if(!allData.length){wrapper.innerHTML='<div class="muted" style="padding:16px;">Sin datos.</div>';return;}
+  const agEvals={},agScores={},agNames={},validKeys=new Set();
+  allData.forEach(r=>{
+    const k=r.agent_identifier||r.agent_name||'Unknown';
+    agEvals[k]=(agEvals[k]||0)+1; agScores[k]=(agScores[k]||0)+Number(r.score_final||0);
+    if(!agNames[k]) agNames[k]=r.agent_name||k; validKeys.add(k);
+  });
+  let q=sb.from('qa_v_evaluation_responses_detail')
+    .select('agent_identifier,agent_name,rubric_item,field_key,calculated_score,weight,is_bonus')
+    .like('evaluator_name','%'+APLAZO_DOMAIN+'%');
+  if(f.start) q=q.gte('created_at',f.start+'T00:00:00');
+  if(f.end)   q=q.lte('created_at',f.end+'T23:59:59');
+  if(f.lob)   q=q.eq('lob_key',f.lob);
+  if(f.queue) q=q.eq('queue_key',f.queue);
+  if(f.agent) q=q.eq('agent_identifier',f.agent);
+  const raw=(await fetchAll(q)).filter(r=>!r.is_bonus&&validKeys.has(r.agent_identifier||r.agent_name||'Unknown'));
+  const rubSet=new Set(),agMap={};
+  raw.forEach(r=>{
+    const k=r.agent_identifier||r.agent_name||'Unknown',rub=r.rubric_item||r.field_key||'Sin rubro';
+    const sc=Number(r.calculated_score||0),mx=Number(r.weight||0);
+    rubSet.add(rub);
+    if(!agMap[k]) agMap[k]={};
+    if(!agMap[k][rub]) agMap[k][rub]={sum:0,count:0,maxW:mx};
+    agMap[k][rub].sum+=sc; agMap[k][rub].count++;
+    if(mx>agMap[k][rub].maxW) agMap[k][rub].maxW=mx;
+  });
+  const rubrics=[...rubSet].sort();
+  const agents=[...validKeys].map(k=>({k,name:agNames[k]||k,evals:agEvals[k]||0,avg:agEvals[k]?(agScores[k]/agEvals[k]):0,rubs:agMap[k]||{}})).sort((a,b)=>b.avg-a.avg);
+  function rcCls(avg,mx){if(!mx)return 'rubric-cell-gray';const p=(avg/mx)*100;return p>=90?'rubric-cell-green':p>=70?'rubric-cell-yellow':'rubric-cell-red';}
+  const ths=rubrics.map(r=>`<th title="${r}" style="min-width:80px;">${r.length>22?r.slice(0,22)+'…':r}</th>`).join('');
+  const tbody=agents.map(a=>{
+    const cells=rubrics.map(r=>{
+      const d=a.rubs[r]; if(!d||!d.count) return '<td class="rubric-cell-gray">—</td>';
+      const avg=d.sum/d.count,cls=rcCls(avg,d.maxW);
+      return `<td class="${cls}">${avg.toFixed(2)}</td>`;
+    }).join('');
+    return `<tr>
+      <td><span onclick="openAgentHistory('${a.k.replace(/'/g,"\'")}','${a.name.replace(/'/g,"\'")}' )" style="cursor:pointer;color:#0284c7;font-weight:700;text-decoration:underline;" title="Ver historial">${a.name}</span></td>
+      <td style="text-align:center;">${a.evals}</td>
+      <td style="text-align:center;color:${scoreColor(a.avg)};font-weight:700;">${a.avg.toFixed(2)}%</td>
+      ${cells}
+    </tr>`;
+  }).join('');
+  wrapper.innerHTML=`<div style="overflow-x:auto;"><table class="rubric-table" style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr><th style="min-width:160px;">Agente</th><th style="text-align:center;min-width:60px;"># Evals</th><th style="text-align:center;min-width:80px;">Score</th>${ths}</tr></thead><tbody>${tbody}</tbody></table></div>`;
+}
+
+/* ── CRITICALS ── */
+async function renderCriticals(f){
+  let q=sb.from('qa_v_policy_flags_detail').select('policy_flag,display_label,field_key')
+    .like('evaluator_name','%'+APLAZO_DOMAIN+'%');
+  if(f.start) q=q.gte('created_date_cdmx',f.start);
+  if(f.end)   q=q.lte('created_date_cdmx',f.end);
+  if(f.lob)   q=q.eq('lob_key',f.lob);
+  if(f.queue) q=q.eq('queue_key',f.queue);
+  if(f.agent) q=q.eq('agent_identifier',f.agent);
+  const data=await fetchAll(q);
+  const grp={};
+  (data||[]).forEach(r=>{const k=r.policy_flag||r.display_label||r.field_key||'Unknown'; grp[k]=(grp[k]||0)+1;});
+  const items=Object.entries(grp).map(([l,c])=>({l,c})).sort((a,b)=>b.c-a.c).slice(0,8);
+  const mx=items.length?Math.max(...items.map(i=>i.c)):0;
+  document.getElementById('critList').innerHTML=items.length?items.map(i=>`
+    <div class="critical-card" title="${i.l}">
+      <div class="critical-card-header">
+        <div class="critical-title">${i.l.length>40?i.l.slice(0,40)+'…':i.l}</div>
+        <div class="critical-count">${i.c}</div>
+      </div>
+      <div class="critical-bar"><div class="critical-bar-fill" style="width:${mx?(i.c/mx*100):0}%"></div></div>
+    </div>`).join('')
+  :'<div class="muted" style="padding:8px;">Sin errores críticos en este periodo.</div>';
+}
+
+/* ── EVALS TABLE ── */
+function renderEvals(){
+  const rows=[...allData].sort((a,b)=>(b.created_date_cdmx||'').localeCompare(a.created_date_cdmx||''));
+  document.getElementById('tblEvals').innerHTML=rows.map((r,i)=>{
+    const k='ev_'+i; evalMap[k]=r;
+    const sc=Number(r.score_final||0);
+    const fb=r.feedback?(r.feedback.length>50?r.feedback.slice(0,50)+'…':r.feedback):'Sin feedback';
+    return `<tr style="cursor:pointer;" onclick="openEvalModal('${k}')" title="Ver detalle completo">
+      <td>${r.created_date_cdmx||''}</td>
+      <td><strong>${r.agent_name||''}</strong></td>
+      <td>${r.lob_key||''}</td>
+      <td>${r.queue_key||''}</td>
+      <td style="color:${scoreColor(sc)};font-weight:700;">${sc}%</td>
+      <td>${r.critical_error_triggered?'<span class="badge badge-red">Sí</span>':'<span class="badge badge-green">No</span>'}</td>
+      <td style="font-size:12px;color:#64748b;">${r.evaluator_name||'–'}</td>
+      <td style="color:#475569;">${fb}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── EVAL MODAL ── */
+async function openEvalModal(key){
+  const row=evalMap[key]; if(!row)return;
+  const overlay=document.getElementById('evalModalOverlay');
+  const body=document.getElementById('evalModalBody');
+  document.getElementById('evalModalTitle').textContent=row.agent_name||'Detalle';
+  body.innerHTML='<div class="muted" style="padding:20px;text-align:center;"><span class="loading-spinner"></span> Cargando...</div>';
+  overlay.classList.add('active');
+  const sc=Number(row.score_final||0);
+  const kpis=`
+    <div class="eval-modal-kpis">
+      <div class="eval-modal-kpi"><div class="label">Fecha</div><div class="value" style="font-size:16px;">${row.created_date_cdmx||'–'}</div></div>
+      <div class="eval-modal-kpi"><div class="label">Score</div><div class="value" style="color:${scoreColor(sc)}">${sc}%</div></div>
+      <div class="eval-modal-kpi"><div class="label">Error Crítico</div><div class="value" style="font-size:15px;">${row.critical_error_triggered?'<span class="badge badge-red">Sí</span>':'<span class="badge badge-green">No</span>'}</div></div>
+    </div>
+    <div class="eval-modal-kpis" style="grid-template-columns:repeat(4,1fr);">
+      <div class="eval-modal-kpi"><div class="label">LOB</div><div class="value" style="font-size:13px;">${row.lob_key||'–'}</div></div>
+      <div class="eval-modal-kpi"><div class="label">Queue</div><div class="value" style="font-size:13px;">${row.queue_key||'–'}</div></div>
+      <div class="eval-modal-kpi"><div class="label">Evaluador</div><div class="value" style="font-size:12px;">${row.evaluator_name||'–'}</div></div>
+      <div class="eval-modal-kpi"><div class="label">Weekly Zero</div><div class="value" style="font-size:13px;">${row.weekly_zero_triggered?'<span class="badge badge-yellow">Sí</span>':'<span class="badge badge-green">No</span>'}</div></div>
+    </div>`;
+  const feedback=`<div class="eval-modal-section"><h4>💬 Feedback</h4><p>${row.feedback||'Sin feedback registrado.'}</p>${row.interaction_link?`<a href="${row.interaction_link}" target="_blank" class="eval-feedback-link">🔗 Ver interacción</a>`:''}</div>`;
+  const commitment=`<div class="eval-modal-section"><h4>📋 Compromiso del agente</h4><p>${row.agent_commitment||'Sin compromiso registrado.'}</p></div>`;
+  let rubricHtml='';
+  try{
+    const evalId=row.evaluation_id||row.id;
+    if(evalId){
+      const {data:rd}=await sb.from('qa_v_evaluation_responses_detail').select('rubric_item,field_key,calculated_score,weight,failed_item,is_bonus').eq('evaluation_id',evalId);
+      const rData=(rd||[]).filter(r=>!r.is_bonus);
+      if(rData.length){
+        const rubricRows=rData.map(r=>{
+          const rub=r.rubric_item||r.field_key||'Sin rubro';
+          const sc2=Number(r.calculated_score||0),mx=Number(r.weight||0),pct=mx>0?(sc2/mx)*100:0;
+          const bg=pct>=90?'#dcfce7':pct>=70?'#fef9c3':'#fee2e2',cl=pct>=90?'#166534':pct>=70?'#854d0e':'#991b1b';
+          return `<tr><td>${rub}</td><td style="text-align:center;">${r.failed_item?'<span class="badge badge-red">Falla</span>':'<span class="badge badge-green">OK</span>'}</td><td style="text-align:center;background:${bg};color:${cl};font-weight:700;border-radius:6px;">${pct.toFixed(2)}%</td><td style="text-align:center;color:#94a3b8;">${sc2}/${mx}</td></tr>`;
+        }).join('');
+        rubricHtml=`<div class="eval-modal-section"><h4>📐 Score por rubro</h4><table class="eval-modal-rubrics"><thead><tr><th>Rubro</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Score</th><th style="text-align:center;">Pts</th></tr></thead><tbody>${rubricRows}</tbody></table></div>`;
+      }
+    }
+  }catch(e){}
+  body.innerHTML=kpis+feedback+commitment+rubricHtml;
+}
+
+/* ── AGENT HISTORY ── */
+async function openAgentHistory(agentId, agentName){
+  const overlay=document.getElementById('agentHistoryOverlay');
+  const body=document.getElementById('agentHistoryBody');
+  document.getElementById('agentHistoryTitle').textContent=agentName;
+  body.innerHTML='<div class="muted" style="padding:30px;text-align:center;"><span class="loading-spinner"></span> Cargando historial...</div>';
+  overlay.classList.add('active');
+  const today=new Date(), back=new Date(today); back.setMonth(today.getMonth()-3);
+  const dateFrom=back.toISOString().split('T')[0], dateTo=today.toISOString().split('T')[0];
+  document.getElementById('agentHistorySubtitle').textContent=`Historial: ${dateFrom} → ${dateTo}`;
+  const {data:evals}=await sb.from('qa_v_evaluations_base').select('*')
+    .eq('agent_identifier',agentId)
+    .like('evaluator_name','%'+APLAZO_DOMAIN+'%')
+    .gte('created_date_cdmx',dateFrom).lte('created_date_cdmx',dateTo)
+    .order('created_date_cdmx',{ascending:true});
+  if(!evals||!evals.length){body.innerHTML='<div class="muted" style="padding:30px;text-align:center;">No hay evaluaciones en los últimos 3 meses.</div>';return;}
+  const n=evals.length, avgSc=evals.reduce((s,r)=>s+Number(r.score_final||0),0)/n;
+  const crits=evals.filter(r=>r.critical_error_triggered).length, zeros=evals.filter(r=>r.weekly_zero_triggered).length;
+  const kpis=`<div class="eval-modal-kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
+    <div class="eval-modal-kpi"><div class="label">Evaluaciones</div><div class="value">${n}</div></div>
+    <div class="eval-modal-kpi"><div class="label">Avg Score</div><div class="value" style="color:${scoreColor(avgSc)}">${avgSc.toFixed(2)}%</div></div>
+    <div class="eval-modal-kpi"><div class="label">Errores Críticos</div><div class="value" style="color:${crits>0?'#ef4444':'#22c55e'}">${crits}</div></div>
+    <div class="eval-modal-kpi"><div class="label">Weekly Zeros</div><div class="value" style="color:${zeros>0?'#f59e0b':'#22c55e'}">${zeros}</div></div>
+  </div>`;
+  const byW={};
+  evals.forEach(r=>{if(!r.created_date_cdmx)return; const w=getWeekMonday(r.created_date_cdmx); if(!byW[w])byW[w]={scores:[],crits:0,count:0}; byW[w].scores.push(Number(r.score_final||0)); if(r.critical_error_triggered)byW[w].crits++; byW[w].count++;});
+  const weeks=Object.keys(byW).sort();
+  const wScores=weeks.map(w=>{const g=byW[w];return g.scores.reduce((a,b)=>a+b,0)/g.scores.length;});
+  const wCounts=weeks.map(w=>byW[w].count), wCrits=weeks.map(w=>byW[w].crits);
+  const cid='agentChart_'+Date.now();
+  const chartHtml=`<div class="eval-modal-section"><h4>📈 Tendencia semanal</h4><canvas id="${cid}" height="100"></canvas></div>`;
+  const {data:rd}=await sb.from('qa_v_evaluation_responses_detail').select('rubric_item,field_key,calculated_score,weight,failed_item,is_bonus').eq('agent_identifier',agentId).like('evaluator_name','%'+APLAZO_DOMAIN+'%').gte('created_at',dateFrom+'T00:00:00').lte('created_at',dateTo+'T23:59:59');
+  let rubricSection='';
+  if(rd&&rd.length){
+    const nb=rd.filter(r=>!r.is_bonus),rm={};
+    nb.forEach(r=>{const k=r.rubric_item||r.field_key||'Sin rubro',sc=Number(r.calculated_score||0),mx=Number(r.weight||0);if(!rm[k])rm[k]={sum:0,count:0,maxW:mx,fails:0};rm[k].sum+=sc;rm[k].count++;if(r.failed_item)rm[k].fails++;if(mx>rm[k].maxW)rm[k].maxW=mx;});
+    const rubRows=Object.entries(rm).map(([rub,v])=>({rub,pct:v.maxW>0?(v.sum/v.count)/v.maxW*100:0,count:v.count,fails:v.fails})).sort((a,b)=>a.pct-b.pct).map(r=>{const bg=r.pct>=90?'#dcfce7':r.pct>=70?'#fef9c3':'#fee2e2',cl=r.pct>=90?'#166534':r.pct>=70?'#854d0e':'#991b1b';return `<tr><td><strong>${r.rub}</strong></td><td style="text-align:center;">${r.count}</td><td style="text-align:center;color:#ef4444;font-weight:700;">${r.fails}</td><td style="text-align:center;background:${bg};color:${cl};font-weight:800;border-radius:6px;">${r.pct.toFixed(2)}%</td></tr>`;}).join('');
+    rubricSection=`<div class="eval-modal-section"><h4>📐 Score por rubro (3 meses)</h4><table class="eval-modal-rubrics"><thead><tr><th>Rubro</th><th style="text-align:center;">Evals</th><th style="text-align:center;">Fallas</th><th style="text-align:center;">Score</th></tr></thead><tbody>${rubRows}</tbody></table></div>`;
+  }
+  const evalLog=[...evals].reverse().map((r,i)=>{const k=`agEv_${i}`;evalMap[k]=r;const sc=Number(r.score_final||0);return `<tr style="cursor:pointer;" onclick="openEvalModal('${k}')" title="Ver detalle"><td>${r.created_date_cdmx||''}</td><td style="color:${scoreColor(sc)};font-weight:700;">${sc}%</td><td>${r.critical_error_triggered?'<span class="badge badge-red">Sí</span>':'<span class="badge badge-green">No</span>'}</td><td style="font-size:12px;color:#64748b;">${r.evaluator_name||'–'}</td><td style="color:#475569;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.feedback?(r.feedback.length>60?r.feedback.slice(0,60)+'...':r.feedback):'Sin feedback'}</td></tr>`;}).join('');
+  const evalLogSection=`<div class="eval-modal-section"><h4>📝 Historial <span style="color:#94a3b8;font-weight:400;">(click para ver detalle)</span></h4><table class="eval-modal-rubrics"><thead><tr><th>Fecha</th><th>Score</th><th>EC</th><th>Evaluador</th><th>Feedback</th></tr></thead><tbody>${evalLog}</tbody></table></div>`;
+  body.innerHTML=kpis+chartHtml+rubricSection+evalLogSection;
+  if(agentHistoryChart){agentHistoryChart.destroy();agentHistoryChart=null;}
+  agentHistoryChart=new Chart(document.getElementById(cid),{
+    type:'line',
+    data:{labels:weeks,datasets:[
+      {type:'bar',label:'# Evals',data:wCounts,backgroundColor:'rgba(56,189,248,.3)',borderRadius:6,yAxisID:'yCount'},
+      {type:'line',label:'Score',data:wScores,borderColor:'#0284c7',backgroundColor:'rgba(2,132,199,.1)',borderWidth:3,pointRadius:5,tension:0.3,fill:true,yAxisID:'yScore'},
+      {type:'bar',label:'Errores Críticos',data:wCrits,backgroundColor:'rgba(239,68,68,.6)',borderRadius:4,yAxisID:'yCount'}
+    ]},
+    options:{responsive:true,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true},datalabels:{display:ctx=>ctx.dataset.label==='Score',align:'top',anchor:'end',color:'#0284c7',font:{weight:'bold',size:11},formatter:v=>v?v.toFixed(1)+'%':''}},scales:{yScore:{type:'linear',position:'left',min:0,max:100,title:{display:true,text:'Score %'}},yCount:{type:'linear',position:'right',beginAtZero:true,grid:{drawOnChartArea:false},title:{display:true,text:'# Evals'}}}},
+    plugins:[ChartDataLabels]
+  });
+}
+
+/* ── TABS ── */
+document.querySelectorAll('.main-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.main-tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    setTimeout(()=>window.dispatchEvent(new Event('resize')),50);
+  });
+});
+
+/* ── GROUP TABS ── */
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('#groupTabs .tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      document.querySelectorAll('#groupTabs .tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      groupTabsGroup=tab.dataset.group;
+      renderGroupTable();
+    });
+  });
+});
+
+/* ── MODAL CLOSE ── */
+document.getElementById('evalModalClose').addEventListener('click',()=>document.getElementById('evalModalOverlay').classList.remove('active'));
+document.getElementById('evalModalOverlay').addEventListener('click',e=>{if(e.target.id==='evalModalOverlay')document.getElementById('evalModalOverlay').classList.remove('active');});
+document.getElementById('agentHistoryClose').addEventListener('click',()=>document.getElementById('agentHistoryOverlay').classList.remove('active'));
+document.getElementById('agentHistoryOverlay').addEventListener('click',e=>{if(e.target.id==='agentHistoryOverlay')document.getElementById('agentHistoryOverlay').classList.remove('active');});
+document.getElementById('paretoToggleBtn').addEventListener('click',()=>toggleParetoView());
+document.getElementById('btnRefresh').addEventListener('click',()=>load());
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded',async()=>{
+  const today=new Date(),dow=today.getDay();
+  const mon=new Date(today); mon.setDate(today.getDate()+(dow===0?-6:1-dow));
+  const sun=new Date(mon);   sun.setDate(mon.getDate()+6);
+  document.getElementById('startDate').value=mon.toISOString().split('T')[0];
+  document.getElementById('endDate').value=sun.toISOString().split('T')[0];
+  await loadFilters();
+  await load();
+});
+</script>
+</body>
+</html>
