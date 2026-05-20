@@ -1578,6 +1578,7 @@ async function buildRubricDetailTable() {
 
   const thead = `<thead><tr>
     <th style="min-width:200px;">Rubro</th>
+    <th style="text-align:center;">Evaluaciones</th>
     <th style="text-align:center;">Penalizaciones</th>
     <th style="text-align:center;min-width:100px;">Score</th>
   </tr></thead>`;
@@ -1586,6 +1587,7 @@ async function buildRubricDetailTable() {
     const c = rowColor(r.pct);
     return `<tr>
       <td><strong>${r.rubric}</strong></td>
+      <td style="text-align:center;">${r.count}</td>
       <td style="text-align:center;">${r.failures}</td>
       <td style="text-align:center;background:${c.bg};color:${c.color};font-weight:800;border-radius:8px;">
         ${r.pct.toFixed(2)}%
