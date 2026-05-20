@@ -705,6 +705,20 @@
     </table>
   </div>
 
+  <!-- AGENT HISTORY MODAL -->
+  <div class="eval-modal-overlay" id="agentHistoryOverlay" style="z-index:100000;">
+    <div class="eval-modal" id="agentHistoryModal" style="max-width:900px;width:100%;">
+      <div class="eval-modal-header">
+        <div>
+          <h2 id="agentHistoryTitle">Historial del agente</h2>
+          <div id="agentHistorySubtitle" style="font-size:12px;color:#64748b;margin-top:2px;">Últimos 3 meses</div>
+        </div>
+        <button class="eval-modal-close" id="agentHistoryClose">✕</button>
+      </div>
+      <div class="eval-modal-body" id="agentHistoryBody"></div>
+    </div>
+  </div>
+
   <!-- EVAL DETAIL MODAL -->
   <div class="eval-modal-overlay" id="evalModalOverlay">
     <div class="eval-modal" id="evalModal">
@@ -2244,7 +2258,13 @@ async function loadRubricTable(filters) {
       return `<td class="${cls}" title="${r}: ${avg.toFixed(2)} / ${d.maxWeight}">${avg.toFixed(2)}</td>`;
     }).join("");
     return `<tr>
-      <td><strong>${a.agent_name}</strong></td>
+      <td>
+        <span onclick="openAgentHistory('${a.key.replace(/'/g,"\\'")}','${a.agent_name.replace(/'/g,"\\'")}' )"
+          style="cursor:pointer;color:#0284c7;font-weight:700;text-decoration:underline;"
+          title="Ver historial de ${a.agent_name}">
+          ${a.agent_name}
+        </span>
+      </td>
       <td style="text-align:center;">${a.evals}</td>
       <td style="text-align:center;color:${scoreColor(a.avgScore)};font-weight:700;">${a.avgScore.toFixed(2)}%</td>
       ${cells}
@@ -2252,6 +2272,234 @@ async function loadRubricTable(filters) {
   }).join("");
 
   wrapper.innerHTML = `<div style="overflow-x:auto;"><table class="rubric-table">${thead}<tbody>${tbody}</tbody></table></div>`;
+}
+
+/* ═══════════════════════════════════════════════
+   AGENT HISTORY MODAL  (last 3 months)
+═══════════════════════════════════════════════ */
+let agentHistoryChart = null;
+
+async function openAgentHistory(agentId, agentName) {
+  const overlay  = document.getElementById("agentHistoryOverlay");
+  const body     = document.getElementById("agentHistoryBody");
+  const title    = document.getElementById("agentHistoryTitle");
+  const subtitle = document.getElementById("agentHistorySubtitle");
+
+  title.textContent = agentName;
+  body.innerHTML = '<div class="muted" style="padding:30px;text-align:center;"><span class="loading-spinner"></span> Cargando historial...</div>';
+  overlay.classList.add("active");
+
+  // 3 months back from today
+  const today     = new Date();
+  const threeBack = new Date(today);
+  threeBack.setMonth(today.getMonth() - 3);
+  const dateFrom  = threeBack.toISOString().split("T")[0];
+  const dateTo    = today.toISOString().split("T")[0];
+
+  subtitle.textContent = `Historial: ${dateFrom} → ${dateTo}`;
+
+  // Fetch all evaluations for this agent in the last 3 months
+  const { data: evals, error } = await supabaseClient
+    .from("qa_v_evaluations_base")
+    .select("*")
+    .eq("agent_identifier", agentId)
+    .gte("created_date_cdmx", dateFrom)
+    .lte("created_date_cdmx", dateTo)
+    .order("created_date_cdmx", { ascending: true });
+
+  if (error || !evals || evals.length === 0) {
+    body.innerHTML = '<div class="muted" style="padding:30px;text-align:center;">No hay evaluaciones en los últimos 3 meses.</div>';
+    return;
+  }
+
+  // ── KPI summary ────────────────────────────────────────────────
+  const totalEvals  = evals.length;
+  const avgSc       = evals.reduce((s,r)=>s+Number(r.score_final||0),0)/totalEvals;
+  const criticals   = evals.filter(r=>r.critical_error_triggered).length;
+  const zeros       = evals.filter(r=>r.weekly_zero_triggered).length;
+  const lastEval    = evals[evals.length-1];
+
+  const kpis = `
+    <div class="eval-modal-kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
+      <div class="eval-modal-kpi">
+        <div class="label">Evaluaciones</div>
+        <div class="value">${totalEvals}</div>
+      </div>
+      <div class="eval-modal-kpi">
+        <div class="label">Avg Score</div>
+        <div class="value" style="color:${scoreColor(avgSc)}">${avgSc.toFixed(2)}%</div>
+      </div>
+      <div class="eval-modal-kpi">
+        <div class="label">Errores Críticos</div>
+        <div class="value" style="color:${criticals>0?'#ef4444':'#22c55e'}">${criticals}</div>
+      </div>
+      <div class="eval-modal-kpi">
+        <div class="label">Weekly Zeros</div>
+        <div class="value" style="color:${zeros>0?'#f59e0b':'#22c55e'}">${zeros}</div>
+      </div>
+    </div>`;
+
+  // ── Trend chart by week ────────────────────────────────────────
+  const byWeek = {};
+  evals.forEach(r => {
+    const d   = r.created_date_cdmx;
+    if (!d) return;
+    const dt  = new Date(d+"T12:00:00");
+    const dow = dt.getDay();
+    dt.setDate(dt.getDate()+(dow===0?-6:1-dow));
+    const w   = dt.toISOString().split("T")[0];
+    if (!byWeek[w]) byWeek[w] = { scores:[], criticals:0, count:0 };
+    byWeek[w].scores.push(Number(r.score_final||0));
+    if (r.critical_error_triggered) byWeek[w].criticals++;
+    byWeek[w].count++;
+  });
+  const weeks      = Object.keys(byWeek).sort();
+  const weekScores = weeks.map(w=>{const g=byWeek[w];return g.scores.reduce((a,b)=>a+b,0)/g.scores.length;});
+  const weekCounts = weeks.map(w=>byWeek[w].count);
+  const weekCrits  = weeks.map(w=>byWeek[w].criticals);
+
+  const chartId = "agentTrendChart_"+Date.now();
+  const chartHtml = `
+    <div class="eval-modal-section">
+      <h4>📈 Tendencia semanal</h4>
+      <canvas id="${chartId}" height="100"></canvas>
+    </div>`;
+
+  // ── Rubric averages ────────────────────────────────────────────
+  const { data: rubricData } = await supabaseClient
+    .from("qa_v_evaluation_responses_detail")
+    .select("rubric_item,field_key,calculated_score,weight,failed_item,is_bonus")
+    .eq("agent_identifier", agentId)
+    .gte("created_at", dateFrom+"T00:00:00")
+    .lte("created_at", dateTo+"T23:59:59");
+
+  let rubricSection = "";
+  if (rubricData && rubricData.length > 0) {
+    const nonBonus = rubricData.filter(r=>!r.is_bonus);
+    const rubMap = {};
+    nonBonus.forEach(r=>{
+      const rub = r.rubric_item||r.field_key||"Sin rubro";
+      const sc  = Number(r.calculated_score||0);
+      const mx  = Number(r.weight||0);
+      if (!rubMap[rub]) rubMap[rub]={sum:0,count:0,maxW:mx,fails:0};
+      rubMap[rub].sum+=sc; rubMap[rub].count++;
+      if (r.failed_item) rubMap[rub].fails++;
+      if (mx>rubMap[rub].maxW) rubMap[rub].maxW=mx;
+    });
+    const rubRows = Object.entries(rubMap)
+      .map(([rub,v])=>({rub,avg:v.sum/v.count,maxW:v.maxW,pct:v.maxW>0?(v.sum/v.count)/v.maxW*100:0,fails:v.fails,count:v.count}))
+      .sort((a,b)=>a.pct-b.pct)
+      .map(r=>{
+        const bg=r.pct>=90?"#dcfce7":r.pct>=70?"#fef9c3":"#fee2e2";
+        const cl=r.pct>=90?"#166534":r.pct>=70?"#854d0e":"#991b1b";
+        return `<tr>
+          <td><strong>${r.rub}</strong></td>
+          <td style="text-align:center;">${r.count}</td>
+          <td style="text-align:center;color:#ef4444;font-weight:700;">${r.fails}</td>
+          <td style="text-align:center;background:${bg};color:${cl};font-weight:800;border-radius:6px;">${r.pct.toFixed(2)}%</td>
+        </tr>`;
+      }).join("");
+
+    rubricSection = `
+      <div class="eval-modal-section">
+        <h4>📐 Score promedio por rubro (3 meses)</h4>
+        <table class="eval-modal-rubrics">
+          <thead><tr>
+            <th>Rubro</th>
+            <th style="text-align:center;">Evals</th>
+            <th style="text-align:center;">Fallas</th>
+            <th style="text-align:center;">Score %</th>
+          </tr></thead>
+          <tbody>${rubRows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  // ── Evaluation log ─────────────────────────────────────────────
+  const evalLog = [...evals].reverse().map((r,i)=>{
+    const sc = Number(r.score_final||0);
+    const key = `agentEval_${i}`;
+    evalRowMap[key] = r;
+    return `<tr style="cursor:pointer;" onclick="openEvalModal('${key}')" title="Ver detalle">
+      <td>${r.created_date_cdmx||""}</td>
+      <td style="color:${scoreColor(sc)};font-weight:700;">${sc}%</td>
+      <td>${r.critical_error_triggered?'<span class="badge badge-red">Sí</span>':'<span class="badge badge-green">No</span>'}</td>
+      <td style="font-size:12px;color:#64748b;">${r.evaluator_name||"–"}</td>
+      <td style="color:#475569;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        ${r.feedback?(r.feedback.length>60?r.feedback.slice(0,60)+"...":r.feedback):"Sin feedback"}
+      </td>
+    </tr>`;
+  }).join("");
+
+  const evalLogSection = `
+    <div class="eval-modal-section">
+      <h4>📝 Historial de evaluaciones <span style="color:#94a3b8;font-weight:400;">(click para ver detalle)</span></h4>
+      <table class="eval-modal-rubrics">
+        <thead><tr>
+          <th>Fecha</th><th>Score</th><th>EC</th><th>Evaluador</th><th>Feedback</th>
+        </tr></thead>
+        <tbody>${evalLog}</tbody>
+      </table>
+    </div>`;
+
+  body.innerHTML = kpis + chartHtml + rubricSection + evalLogSection;
+
+  // Draw chart after HTML is injected
+  if (agentHistoryChart) { agentHistoryChart.destroy(); agentHistoryChart = null; }
+  agentHistoryChart = new Chart(document.getElementById(chartId), {
+    type: "line",
+    data: {
+      labels: weeks,
+      datasets: [
+        {
+          type: "bar",
+          label: "# Evals",
+          data: weekCounts,
+          backgroundColor: "rgba(56,189,248,.3)",
+          borderRadius: 6,
+          yAxisID: "yCount"
+        },
+        {
+          type: "line",
+          label: "Score",
+          data: weekScores,
+          borderColor: "#0284c7",
+          backgroundColor: "rgba(2,132,199,.1)",
+          borderWidth: 3,
+          pointRadius: 5,
+          tension: 0.3,
+          fill: true,
+          yAxisID: "yScore"
+        },
+        {
+          type: "bar",
+          label: "Errores Críticos",
+          data: weekCrits,
+          backgroundColor: "rgba(239,68,68,.6)",
+          borderRadius: 4,
+          yAxisID: "yCount"
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode:"index", intersect:false },
+      plugins: {
+        legend: { display:true },
+        datalabels: {
+          display: ctx => ctx.dataset.label==="Score",
+          align:"top", anchor:"end",
+          color:"#0284c7", font:{weight:"bold",size:11},
+          formatter: v => v?v.toFixed(1)+"%":""
+        }
+      },
+      scales: {
+        yScore: { type:"linear", position:"left",  min:0, max:100, title:{display:true,text:"Score %"} },
+        yCount: { type:"linear", position:"right", beginAtZero:true, grid:{drawOnChartArea:false}, title:{display:true,text:"# Evals"} }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
 }
 
 /* ═══════════════════════════════════════════════
@@ -2297,6 +2545,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     ?.addEventListener("click", () => closeEvalModal());
   document.getElementById("evalModalOverlay")
     ?.addEventListener("click", e => { if (e.target.id === "evalModalOverlay") closeEvalModal(); });
+  document.getElementById("agentHistoryClose")
+    ?.addEventListener("click", () => document.getElementById("agentHistoryOverlay").classList.remove("active"));
+  document.getElementById("agentHistoryOverlay")
+    ?.addEventListener("click", e => { if (e.target.id === "agentHistoryOverlay") document.getElementById("agentHistoryOverlay").classList.remove("active"); });
 
   await loadFilterOptions();
   await loadDashboard();
