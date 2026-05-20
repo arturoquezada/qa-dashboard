@@ -253,6 +253,76 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── EVAL DETAIL MODAL ── */
+    .eval-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.55);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .eval-modal-overlay.active { display: flex; }
+    .eval-modal {
+      background: white;
+      border-radius: 24px;
+      width: 100%;
+      max-width: 680px;
+      max-height: 88vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(15,23,42,.25);
+      animation: modalIn .2s ease;
+    }
+    @keyframes modalIn {
+      from { transform: translateY(20px); opacity:0; }
+      to   { transform: translateY(0);    opacity:1; }
+    }
+    .eval-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 24px 24px 0;
+      gap: 12px;
+    }
+    .eval-modal-header h2 { margin:0; font-size:18px; color:#0f172a; }
+    .eval-modal-close {
+      background: #f1f5f9;
+      border: none;
+      border-radius: 999px;
+      width: 32px; height: 32px;
+      font-size: 16px;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: #64748b;
+    }
+    .eval-modal-close:hover { background: #e2e8f0; }
+    .eval-modal-body { padding: 20px 24px 24px; }
+    .eval-modal-kpis {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .eval-modal-kpi {
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+    }
+    .eval-modal-kpi .label { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.5px; }
+    .eval-modal-kpi .value { font-size:22px; font-weight:800; margin-top:4px; }
+    .eval-modal-section { margin-bottom:18px; }
+    .eval-modal-section h4 { margin:0 0 8px; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#94a3b8; }
+    .eval-modal-section p  { margin:0; font-size:14px; line-height:1.6; color:#0f172a; background:#f8fafc; border-radius:12px; padding:14px; }
+    .eval-modal-rubrics { width:100%; border-collapse:collapse; font-size:13px; }
+    .eval-modal-rubrics th { background:#f8fafc; padding:8px 10px; text-align:left; font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:.5px; }
+    .eval-modal-rubrics td { padding:9px 10px; border-bottom:1px solid #f1f5f9; }
+    .eval-feedback-link { display:inline-block; margin-top:8px; color:#0284c7; font-size:13px; font-weight:700; text-decoration:none; }
+    .eval-feedback-link:hover { text-decoration:underline; }
+
     /* ── RUBRIC TABLE ── */
     .rubric-table { min-width: 900px; }
     .rubric-table th { white-space: nowrap; }
@@ -630,6 +700,17 @@
       </thead>
       <tbody id="evaluationsTable"></tbody>
     </table>
+  </div>
+
+  <!-- EVAL DETAIL MODAL -->
+  <div class="eval-modal-overlay" id="evalModalOverlay">
+    <div class="eval-modal" id="evalModal">
+      <div class="eval-modal-header">
+        <h2 id="evalModalTitle">Detalle de evaluación</h2>
+        <button class="eval-modal-close" id="evalModalClose">✕</button>
+      </div>
+      <div class="eval-modal-body" id="evalModalBody"></div>
+    </div>
   </div>
 
 </div><!-- /app -->
@@ -1891,28 +1972,149 @@ function loadEvaluatorTable() {
 /* ═══════════════════════════════════════════════
    EVALUATIONS DETAIL TABLE
 ═══════════════════════════════════════════════ */
+// Store eval data indexed by a row key for modal lookup
+const evalRowMap = {};
+
 function loadEvaluationsTable() {
   const data = [...allEvalData].sort((a,b)=>(b.created_date_cdmx||"").localeCompare(a.created_date_cdmx||""));
-  document.getElementById("evaluationsTable").innerHTML = data.map(row=>`
-    <tr>
+
+  document.getElementById("evaluationsTable").innerHTML = data.map((row, i) => {
+    const key = `eval_${i}`;
+    evalRowMap[key] = row;
+    const feedbackPreview = row.feedback
+      ? (row.feedback.length > 50 ? row.feedback.slice(0,50)+"..." : row.feedback)
+      : "Sin feedback";
+    const commitPreview = row.agent_commitment
+      ? (row.agent_commitment.length > 50 ? row.agent_commitment.slice(0,50)+"..." : row.agent_commitment)
+      : "Sin compromiso";
+
+    return `<tr style="cursor:pointer;" onclick="openEvalModal('${key}')" title="Click para ver detalle completo">
       <td>${row.created_date_cdmx||""}</td>
-      <td>${row.interaction_link
-        ?`<a href="${row.interaction_link}" target="_blank" rel="noopener noreferrer" style="color:#0284c7;font-weight:700;text-decoration:none;">${row.agent_name||""}</a>`
-        :(row.agent_name||"")}</td>
-      <td class="commitment-cell">
-        <div class="commitment-preview">${row.feedback?(row.feedback.length>45?row.feedback.slice(0,45)+"...":row.feedback):"Sin feedback"}</div>
-        ${row.feedback?`<div class="commitment-tooltip">${row.feedback}</div>`:""}
-      </td>
+      <td style="color:#0284c7;font-weight:700;">${row.agent_name||""}</td>
+      <td style="color:#475569;">${feedbackPreview}</td>
       <td>${row.campaign_key||""}</td>
       <td>${row.lob_key||""}</td>
       <td>${row.queue_key||""}</td>
       <td style="color:${scoreColor(Number(row.score_final||0))};font-weight:700;">${row.score_final||""}</td>
       <td>${row.critical_error_triggered?'<span class="badge badge-red">Sí</span>':'<span class="badge badge-green">No</span>'}</td>
-      <td class="commitment-cell">
-        <div class="commitment-preview">${row.agent_commitment?(row.agent_commitment.length>45?row.agent_commitment.slice(0,45)+"...":row.agent_commitment):"Sin compromiso"}</div>
-        ${row.agent_commitment?`<div class="commitment-tooltip">${row.agent_commitment}</div>`:""}
-      </td>
-    </tr>`).join("");
+      <td style="color:#475569;">${commitPreview}</td>
+    </tr>`;
+  }).join("");
+}
+
+async function openEvalModal(key) {
+  const row = evalRowMap[key];
+  if (!row) return;
+
+  const overlay = document.getElementById("evalModalOverlay");
+  const body    = document.getElementById("evalModalBody");
+  const title   = document.getElementById("evalModalTitle");
+
+  title.textContent = row.agent_name || "Detalle de evaluación";
+  body.innerHTML = `<div class="muted" style="padding:20px 0;text-align:center;"><span class="loading-spinner"></span> Cargando rubros...</div>`;
+  overlay.classList.add("active");
+
+  // Build static content first
+  const sc = Number(row.score_final || 0);
+  const kpis = `
+    <div class="eval-modal-kpis">
+      <div class="eval-modal-kpi">
+        <div class="label">Fecha</div>
+        <div class="value" style="font-size:16px;">${row.created_date_cdmx||"–"}</div>
+      </div>
+      <div class="eval-modal-kpi">
+        <div class="label">Score</div>
+        <div class="value" style="color:${scoreColor(sc)}">${sc}%</div>
+      </div>
+      <div class="eval-modal-kpi">
+        <div class="label">Error Crítico</div>
+        <div class="value" style="font-size:16px;">${row.critical_error_triggered
+          ? '<span class="badge badge-red" style="font-size:14px;">Sí</span>'
+          : '<span class="badge badge-green" style="font-size:14px;">No</span>'}</div>
+      </div>
+    </div>
+    <div class="eval-modal-kpis" style="grid-template-columns:repeat(3,1fr);">
+      <div class="eval-modal-kpi">
+        <div class="label">Campaña</div>
+        <div class="value" style="font-size:14px;">${row.campaign_key||"–"}</div>
+      </div>
+      <div class="eval-modal-kpi">
+        <div class="label">LOB</div>
+        <div class="value" style="font-size:14px;">${row.lob_key||"–"}</div>
+      </div>
+      <div class="eval-modal-kpi">
+        <div class="label">Queue</div>
+        <div class="value" style="font-size:14px;">${row.queue_key||"–"}</div>
+      </div>
+    </div>`;
+
+  const feedback = `
+    <div class="eval-modal-section">
+      <h4>💬 Feedback</h4>
+      <p>${row.feedback || "Sin feedback registrado."}</p>
+      ${row.interaction_link ? `<a href="${row.interaction_link}" target="_blank" class="eval-feedback-link">🔗 Ver interacción</a>` : ""}
+    </div>`;
+
+  const commitment = `
+    <div class="eval-modal-section">
+      <h4>📋 Compromiso del agente</h4>
+      <p>${row.agent_commitment || "Sin compromiso registrado."}</p>
+    </div>`;
+
+  // Fetch rubric detail for this evaluation
+  let rubricSection = "";
+  try {
+    const evalId = row.evaluation_id || row.id;
+    let rubricData = [];
+
+    if (evalId) {
+      const { data: rData, error } = await supabaseClient
+        .from("qa_v_evaluation_responses_detail")
+        .select("rubric_item,field_key,calculated_score,weight,failed_item,is_bonus")
+        .eq("evaluation_id", evalId);
+      if (!error && rData) rubricData = rData.filter(r => !r.is_bonus);
+    }
+
+    if (rubricData.length > 0) {
+      const rubricRows = rubricData.map(r => {
+        const rub  = r.rubric_item || r.field_key || "Sin rubro";
+        const sc   = Number(r.calculated_score || 0);
+        const mx   = Number(r.weight || 0);
+        const pct  = mx > 0 ? (sc / mx) * 100 : 0;
+        const bg   = pct >= 90 ? "#dcfce7" : pct >= 70 ? "#fef9c3" : "#fee2e2";
+        const cl   = pct >= 90 ? "#166534" : pct >= 70 ? "#854d0e" : "#991b1b";
+        const fail = r.failed_item
+          ? '<span class="badge badge-red">Falla</span>'
+          : '<span class="badge badge-green">OK</span>';
+        return `<tr>
+          <td>${rub}</td>
+          <td style="text-align:center;">${fail}</td>
+          <td style="text-align:center;background:${bg};color:${cl};font-weight:700;border-radius:6px;">${pct.toFixed(2)}%</td>
+          <td style="text-align:center;color:#94a3b8;">${sc} / ${mx}</td>
+        </tr>`;
+      }).join("");
+
+      rubricSection = `
+        <div class="eval-modal-section">
+          <h4>📐 Score por rubro</h4>
+          <table class="eval-modal-rubrics">
+            <thead><tr>
+              <th>Rubro</th>
+              <th style="text-align:center;">Estado</th>
+              <th style="text-align:center;">Score %</th>
+              <th style="text-align:center;">Pts</th>
+            </tr></thead>
+            <tbody>${rubricRows}</tbody>
+          </table>
+        </div>`;
+    }
+  } catch(e) { /* skip rubrics on error */ }
+
+  body.innerHTML = kpis + feedback + commitment + rubricSection;
+}
+
+function closeEvalModal() {
+  document.getElementById("evalModalOverlay").classList.remove("active");
 }
 
 /* ═══════════════════════════════════════════════
@@ -2083,6 +2285,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     ?.addEventListener("click", () => toggleClientMode());
   document.getElementById("paretoToggleBtn")
     ?.addEventListener("click", () => toggleParetoView());
+  document.getElementById("evalModalClose")
+    ?.addEventListener("click", () => closeEvalModal());
+  document.getElementById("evalModalOverlay")
+    ?.addEventListener("click", e => { if (e.target.id === "evalModalOverlay") closeEvalModal(); });
 
   await loadFilterOptions();
   await loadDashboard();
