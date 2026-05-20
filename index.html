@@ -354,8 +354,11 @@
     .client-only { display: none; }
     /* internal-only: visible normally, hidden in client-mode.
        Do NOT set display here — let each element use its natural display value */
-    body.client-mode .client-only    { display: block; }
+    body.client-mode .client-only.tab-section { display: none; }
+    body.client-mode .client-only.tab-section.active { display: block; }
     body.client-mode .internal-only  { display: none !important; }
+    /* Hide main tabs in client mode — navigation is via the tab bar which stays visible */
+    body.client-mode .main-tabs-wrap { display: none !important; }
 
     .client-kpi-grid {
       display: grid;
@@ -396,7 +399,50 @@
     .vs-down { background:#fee2e2;color:#991b1b; }
     .vs-flat { background:#f1f5f9;color:#64748b; }
 
-    /* ── RESPONSIVE ── */
+    /* ── MAIN TABS ── */
+    .main-tabs-wrap {
+      margin-bottom: 22px;
+    }
+    .main-tabs {
+      display: flex;
+      gap: 6px;
+      background: white;
+      border-radius: 18px;
+      padding: 8px;
+      box-shadow: 0 4px 20px rgba(15,23,42,.07);
+      overflow-x: auto;
+    }
+    .main-tab {
+      flex: 1;
+      min-width: 110px;
+      padding: 11px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      text-align: center;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    .main-tab:hover { background: #f1f5f9; color: #0f172a; }
+    .main-tab.active {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: white;
+      box-shadow: 0 4px 12px rgba(15,23,42,.25);
+    }
+    .main-tab.active.tab-analisis  { background: linear-gradient(135deg,#0ea5e9,#38bdf8); color:#0f172a; }
+    .main-tab.active.tab-riesgos   { background: linear-gradient(135deg,#ef4444,#fb7185); color:white; }
+    .main-tab.active.tab-agentes   { background: linear-gradient(135deg,#8b5cf6,#a78bfa); color:white; }
+    .main-tab.active.tab-cliente   { background: linear-gradient(135deg,#0284c7,#0ea5e9); color:white; }
+
+    /* Tab sections */
+    .tab-section { display: none; }
+    .tab-section.active { display: block; }
+
+    /* ── RESPONSIVE ── */    /* ── RESPONSIVE ── */
     @media(max-width:1100px) {
       .filters-grid, .cards { grid-template-columns: repeat(2,1fr); }
       .charts-2, .charts-3  { grid-template-columns: 1fr; }
@@ -450,11 +496,157 @@
     <button id="clientExitBtn" style="width:auto;padding:7px 14px;font-size:11px;border-radius:999px;background:rgba(255,255,255,.2);color:white;border:1.5px solid rgba(255,255,255,.4);font-weight:800;">✕ Salir</button>
   </div>
 
-  <!-- ══════════════════════════════════
-       CLIENT-ONLY VIEW
-  ══════════════════════════════════ -->
-  <div class="client-only">
+  <!-- ══════════════ MAIN TABS (internal only) ══════════════ -->
+  <div class="main-tabs-wrap internal-only">
+    <div class="main-tabs">
+      <button class="main-tab active"        data-tab="resumen">📊 Resumen</button>
+      <button class="main-tab tab-analisis"  data-tab="analisis">📈 Tendencias</button>
+      <button class="main-tab tab-riesgos"   data-tab="riesgos">🚨 Riesgos</button>
+      <button class="main-tab tab-agentes"   data-tab="agentes">👤 Agentes</button>
+      <button class="main-tab tab-cliente"   data-tab="cliente">👁 Cliente</button>
+    </div>
+  </div>
 
+  <!-- ══════════════ TAB: RESUMEN ══════════════ -->
+  <div class="tab-section active" id="tab-resumen">
+    <div class="section-title">Resumen ejecutivo</div>
+    <div class="cards">
+      <div class="card">
+        <div class="muted">Avg QA Score</div>
+        <div class="metric" id="avgScore">–</div>
+        <div class="trend flat" id="trendScore">–</div>
+      </div>
+      <div class="card">
+        <div class="muted">Evaluaciones</div>
+        <div class="metric" id="totalEvaluations">–</div>
+        <div class="trend flat" id="trendEvals">–</div>
+      </div>
+      <div class="card danger">
+        <div class="muted">Critical Error Rate</div>
+        <div class="metric" id="criticalRate">–</div>
+        <div class="trend flat" id="trendCritical">–</div>
+      </div>
+      <div class="card warn">
+        <div class="muted">Weekly Zero</div>
+        <div class="metric" id="weeklyZero">–</div>
+        <div class="trend flat" id="trendZero">–</div>
+      </div>
+      <div class="card success">
+        <div class="muted">Agentes evaluados</div>
+        <div class="metric" id="evaluatedAgents">–</div>
+        <div class="trend flat" id="trendAgents">–</div>
+      </div>
+    </div>
+    <div class="insight" id="autoInsight">
+      <span class="loading-spinner"></span> Cargando insights...
+    </div>
+    <div class="charts-2">
+      <div class="chart-card">
+        <h3>📅 Comparativa semana vs semana anterior</h3>
+        <table>
+          <thead><tr>
+            <th>Semana</th><th>Evaluaciones</th><th>Avg Score</th><th>Critical %</th><th>Δ Score</th>
+          </tr></thead>
+          <tbody id="weeklyCompareTable"></tbody>
+        </table>
+      </div>
+      <div class="chart-card"><h3>📊 Distribución de scores</h3><canvas id="histogramChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ TAB: TENDENCIAS ══════════════ -->
+  <div class="tab-section" id="tab-analisis">
+    <div class="section-title">Tendencias y análisis de fallas</div>
+    <div class="charts-2">
+      <div class="chart-card"><h3>📈 Score semanal</h3><canvas id="weeklyScoreChart"></canvas></div>
+      <div class="chart-card" id="paretoCard">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 style="margin:0;" id="paretoCardTitle">🔴 Pareto de fallas</h3>
+          <button id="paretoToggleBtn" style="width:auto;padding:8px 16px;font-size:12px;border-radius:999px;background:#f1f5f9;color:#0f172a;border:1.5px solid #e2e8f0;">
+            📐 Ver detalle por rubro
+          </button>
+        </div>
+        <div id="paretoView"><canvas id="paretoChart"></canvas></div>
+        <div id="rubricDetailView" style="display:none;overflow-x:auto;">
+          <div class="muted" style="padding:12px 0;" id="rubricDetailMsg">Cargando...</div>
+        </div>
+      </div>
+    </div>
+    <div class="charts-2">
+      <div class="chart-card">
+        <h3>🏢 Rendimiento por Campaña / LOB / Queue</h3>
+        <div class="tabs" id="groupTabs">
+          <div class="tab active" data-group="campaign_key">Campaña</div>
+          <div class="tab" data-group="lob_key">LOB</div>
+          <div class="tab" data-group="queue_key">Queue</div>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Grupo</th><th>Evals</th><th>Avg Score</th><th>Critical %</th><th>Weekly Zero</th>
+          </tr></thead>
+          <tbody id="groupTable"></tbody>
+        </table>
+      </div>
+      <div class="chart-card">
+        <h3>👤 Estadísticas por evaluador</h3>
+        <table>
+          <thead><tr>
+            <th>Evaluador</th><th>Evals</th><th>Score prom.</th><th>Críticos</th><th>Zeros</th><th>Agentes</th>
+          </tr></thead>
+          <tbody id="evaluatorTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ TAB: RIESGOS ══════════════ -->
+  <div class="tab-section" id="tab-riesgos">
+    <div class="section-title">Errores críticos y riesgo operativo</div>
+    <div class="charts-2">
+      <div class="chart-card">
+        <h3>🚨 Top Riesgos Operativos</h3>
+        <div id="criticalErrorsList" class="critical-list"></div>
+      </div>
+      <div class="chart-card">
+        <h3>⚠️ Riesgo por agente (Top 10)</h3>
+        <canvas id="riskChart"></canvas>
+      </div>
+    </div>
+    <div class="table-card">
+      <h3>🏆 Agent Risk Ranking</h3>
+      <table>
+        <thead><tr>
+          <th>Agente</th><th>Campaña</th><th>LOB</th><th>Queue</th>
+          <th>Avg Score</th><th>ECs</th><th>Weekly Zero</th><th>Risk Score</th><th>Nivel</th>
+        </tr></thead>
+        <tbody id="riskTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════ TAB: AGENTES ══════════════ -->
+  <div class="tab-section" id="tab-agentes">
+    <div class="section-title">Score por rubro y detalle de evaluaciones</div>
+    <div class="table-card" style="overflow-x:auto;">
+      <h3>📐 Score promedio por rubro (filtrado por periodo seleccionado)</h3>
+      <div id="rubricTableWrapper">
+        <div class="muted" style="padding:16px 0;"><span class="loading-spinner"></span> Cargando rubros...</div>
+      </div>
+    </div>
+    <div class="table-card">
+      <h3>📝 Detalle de evaluaciones</h3>
+      <table>
+        <thead><tr>
+          <th>Fecha</th><th>Agente</th><th>Feedback</th><th>Campaña</th>
+          <th>LOB</th><th>Queue</th><th>Score</th><th>EC</th><th>Evaluador</th><th>Compromiso</th>
+        </tr></thead>
+        <tbody id="evaluationsTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════ TAB: CLIENTE ══════════════ -->
+  <div class="tab-section client-only" id="tab-cliente">
     <div class="section-title" style="color:#0ea5e9;">Resumen comparativo — Aplazo vs Evolve CX</div>
     <div class="client-kpi-grid">
       <div class="client-kpi-card blue">
@@ -478,231 +670,32 @@
         <div class="client-kpi-sub">Aplazo vs Evolve CX</div>
       </div>
     </div>
-
-    <!-- Tendencia semanal comparativa -->
     <div class="section-title" style="color:#0ea5e9;">Tendencia semanal comparativa</div>
     <div class="chart-card">
       <h3>📈 Score semanal — Aplazo vs Evolve CX</h3>
       <canvas id="clientWeeklyChart"></canvas>
     </div>
-
-    <!-- Score por rubro comparativo -->
     <div class="section-title" style="color:#0ea5e9;">Score por rubro</div>
     <div class="chart-card" style="overflow-x:auto;">
       <h3>📐 Score promedio por rubro — Aplazo vs Evolve CX</h3>
       <div id="clientRubricTable"><div class="muted">Cargando...</div></div>
     </div>
-
-    <!-- Pareto cliente -->
     <div class="section-title" style="color:#0ea5e9;">Análisis de fallas</div>
     <div class="chart-card">
       <h3>🔴 Pareto de fallas — Aplazo + Evolve CX (combinado)</h3>
       <canvas id="clientParetoUnified"></canvas>
     </div>
-
-    <!-- Risk ranking cliente (sin risk score interno) -->
     <div class="section-title" style="color:#0ea5e9;">Agentes</div>
     <div class="table-card">
       <h3>👤 Performance de agentes</h3>
       <table>
-        <thead>
-          <tr>
-            <th>Agente</th>
-            <th>Campaña</th>
-            <th>LOB</th>
-            <th>Queue</th>
-            <th>Evaluaciones</th>
-            <th>Avg Score</th>
-            <th>Errores Críticos</th>
-            <th>Evaluador</th>
-          </tr>
-        </thead>
+        <thead><tr>
+          <th>Agente</th><th>Campaña</th><th>LOB</th><th>Queue</th>
+          <th>Evaluaciones</th><th>Avg Score</th><th>Errores Críticos</th><th>Evaluador</th>
+        </tr></thead>
         <tbody id="clientAgentTable"></tbody>
       </table>
     </div>
-
-  </div><!-- /client-only -->
-
-  <!-- KPI CARDS -->
-  <div class="section-title internal-only">Resumen ejecutivo</div>
-  <div class="cards internal-only">
-    <div class="card">
-      <div class="muted">Avg QA Score</div>
-      <div class="metric" id="avgScore">–</div>
-      <div class="trend flat" id="trendScore">–</div>
-    </div>
-    <div class="card">
-      <div class="muted">Evaluaciones</div>
-      <div class="metric" id="totalEvaluations">–</div>
-      <div class="trend flat" id="trendEvals">–</div>
-    </div>
-    <div class="card danger">
-      <div class="muted">Critical Error Rate</div>
-      <div class="metric" id="criticalRate">–</div>
-      <div class="trend flat" id="trendCritical">–</div>
-    </div>
-    <div class="card warn">
-      <div class="muted">Weekly Zero</div>
-      <div class="metric" id="weeklyZero">–</div>
-      <div class="trend flat" id="trendZero">–</div>
-    </div>
-    <div class="card success">
-      <div class="muted">Agentes evaluados</div>
-      <div class="metric" id="evaluatedAgents">–</div>
-      <div class="trend flat" id="trendAgents">–</div>
-    </div>
-  </div>
-
-  <!-- INSIGHT -->
-  <div class="insight internal-only" id="autoInsight">
-    <span class="loading-spinner"></span> Cargando insights...
-  </div>
-
-  <!-- ROW 1: Score semanal + Pareto -->
-  <div class="section-title internal-only">Tendencias y análisis de fallas</div>
-  <div class="charts-2 internal-only">
-    <div class="chart-card"><h3>📈 Score semanal</h3><canvas id="weeklyScoreChart"></canvas></div>
-    <div class="chart-card" id="paretoCard">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <h3 style="margin:0;" id="paretoCardTitle">🔴 Pareto de fallas</h3>
-        <button id="paretoToggleBtn" style="width:auto;padding:8px 16px;font-size:12px;border-radius:999px;background:#f1f5f9;color:#0f172a;border:1.5px solid #e2e8f0;">
-          📐 Ver detalle por rubro
-        </button>
-      </div>
-      <div id="paretoView"><canvas id="paretoChart"></canvas></div>
-      <div id="rubricDetailView" style="display:none;overflow-x:auto;">
-        <div class="muted" style="padding:12px 0;" id="rubricDetailMsg">Cargando...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ROW 2 internal-only -->
-  <div class="charts-2 internal-only">
-    <div class="chart-card">
-      <h3>📅 Comparativa semana vs semana anterior</h3>
-      <div id="weeklyCompareContainer">
-        <table>
-          <thead>
-            <tr>
-              <th>Semana</th>
-              <th>Evaluaciones</th>
-              <th>Avg Score</th>
-              <th>Critical %</th>
-              <th>Δ Score</th>
-            </tr>
-          </thead>
-          <tbody id="weeklyCompareTable"></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="chart-card"><h3>📊 Distribución de scores</h3><canvas id="histogramChart"></canvas></div>
-  </div>
-
-  <!-- ERRORES CRÍTICOS + CAMPAÑA/LOB -->
-  <div class="charts-2 internal-only">
-    <div class="chart-card">
-      <h3>🚨 Top Riesgos Operativos</h3>
-      <div id="criticalErrorsList" class="critical-list"></div>
-    </div>
-    <div class="chart-card">
-      <h3>🏢 Rendimiento por Campaña / LOB / Queue</h3>
-      <div class="tabs" id="groupTabs">
-        <div class="tab active" data-group="campaign_key">Campaña</div>
-        <div class="tab" data-group="lob_key">LOB</div>
-        <div class="tab" data-group="queue_key">Queue</div>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Grupo</th>
-            <th>Evals</th>
-            <th>Avg Score</th>
-            <th>Critical %</th>
-            <th>Weekly Zero</th>
-          </tr>
-        </thead>
-        <tbody id="groupTable"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- RIESGO POR AGENTE -->
-  <div class="section-title internal-only">Riesgo por agente</div>
-  <div class="chart-card internal-only">
-    <h3>⚠️ Riesgo por agente (Top 10)</h3>
-    <canvas id="riskChart"></canvas>
-  </div>
-
-  <!-- RISK RANKING TABLE -->
-  <div class="table-card internal-only">
-    <h3>☠️ Agent Risk Ranking</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Agente</th>
-          <th>Campaña</th>
-          <th>LOB</th>
-          <th>Queue</th>
-          <th>Avg Score</th>
-          <th>ECs</th>
-          <th>Weekly Zero</th>
-          <th>Risk Score</th>
-          <th>Nivel</th>
-        </tr>
-      </thead>
-      <tbody id="riskTable"></tbody>
-    </table>
-  </div>
-
-  <!-- EVALUADORES -->
-  <div class="section-title internal-only">Rendimiento de evaluadores</div>
-  <div class="table-card internal-only">
-    <h3>👤 Estadísticas por evaluador</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Evaluador</th>
-          <th>Evaluaciones</th>
-          <th>Score promedio otorgado</th>
-          <th>Críticos detectados</th>
-          <th>Weekly Zeros</th>
-          <th>Agentes únicos</th>
-        </tr>
-      </thead>
-      <tbody id="evaluatorTable"></tbody>
-    </table>
-  </div>
-
-  <!-- SCORE POR RUBRO -->
-  <div class="section-title internal-only">Score por rubro por agente</div>
-  <div class="table-card internal-only" style="overflow-x:auto;">
-    <h3>📐 Score promedio por rubro (filtrado por periodo seleccionado)</h3>
-    <div id="rubricTableWrapper">
-      <div class="muted" style="padding:16px 0;"><span class="loading-spinner"></span> Cargando rubros...</div>
-    </div>
-  </div>
-
-  <!-- EVALUACIONES DETALLE -->
-  <div class="section-title internal-only">Detalle de evaluaciones</div>
-  <div class="table-card internal-only">
-    <h3>📝 Detalle de evaluaciones</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Agente</th>
-          <th>Feedback</th>
-          <th>Campaña</th>
-          <th>LOB</th>
-          <th>Queue</th>
-          <th>Score</th>
-          <th>EC</th>
-          <th>Evaluador</th>
-          <th>Compromiso</th>
-        </tr>
-      </thead>
-      <tbody id="evaluationsTable"></tbody>
-    </table>
   </div>
 
   <!-- AGENT HISTORY MODAL -->
@@ -1157,6 +1150,7 @@ async function toggleClientMode() {
 
     // Reload dashboard with aplazo campaign filter — loadDashboard auto-calls buildClientView
     await loadDashboard();
+    switchMainTab("cliente");
 
   } else {
     // Restore previous campaign and remove temp option if added
@@ -1172,6 +1166,7 @@ async function toggleClientMode() {
 
     // Reload dashboard restoring original filters
     await loadDashboard();
+    switchMainTab("resumen");
   }
 }
 
@@ -2503,6 +2498,25 @@ async function openAgentHistory(agentId, agentName) {
 }
 
 /* ═══════════════════════════════════════════════
+   MAIN TAB NAVIGATION
+═══════════════════════════════════════════════ */
+let activeMainTab = "resumen";
+
+function switchMainTab(tabId) {
+  // Update buttons
+  document.querySelectorAll(".main-tab").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.tab === tabId);
+  });
+  // Update sections
+  document.querySelectorAll(".tab-section").forEach(sec => {
+    sec.classList.toggle("active", sec.id === "tab-" + tabId);
+  });
+  activeMainTab = tabId;
+  // Trigger chart resize so canvases render correctly when tab becomes visible
+  setTimeout(() => window.dispatchEvent(new Event("resize")), 50);
+}
+
+/* ═══════════════════════════════════════════════
    GROUP TABS
 ═══════════════════════════════════════════════ */
 document.addEventListener("DOMContentLoaded", () => {
@@ -2533,6 +2547,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("endDate").value   = sunday.toISOString().split("T")[0];
 
   // ── Wire buttons via addEventListener (CSP-safe, works in Squarespace) ──
+  // Main tab buttons
+  document.querySelectorAll(".main-tab").forEach(btn => {
+    btn.addEventListener("click", () => switchMainTab(btn.dataset.tab));
+  });
+
   document.getElementById("actualizarBtn")
     ?.addEventListener("click", () => loadDashboard());
   document.getElementById("clientModeBtn")
