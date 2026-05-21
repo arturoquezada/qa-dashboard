@@ -1433,6 +1433,20 @@ async function resolveCorrection(newStatus) {
 
     // 2. Apply to qa_evaluations if approved
     if (newStatus === "Aprobada" && ACTIVE_CORRECTION.evaluation_id) {
+
+      // DELETE if elimination requested
+      if (typeNorm.includes("Eliminar")) {
+        await fetch(
+          `${SB_URL}/rest/v1/qa_evaluations?id=eq.${ACTIVE_CORRECTION.evaluation_id}`,
+          { method:"DELETE", headers:H }
+        ).catch(e => console.warn("Error eliminando evaluación:", e));
+        // Also delete rubric responses
+        await fetch(
+          `${SB_URL}/rest/v1/qa_evaluation_responses?evaluation_id=eq.${ACTIVE_CORRECTION.evaluation_id}`,
+          { method:"DELETE", headers:H }
+        ).catch(e => console.warn("Error eliminando respuestas:", e));
+      }
+
       const evalUpdate = {};
       if (isAgente) {
         if (newAgentName) evalUpdate.agent_name       = newAgentName;
@@ -1461,7 +1475,9 @@ async function resolveCorrection(newStatus) {
       }
     }
 
-    showToast(`✅ Corrección ${newStatus.toLowerCase()} correctamente`);
+    showToast(newStatus === "Aprobada" && typeNorm.includes("Eliminar")
+      ? "🗑️ Evaluación eliminada correctamente"
+      : `✅ Corrección ${newStatus.toLowerCase()} correctamente`);
     closeCorrModal();
     await loadCorrections();
   } catch(e) {
