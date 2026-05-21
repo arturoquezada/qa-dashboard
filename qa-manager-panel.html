@@ -884,25 +884,52 @@ async function openDisputeModal(id) {
 
     <hr class="divider">
 
-    <!-- SCORES EDITABLES -->
-    <div class="field-grid" style="margin-bottom:16px;">
-      <div class="field-block">
-        <span class="field-label">Score Raw (editable)</span>
-        <input type="number" class="m-input" id="d-score-raw"
-          value="${esc(String(currentScoreRaw))}" min="0" max="100" step="0.01" placeholder="0–100">
+    <!-- SCORES: referencia + editables -->
+    <div style="margin-bottom:16px;">
+      <span class="field-label">Scores actuales (referencia)</span>
+      <div class="field-grid" style="margin-bottom:10px;">
+        <div class="field-block">
+          <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;">Score Raw actual</span>
+          <div class="field-val mono" style="color:#0284c7;font-weight:800;">${currentScoreRaw !== "" ? currentScoreRaw : "—"}</div>
+        </div>
+        <div class="field-block">
+          <span style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;">Score Final actual</span>
+          <div class="field-val mono" style="color:#0284c7;font-weight:800;">${currentScoreFinal !== "" ? currentScoreFinal : "—"}</div>
+        </div>
       </div>
-      <div class="field-block">
-        <span class="field-label">Score Final (editable)</span>
-        <input type="number" class="m-input" id="d-score-final"
-          value="${esc(String(currentScoreFinal))}" min="0" max="100" step="0.01" placeholder="0–100">
+      <span class="field-label">Scores nuevos (editables — se aplicarán al aprobar)</span>
+      <div class="field-grid">
+        <div class="field-block">
+          <span style="font-size:11px;color:#64748b;display:block;margin-bottom:5px;">Score Raw nuevo</span>
+          <input type="number" class="m-input" id="d-score-raw"
+            value="${esc(String(currentScoreRaw))}" min="0" max="100" step="0.01" placeholder="0–100">
+        </div>
+        <div class="field-block">
+          <span style="font-size:11px;color:#64748b;display:block;margin-bottom:5px;">Score Final nuevo</span>
+          <input type="number" class="m-input" id="d-score-final"
+            value="${esc(String(currentScoreFinal))}" min="0" max="100" step="0.01" placeholder="0–100">
+        </div>
       </div>
     </div>
 
-    <!-- RUBROS EDITABLES -->
+    <!-- RUBROS: referencia + editables -->
     <div class="field-block" style="margin-bottom:16px;">
-      <span class="field-label">Rubros — scores editables</span>
-      <div style="font-size:11px;color:#94a3b8;margin-bottom:8px;">Edita el score de cada rubro si la disputa aplica. Se aplicarán al aprobar.</div>
-      ${rubricRows}
+      <span class="field-label">Rubros — score actual → nuevo (editable)</span>
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:8px;">El score actual se muestra como referencia. Edita el nuevo score al lado.</div>
+      ${rubricData.length > 0
+        ? rubricData.map((r, i) => `
+          <div class="rubric-row" data-rubric-response-id="${esc(r.id||'')}" data-rubric-item-id="${esc(r.rubric_item_id||'')}">
+            <span class="rubric-name">${esc(r.rubric_name || `Rubro ${i+1}`)}</span>
+            <span style="font-size:11px;color:#0284c7;font-weight:700;min-width:40px;text-align:right;">${esc(String(r.calculated_score??'—'))}</span>
+            <span style="font-size:11px;color:#94a3b8;padding:0 4px;">→</span>
+            <input type="number" class="rubric-score" id="rub-s-${i}"
+              value="${esc(String(r.calculated_score??''))}"
+              min="0" max="${esc(String(r.item_weight||10))}" step="0.01"
+              placeholder="${esc(String(r.item_weight||10))}">
+            <span style="font-size:11px;color:#94a3b8;min-width:40px;">/ ${esc(String(r.item_weight||'—'))}</span>
+          </div>`).join("")
+        : `<div style="font-size:13px;color:#94a3b8;padding:8px 0;">No se encontraron rubros para esta evaluación.</div>`
+      }
     </div>
 
     <hr class="divider">
@@ -1165,62 +1192,148 @@ function openCorrModal(id) {
   if (!c) return;
   ACTIVE_CORRECTION = c;
 
-  document.getElementById("c-modal-title").textContent = `${c.correction_type||"Corrección"} — ${c.original_agent_name||"Agente"}`;
+  // Normalize type — handle old underscore values and new spaced values
+  const typeRaw = c.correction_type || "";
+  const typeNorm = typeRaw
+    .replace("cambio_agente", "Cambio de agente")
+    .replace("correccion_score", "Corrección de score")
+    .replace("eliminar", "Eliminar evaluación");
+  // Store normalized on active correction for resolveCorrection to use
+  ACTIVE_CORRECTION._typeNorm = typeNorm;
+
+  const isAgente  = typeNorm === "Cambio de agente";
+  const isScore   = typeNorm.includes("score") || typeNorm.includes("Score");
+  const isEliminar = typeNorm.includes("Eliminar");
+
+  document.getElementById("c-modal-title").textContent = `${typeNorm} — ${c.original_agent_name||"Agente"}`;
   document.getElementById("c-modal-sub").textContent =
     `Solicitada por ${c.evaluator_name||c.requested_by||"—"} · ${c.requested_at?new Date(c.requested_at).toLocaleString("es-MX"):"—"}`;
 
-  // Changes block
-  let changesHTML = "";
-  if (c.correction_type === "Cambio de agente") {
-    changesHTML = `
-      <div class="change-row"><span class="change-field">Nombre</span><span class="change-old">${esc(c.original_agent_name||"—")}</span><span class="change-arrow">→</span><span class="change-new">${esc(c.new_agent_name||"—")}</span></div>
-      <div class="change-row"><span class="change-field">ID</span><span class="change-old">${esc(c.original_agent_identifier||"—")}</span><span class="change-arrow">→</span><span class="change-new">${esc(c.new_agent_identifier||"—")}</span></div>`;
-  } else if (c.correction_type?.includes("score") || c.correction_type?.includes("Score")) {
-    changesHTML = `
-      <div class="change-row"><span class="change-field">Score raw</span><span class="change-old">${c.original_score_raw??'—'}</span><span class="change-arrow">→</span><span class="change-new">${c.new_score_raw??'—'}</span></div>
-      <div class="change-row"><span class="change-field">Score final</span><span class="change-old">${c.original_score_final??'—'}</span><span class="change-arrow">→</span><span class="change-new">${c.new_score_final??'—'}</span></div>`;
-    if (c.new_rubric_responses) {
-      try {
-        const rubs = typeof c.new_rubric_responses==="string"?JSON.parse(c.new_rubric_responses):c.new_rubric_responses;
-        if (Array.isArray(rubs)) rubs.forEach(r => {
-          changesHTML += `<div class="change-row"><span class="change-field" style="min-width:140px;font-size:11px;">${esc(r.rubric_name||r.rubric_item||"Rubro")}</span><span class="change-new">${r.new_score} / ${r.max_score}</span></div>`;
-        });
-      } catch(e) {}
-    }
-  } else if (c.correction_type === "Eliminar evaluación") {
-    changesHTML = `<div style="color:#ef4444;font-weight:700;font-size:13px;">⚠️ Solicitud de eliminación de evaluación</div>`;
-  }
+  const isPending = c.status === "Pendiente";
 
   const linkHTML = c.interaction_link
     ? `<a href="${esc(c.interaction_link)}" target="_blank" rel="noopener" class="link-btn">🔗 Ver interacción</a>`
     : `<span style="color:#94a3b8;font-size:13px;">Sin interaction link</span>`;
 
-  const isPending = c.status === "Pendiente";
+  // ── EDITABLE FIELDS depending on type ──
+  let editableSection = "";
+
+  if (isAgente) {
+    editableSection = `
+      <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:14px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:800;color:#0284c7;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">
+          ✏️ Datos del agente solicitados
+        </div>
+        <div class="field-grid" style="margin-bottom:10px;">
+          <div><span style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px;">Nombre original</span>
+            <div class="field-val" style="font-size:12px;">${esc(c.original_agent_name||"—")}</div></div>
+          <div><span style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px;">ID original</span>
+            <div class="field-val mono" style="font-size:12px;">${esc(c.original_agent_identifier||"—")}</div></div>
+        </div>
+        <div class="field-grid">
+          <div>
+            <span style="font-size:11px;color:#0f172a;font-weight:700;display:block;margin-bottom:4px;">Nuevo nombre ${isPending?"(editable)":""}</span>
+            ${isPending
+              ? `<input type="text" class="m-input" id="c-new-agent-name" value="${esc(c.new_agent_name||"")}" placeholder="Nombre correcto del agente">`
+              : `<div class="field-val" style="color:#16a34a;font-weight:700;">${esc(c.new_agent_name||"Sin especificar")}</div>`}
+          </div>
+          <div>
+            <span style="font-size:11px;color:#0f172a;font-weight:700;display:block;margin-bottom:4px;">Nuevo ID ${isPending?"(editable)":""}</span>
+            ${isPending
+              ? `<input type="text" class="m-input" id="c-new-agent-id" value="${esc(c.new_agent_identifier||"")}" placeholder="CX00000">`
+              : `<div class="field-val mono" style="color:#16a34a;font-weight:700;">${esc(c.new_agent_identifier||"Sin especificar")}</div>`}
+          </div>
+        </div>
+      </div>`;
+  } else if (isScore) {
+    // Parse rubrics
+    let rubrics = [];
+    if (c.new_rubric_responses) {
+      try {
+        rubrics = typeof c.new_rubric_responses === "string"
+          ? JSON.parse(c.new_rubric_responses)
+          : c.new_rubric_responses;
+      } catch(e) {}
+    }
+    editableSection = `
+      <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:14px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:800;color:#0284c7;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">
+          ✏️ Corrección de scores solicitada
+        </div>
+        <div class="field-grid" style="margin-bottom:12px;">
+          <div>
+            <span style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px;">Score raw original → nuevo</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="field-val mono" style="font-size:12px;flex:1;">${c.original_score_raw??'—'}</span>
+              <span style="color:#94a3b8;">→</span>
+              ${isPending
+                ? `<input type="number" class="m-input" id="c-new-score-raw" value="${esc(String(c.new_score_raw??''))}" min="0" max="100" step="0.01" placeholder="0–100" style="flex:1;">`
+                : `<span class="field-val mono" style="color:#16a34a;font-weight:700;flex:1;">${c.new_score_raw??'—'}</span>`}
+            </div>
+          </div>
+          <div>
+            <span style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px;">Score final original → nuevo</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="field-val mono" style="font-size:12px;flex:1;">${c.original_score_final??'—'}</span>
+              <span style="color:#94a3b8;">→</span>
+              ${isPending
+                ? `<input type="number" class="m-input" id="c-new-score-final" value="${esc(String(c.new_score_final??''))}" min="0" max="100" step="0.01" placeholder="0–100" style="flex:1;">`
+                : `<span class="field-val mono" style="color:#16a34a;font-weight:700;flex:1;">${c.new_score_final??'—'}</span>`}
+            </div>
+          </div>
+        </div>
+        ${rubrics.length > 0 ? `
+          <div style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Rubros solicitados</div>
+          ${rubrics.map((r,i) => `
+            <div class="rubric-row" style="margin-bottom:6px;" data-rubric-item-id="${esc(r.rubric_item_id||'')}">
+              <span class="rubric-name">${esc(r.rubric_item||r.rubric_name||`Rubro ${i+1}`)}</span>
+              <span style="font-size:11px;color:#64748b;">${r.original_score??'—'}</span>
+              <span style="font-size:11px;color:#94a3b8;">→</span>
+              ${isPending
+                ? `<input type="number" class="rubric-score" id="c-rub-${i}" value="${esc(String(r.new_score??''))}" min="0" max="${esc(String(r.weight||10))}" step="0.01">`
+                : `<span style="color:#16a34a;font-weight:700;">${r.new_score??'—'}</span>`}
+              <span style="font-size:11px;color:#94a3b8;">/ ${r.weight??'—'}</span>
+            </div>`).join("")}
+        ` : ""}
+      </div>`;
+  } else if (isEliminar) {
+    editableSection = `
+      <div style="background:#fee2e2;border:1.5px solid #fca5a5;border-radius:14px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:800;color:#991b1b;">
+          ⚠️ Solicitud de eliminación de evaluación
+        </div>
+        <div style="font-size:12px;color:#b91c1c;margin-top:6px;">
+          Al aprobar, esta evaluación quedará marcada para eliminación. Asegúrate de revisar la razón antes de proceder.
+        </div>
+      </div>`;
+  }
 
   const resolvedBanner = !isPending ? `
-    <div class="${c.status==="Aprobada"?"resolved-banner":"resolved-banner rejected-banner"}">
-      ${c.status==="Aprobada"?"✅":"❌"} <strong>${esc(c.status)}</strong> el ${c.resolved_at?new Date(c.resolved_at).toLocaleString("es-MX"):"—"} por ${esc(c.resolved_by||"—")}
+    <div class="${c.status==="Aprobada"?"resolved-banner":"resolved-banner rejected-banner"}" style="margin-top:14px;">
+      ${c.status==="Aprobada"?"✅":"❌"} <strong>${esc(c.status)}</strong>
+      el ${c.resolved_at?new Date(c.resolved_at).toLocaleString("es-MX"):"—"}
+      por ${esc(c.resolved_by||"—")}
     </div>` : "";
 
   document.getElementById("c-modal-body").innerHTML = `
-    <div class="field-grid">
+    <div class="field-grid" style="margin-bottom:16px;">
       <div class="field-block"><span class="field-label">Agente original</span><div class="field-val">${esc(c.original_agent_name||"—")}</div></div>
       <div class="field-block"><span class="field-label">ID original</span><div class="field-val mono">${esc(c.original_agent_identifier||"—")}</div></div>
-      <div class="field-block"><span class="field-label">Evaluador</span><div class="field-val">${esc(c.evaluator_name||"—")}</div></div>
+      <div class="field-block"><span class="field-label">Evaluador</span><div class="field-val">${esc(c.evaluator_name||c.requested_by||"—")}</div></div>
       <div class="field-block"><span class="field-label">Score original</span><div class="field-val mono">${c.original_score_final??'—'}</div></div>
     </div>
+
     <div style="margin-bottom:16px;">${linkHTML}</div>
 
-    <div class="changes-block">
-      <div class="changes-title">📝 Cambios solicitados</div>
-      ${changesHTML||`<span style="color:#94a3b8;font-size:13px;">Sin cambios especificados.</span>`}
-    </div>
+    ${editableSection}
 
     <div class="field-block" style="margin-bottom:16px;">
       <span class="field-label">Razón de la corrección</span>
-      <div class="field-val" style="white-space:pre-wrap;line-height:1.6;">${esc(c.correction_reason||"—")}</div>
+      <div class="field-val" style="white-space:pre-wrap;line-height:1.6;border-left:3px solid #f59e0b;padding-left:12px;background:#fffbeb;">${esc(c.correction_reason||"—")}</div>
     </div>
+
     <hr class="divider">
+
     <div class="field-block" style="margin-bottom:14px;">
       <span class="field-label">Resuelto por</span>
       <select class="m-select" id="c-resolved-by" ${!isPending?"disabled":""}>
@@ -1228,7 +1341,6 @@ function openCorrModal(id) {
         <option value="maria.mora@evolvecx.io" ${c.resolved_by==="maria.mora@evolvecx.io"?"selected":""}>maria.mora@evolvecx.io</option>
         <option value="rodrigo.castro@evolvecx.io" ${c.resolved_by==="rodrigo.castro@evolvecx.io"?"selected":""}>rodrigo.castro@evolvecx.io</option>
       </select>
-    </div>
     </div>
     <div class="field-block">
       <span class="field-label">Nota de resolución</span>
@@ -1254,34 +1366,81 @@ async function resolveCorrection(newStatus) {
   const note       = document.getElementById("c-resolution-note")?.value?.trim();
   if (!resolvedBy) { showToast("Indica quién resuelve la corrección.", true); return; }
 
+  const typeNorm = ACTIVE_CORRECTION._typeNorm || ACTIVE_CORRECTION.correction_type || "";
+  const isAgente = typeNorm === "Cambio de agente";
+  const isScore  = typeNorm.includes("score") || typeNorm.includes("Score");
+
+  // Pick up any editable fields the manager may have filled in
+  const newAgentName  = document.getElementById("c-new-agent-name")?.value?.trim() || ACTIVE_CORRECTION.new_agent_name || null;
+  const newAgentId    = document.getElementById("c-new-agent-id")?.value?.trim()   || ACTIVE_CORRECTION.new_agent_identifier || null;
+  const newScoreRaw   = document.getElementById("c-new-score-raw")?.value   ? parseFloat(document.getElementById("c-new-score-raw").value)   : ACTIVE_CORRECTION.new_score_raw;
+  const newScoreFinal = document.getElementById("c-new-score-final")?.value ? parseFloat(document.getElementById("c-new-score-final").value) : ACTIVE_CORRECTION.new_score_final;
+
+  // Collect rubric edits if score correction
+  let rubricEdits = null;
+  if (isScore) {
+    const rubricRows = document.querySelectorAll("#c-modal-body .rubric-row");
+    if (rubricRows.length > 0) {
+      rubricEdits = Array.from(rubricRows).map((row, i) => {
+        const origRub = (() => {
+          try {
+            const rubs = typeof ACTIVE_CORRECTION.new_rubric_responses === "string"
+              ? JSON.parse(ACTIVE_CORRECTION.new_rubric_responses)
+              : (ACTIVE_CORRECTION.new_rubric_responses || []);
+            return rubs[i] || {};
+          } catch(e) { return {}; }
+        })();
+        return {
+          rubric_item_id: row.dataset.rubricItemId || origRub.rubric_item_id || null,
+          rubric_item:    origRub.rubric_item || origRub.rubric_name || `Rubro ${i+1}`,
+          new_score:      parseFloat(document.getElementById(`c-rub-${i}`)?.value ?? origRub.new_score ?? 0),
+          weight:         origRub.weight || 0
+        };
+      });
+    }
+  }
+
   const btnA = document.getElementById("c-btn-approve");
   const btnR = document.getElementById("c-btn-reject");
   if (btnA) btnA.disabled = true;
   if (btnR) btnR.disabled = true;
 
   try {
-    // 1. Update correction
+    // 1. Update correction record
+    const corrUpdate = {
+      status:          newStatus,
+      resolved_by:     resolvedBy,
+      resolved_at:     new Date().toISOString(),
+      resolution_note: note || null,
+      corrected_by:    resolvedBy,
+      corrected_at:    new Date().toISOString()
+    };
+    if (isAgente) {
+      corrUpdate.new_agent_name       = newAgentName;
+      corrUpdate.new_agent_identifier = newAgentId;
+    }
+    if (isScore) {
+      corrUpdate.new_score_raw   = newScoreRaw;
+      corrUpdate.new_score_final = newScoreFinal;
+      if (rubricEdits) corrUpdate.new_rubric_responses = rubricEdits;
+    }
+
     const r = await fetch(
       `${SB_URL}/rest/v1/qa_evaluation_corrections?id=eq.${ACTIVE_CORRECTION.id}`,
-      { method:"PATCH", headers:H, body:JSON.stringify({
-          status:newStatus, resolved_by:resolvedBy,
-          resolved_at:new Date().toISOString(),
-          resolution_note:note||null,
-          corrected_by:resolvedBy, corrected_at:new Date().toISOString()
-      })}
+      { method:"PATCH", headers:H, body:JSON.stringify(corrUpdate) }
     );
     if (!r.ok) { const e=await r.json().catch(()=>({})); throw new Error(e.message||`HTTP ${r.status}`); }
 
     // 2. Apply to qa_evaluations if approved
     if (newStatus === "Aprobada" && ACTIVE_CORRECTION.evaluation_id) {
       const evalUpdate = {};
-      if (ACTIVE_CORRECTION.correction_type === "Cambio de agente") {
-        if (ACTIVE_CORRECTION.new_agent_name)       evalUpdate.agent_name       = ACTIVE_CORRECTION.new_agent_name;
-        if (ACTIVE_CORRECTION.new_agent_identifier) evalUpdate.agent_identifier = ACTIVE_CORRECTION.new_agent_identifier;
+      if (isAgente) {
+        if (newAgentName) evalUpdate.agent_name       = newAgentName;
+        if (newAgentId)   evalUpdate.agent_identifier = newAgentId;
       }
-      if (ACTIVE_CORRECTION.correction_type?.includes("score") || ACTIVE_CORRECTION.correction_type?.includes("Score")) {
-        if (ACTIVE_CORRECTION.new_score_raw   != null) evalUpdate.score_raw   = ACTIVE_CORRECTION.new_score_raw;
-        if (ACTIVE_CORRECTION.new_score_final != null) evalUpdate.score_final = ACTIVE_CORRECTION.new_score_final;
+      if (isScore) {
+        if (newScoreRaw   != null) evalUpdate.score_raw   = newScoreRaw;
+        if (newScoreFinal != null) evalUpdate.score_final = newScoreFinal;
       }
       if (Object.keys(evalUpdate).length > 0) {
         await fetch(
@@ -1289,22 +1448,16 @@ async function resolveCorrection(newStatus) {
           { method:"PATCH", headers:H, body:JSON.stringify(evalUpdate) }
         ).catch(e => console.warn("Error actualizando evaluación:", e));
       }
+
       // 3. Update rubric responses
-      if (ACTIVE_CORRECTION.new_rubric_responses) {
-        try {
-          const rubs = typeof ACTIVE_CORRECTION.new_rubric_responses==="string"
-            ? JSON.parse(ACTIVE_CORRECTION.new_rubric_responses)
-            : ACTIVE_CORRECTION.new_rubric_responses;
-          if (Array.isArray(rubs)) {
-            for (const rub of rubs) {
-              if (!rub.rubric_item_id) continue;
-              await fetch(
-                `${SB_URL}/rest/v1/qa_evaluation_responses?evaluation_id=eq.${ACTIVE_CORRECTION.evaluation_id}&rubric_item_id=eq.${rub.rubric_item_id}`,
-                { method:"PATCH", headers:H, body:JSON.stringify({ calculated_score:rub.new_score }) }
-              ).catch(e => console.warn("Error actualizando rubro:", e));
-            }
-          }
-        } catch(e) { console.warn("Error parseando rubros:", e); }
+      if (isScore && rubricEdits) {
+        for (const rub of rubricEdits) {
+          if (!rub.rubric_item_id) continue;
+          await fetch(
+            `${SB_URL}/rest/v1/qa_evaluation_responses?evaluation_id=eq.${ACTIVE_CORRECTION.evaluation_id}&rubric_item_id=eq.${rub.rubric_item_id}`,
+            { method:"PATCH", headers:H, body:JSON.stringify({ calculated_score: rub.new_score }) }
+          ).catch(e => console.warn("Error actualizando rubro:", e));
+        }
       }
     }
 
