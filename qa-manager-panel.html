@@ -1434,17 +1434,12 @@ async function resolveCorrection(newStatus) {
     // 2. Apply to qa_evaluations if approved
     if (newStatus === "Aprobada" && ACTIVE_CORRECTION.evaluation_id) {
 
-      // DELETE if elimination requested
+      // DELETE if elimination requested — CASCADE handles responses, disputes, corrections automatically
       if (typeNorm.includes("Eliminar")) {
         await fetch(
           `${SB_URL}/rest/v1/qa_evaluations?id=eq.${ACTIVE_CORRECTION.evaluation_id}`,
           { method:"DELETE", headers:H }
         ).catch(e => console.warn("Error eliminando evaluación:", e));
-        // Also delete rubric responses
-        await fetch(
-          `${SB_URL}/rest/v1/qa_evaluation_responses?evaluation_id=eq.${ACTIVE_CORRECTION.evaluation_id}`,
-          { method:"DELETE", headers:H }
-        ).catch(e => console.warn("Error eliminando respuestas:", e));
       }
 
       const evalUpdate = {};
