@@ -11,128 +11,31 @@
 
   <style>
     * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      height: auto;
-      min-height: 100%;
-      font-family: Inter, Arial, sans-serif;
-      background: #f4fbff;
-      color: #0f172a;
-    }
-    /* Tell Squarespace parent iframe to grow with content */
+    html, body { margin: 0; height: auto; min-height: 100%; font-family: Inter, Arial, sans-serif; background: #f4fbff; color: #0f172a; }
     body { overflow-y: auto; }
+    .app { max-width: 1400px; margin: auto; padding: 28px; }
 
-    .app {
-      max-width: 1400px;
-      margin: auto;
-      padding: 28px;
-    }
-
-    /* ── HEADER ── */
-    .header {
-      background: linear-gradient(135deg, #0f172a, #1e293b);
-      color: white;
-      padding: 28px 32px;
-      border-radius: 24px;
-      margin-bottom: 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .header { background: linear-gradient(135deg, #0f172a, #1e293b); color: white; padding: 28px 32px; border-radius: 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
     .header h1 { margin: 0; font-size: 30px; }
     .header p  { margin: 6px 0 0; color: #cbd5e1; font-size: 14px; }
     .header-meta { text-align: right; color: #94a3b8; font-size: 12px; }
     .header-meta span { display: block; margin-top: 4px; }
 
-    /* ── SECTION TITLES ── */
-    .section-title {
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: #94a3b8;
-      margin: 28px 0 12px;
-    }
+    .section-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; margin: 28px 0 12px; }
 
-    /* ── FILTERS ── */
-    .filters-sticky-wrap {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      /* slight negative margin so it bleeds to app edges */
-      margin: 0 -4px 22px;
-      padding: 0 4px;
-    }
-    .filters {
-      background: white;
-      border-radius: 20px;
-      padding: 16px 20px;
-      box-shadow: 0 4px 24px rgba(15,23,42,.13);
-      margin-bottom: 0;
-    }
-    .filters-grid {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 14px;
-    }
-    label {
-      font-size: 11px;
-      font-weight: 700;
-      color: #475569;
-      display: block;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: .5px;
-    }
-    select, input {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1.5px solid #e2e8f0;
-      font-size: 13px;
-      background: #f8fafc;
-      color: #0f172a;
-      transition: border-color .2s;
-    }
+    .filters-sticky-wrap { position: sticky; top: 0; z-index: 100; margin: 0 -4px 22px; padding: 0 4px; }
+    .filters { background: white; border-radius: 20px; padding: 16px 20px; box-shadow: 0 4px 24px rgba(15,23,42,.13); margin-bottom: 0; }
+    .filters-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 14px; }
+    label { font-size: 11px; font-weight: 700; color: #475569; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+    select, input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid #e2e8f0; font-size: 13px; background: #f8fafc; color: #0f172a; transition: border-color .2s; }
     select:focus, input:focus { outline: none; border-color: #62d3f5; background: #fff; }
-    button {
-      padding: 11px 18px;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #62d3f5, #38bdf8);
-      color: #0f172a;
-      font-weight: 800;
-      cursor: pointer;
-      font-size: 13px;
-      width: 100%;
-      transition: opacity .2s;
-    }
+    button { padding: 11px 18px; border: none; border-radius: 12px; background: linear-gradient(135deg, #62d3f5, #38bdf8); color: #0f172a; font-weight: 800; cursor: pointer; font-size: 13px; width: 100%; transition: opacity .2s; }
     button:hover { opacity: .88; }
 
-    /* ── CARDS ── */
-    .card, .chart-card, .table-card {
-      background: white;
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow: 0 4px 20px rgba(15,23,42,.07);
-      margin-bottom: 22px;
-    }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 16px;
-      margin-bottom: 22px;
-    }
+    .card, .chart-card, .table-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 20px rgba(15,23,42,.07); margin-bottom: 22px; }
+    .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 22px; }
     .card { margin-bottom: 0; position: relative; overflow: hidden; }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #62d3f5, #38bdf8);
-      border-radius: 20px 20px 0 0;
-    }
+    .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #62d3f5, #38bdf8); border-radius: 20px 20px 0 0; }
     .card.danger::before  { background: linear-gradient(90deg,#ef4444,#fb7185); }
     .card.warn::before    { background: linear-gradient(90deg,#f59e0b,#fbbf24); }
     .card.success::before { background: linear-gradient(90deg,#22c55e,#4ade80); }
@@ -143,63 +46,31 @@
     .trend.down { color: #ef4444; }
     .trend.flat { color: #94a3b8; }
 
-    /* ── INSIGHT ── */
-    .insight {
-      background: #ecfeff;
-      border: 1px solid #a5f3fc;
-      border-radius: 16px;
-      padding: 16px 20px;
-      margin-bottom: 22px;
-      color: #164e63;
-      font-weight: 600;
-      font-size: 14px;
-      line-height: 1.5;
-    }
+    .insight { background: #ecfeff; border: 1px solid #a5f3fc; border-radius: 16px; padding: 16px 20px; margin-bottom: 22px; color: #164e63; font-weight: 600; font-size: 14px; line-height: 1.5; }
 
-    /* ── CHARTS GRID ── */
     .charts-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
     .charts-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
     .chart-card h3, .table-card h3 { margin: 0 0 16px; font-size: 15px; }
 
-    /* ── TABLES ── */
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; text-align: left; }
     th { color: #475569; background: #f8fafc; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
     tr:hover td { background: #f8fafc; }
-    .badge {
-      display: inline-block;
-      padding: 3px 9px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 700;
-    }
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
     .badge-red    { background: #fee2e2; color: #991b1b; }
     .badge-green  { background: #dcfce7; color: #166534; }
     .badge-yellow { background: #fef9c3; color: #854d0e; }
     .badge-blue   { background: #dbeafe; color: #1d4ed8; }
     .badge-gray   { background: #f1f5f9; color: #475569; }
+    .badge-orange { background: #ffedd5; color: #9a3412; }
 
-    /* ── RISK PILL ── */
-    .risk-pill {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-weight: 800;
-      font-size: 12px;
-    }
+    .risk-pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font-weight: 800; font-size: 12px; }
     .risk-high   { background: #fee2e2; color: #991b1b; }
     .risk-medium { background: #fef9c3; color: #854d0e; }
     .risk-low    { background: #dcfce7; color: #166534; }
 
-    /* ── CRITICAL CARDS ── */
     .critical-list { display: flex; flex-direction: column; gap: 10px; }
-    .critical-card {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-left: 5px solid #ef4444;
-      border-radius: 14px;
-      padding: 12px 16px;
-    }
+    .critical-card { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 5px solid #ef4444; border-radius: 14px; padding: 12px 16px; }
     .critical-card-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
     .critical-title { font-weight: 800; color: #0f172a; font-size: 13px; }
     .critical-count { background: #fee2e2; color: #991b1b; border-radius: 999px; padding: 4px 10px; font-weight: 900; font-size: 11px; white-space: nowrap; }
@@ -207,113 +78,34 @@
     .critical-bar-fill { height: 100%; background: linear-gradient(90deg,#ef4444,#fb7185); border-radius: 999px; }
     .critical-detail { margin-top: 6px; font-size: 11px; color: #64748b; }
 
-    /* ── COMMITMENT CELL ── */
     .commitment-cell { position: relative; cursor: pointer; max-width: 240px; }
     .commitment-preview { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .commitment-tooltip {
-      visibility: hidden; opacity: 0;
-      position: absolute; left: 0; top: 100%; margin-top: 6px;
-      background: #0f172a; color: white;
-      padding: 10px 14px; border-radius: 10px; width: 300px;
-      white-space: normal; z-index: 9999; font-size: 12px; line-height: 1.4;
-      box-shadow: 0 8px 24px rgba(0,0,0,.25);
-      transition: opacity .2s;
-    }
+    .commitment-tooltip { visibility: hidden; opacity: 0; position: absolute; left: 0; top: 100%; margin-top: 6px; background: #0f172a; color: white; padding: 10px 14px; border-radius: 10px; width: 300px; white-space: normal; z-index: 9999; font-size: 12px; line-height: 1.4; box-shadow: 0 8px 24px rgba(0,0,0,.25); transition: opacity .2s; }
     .commitment-cell:hover .commitment-tooltip { visibility: visible; opacity: 1; }
 
-    /* ── SPARKLINE (tendencia agente) ── */
-    .sparkline-cell canvas { display: block; }
-
-    /* ── WEEKLY COMPARE TABLE ── */
     .delta-up   { color: #22c55e; font-weight: 700; }
     .delta-down { color: #ef4444; font-weight: 700; }
     .delta-flat { color: #94a3b8; }
 
-    /* ── TABS ── */
     .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-    .tab {
-      padding: 7px 16px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      border: 1.5px solid #e2e8f0;
-      background: #f8fafc;
-      color: #475569;
-      transition: all .2s;
-    }
+    .tab { padding: 7px 16px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1.5px solid #e2e8f0; background: #f8fafc; color: #475569; transition: all .2s; }
     .tab.active { background: #0f172a; color: white; border-color: #0f172a; }
 
-    /* ── LOADING ── */
-    .loading-spinner {
-      display: inline-block; width: 16px; height: 16px;
-      border: 2px solid #e2e8f0; border-top-color: #62d3f5;
-      border-radius: 50%; animation: spin .7s linear infinite;
-      vertical-align: middle; margin-right: 6px;
-    }
+    .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #e2e8f0; border-top-color: #62d3f5; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── EVAL DETAIL MODAL ── */
-    .eval-modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      width: 100%; height: 100%;
-      background: rgba(15,23,42,.55);
-      z-index: 99999;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 40px 20px 20px;
-      overflow-y: auto;
-    }
+    /* ── EVAL MODAL ── */
+    .eval-modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; background: rgba(15,23,42,.55); z-index: 99999; align-items: flex-start; justify-content: center; padding: 40px 20px 20px; overflow-y: auto; }
     .eval-modal-overlay.active { display: flex; }
-    .eval-modal {
-      background: white;
-      border-radius: 24px;
-      width: 100%;
-      max-width: 680px;
-      max-height: 88vh;
-      overflow-y: auto;
-      box-shadow: 0 24px 60px rgba(15,23,42,.25);
-      animation: modalIn .2s ease;
-    }
-    @keyframes modalIn {
-      from { transform: translateY(20px); opacity:0; }
-      to   { transform: translateY(0);    opacity:1; }
-    }
-    .eval-modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      padding: 24px 24px 0;
-      gap: 12px;
-    }
+    .eval-modal { background: white; border-radius: 24px; width: 100%; max-width: 680px; max-height: 88vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(15,23,42,.25); animation: modalIn .2s ease; }
+    @keyframes modalIn { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+    .eval-modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 24px 0; gap: 12px; }
     .eval-modal-header h2 { margin:0; font-size:18px; color:#0f172a; }
-    .eval-modal-close {
-      background: #f1f5f9;
-      border: none;
-      border-radius: 999px;
-      width: 32px; height: 32px;
-      font-size: 16px;
-      cursor: pointer;
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      color: #64748b;
-    }
+    .eval-modal-close { background: #f1f5f9; border: none; border-radius: 999px; width: 32px; height: 32px; font-size: 16px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #64748b; }
     .eval-modal-close:hover { background: #e2e8f0; }
     .eval-modal-body { padding: 20px 24px 24px; }
-    .eval-modal-kpis {
-      display: grid;
-      grid-template-columns: repeat(3,1fr);
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .eval-modal-kpi {
-      background: #f8fafc;
-      border-radius: 14px;
-      padding: 14px;
-      text-align: center;
-    }
+    .eval-modal-kpis { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 20px; }
+    .eval-modal-kpi { background: #f8fafc; border-radius: 14px; padding: 14px; text-align: center; }
     .eval-modal-kpi .label { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.5px; }
     .eval-modal-kpi .value { font-size:22px; font-weight:800; margin-top:4px; }
     .eval-modal-section { margin-bottom:18px; }
@@ -325,6 +117,140 @@
     .eval-feedback-link { display:inline-block; margin-top:8px; color:#0284c7; font-size:13px; font-weight:700; text-decoration:none; }
     .eval-feedback-link:hover { text-decoration:underline; }
 
+    /* ── CORRECTION PANEL (inside eval modal) ── */
+    .correction-panel {
+      margin-top: 24px;
+      border-top: 2px dashed #e2e8f0;
+      padding-top: 20px;
+    }
+    .correction-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .correction-panel-title {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: #f59e0b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-request-correction {
+      width: auto;
+      padding: 10px 20px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #f59e0b, #fbbf24);
+      color: #0f172a;
+      font-weight: 800;
+      font-size: 13px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all .2s;
+      box-shadow: 0 4px 12px rgba(245,158,11,.3);
+    }
+    .btn-request-correction:hover { opacity: .9; transform: translateY(-1px); }
+
+    .correction-form { display: none; }
+    .correction-form.open { display: block; }
+
+    .corr-field { margin-bottom: 14px; }
+    .corr-label { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .5px; display: block; margin-bottom: 6px; }
+    .corr-input, .corr-select, .corr-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1.5px solid #e2e8f0;
+      font-size: 13px;
+      background: #f8fafc;
+      color: #0f172a;
+      font-family: inherit;
+    }
+    .corr-input:focus, .corr-select:focus, .corr-textarea:focus { outline: none; border-color: #f59e0b; background: #fff; }
+    .corr-textarea { resize: vertical; min-height: 80px; }
+    .corr-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .corr-section-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: #94a3b8;
+      margin: 18px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .rubric-edit-row {
+      display: grid;
+      grid-template-columns: 1fr 80px;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .rubric-edit-label {
+      font-size: 12px;
+      color: #475569;
+      font-weight: 600;
+    }
+    .rubric-edit-input {
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1.5px solid #e2e8f0;
+      font-size: 12px;
+      background: #f8fafc;
+      color: #0f172a;
+      text-align: center;
+      font-family: inherit;
+    }
+    .rubric-edit-input:focus { outline: none; border-color: #f59e0b; }
+
+    .corr-actions { display: flex; gap: 10px; margin-top: 18px; }
+    .btn-submit-correction {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #f59e0b, #fbbf24);
+      color: #0f172a;
+      font-weight: 800;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-submit-correction:hover { opacity: .9; }
+    .btn-submit-correction:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-cancel-correction {
+      padding: 12px 20px;
+      border-radius: 12px;
+      background: #f1f5f9;
+      color: #475569;
+      font-weight: 700;
+      font-size: 13px;
+      border: 1.5px solid #e2e8f0;
+      cursor: pointer;
+    }
+    .btn-cancel-correction:hover { background: #e2e8f0; }
+
+    .correction-success {
+      display: none;
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      border-radius: 14px;
+      padding: 16px 20px;
+      color: #166534;
+      font-weight: 700;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 16px;
+    }
+
     /* ── RUBRIC TABLE ── */
     .rubric-table { min-width: 900px; }
     .rubric-table th { white-space: nowrap; }
@@ -335,51 +261,16 @@
     .rubric-cell-gray   { background: #f1f5f9; color: #94a3b8; text-align: center; }
 
     /* ── CLIENT MODE ── */
-    .client-mode-banner {
-      background: linear-gradient(135deg, #0ea5e9, #0284c7);
-      color: white;
-      border-radius: 16px;
-      padding: 14px 20px;
-      margin-bottom: 18px;
-      display: none;
-      align-items: center;
-      gap: 12px;
-      font-weight: 700;
-      font-size: 14px;
-    }
+    .client-mode-banner { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; border-radius: 16px; padding: 14px 20px; margin-bottom: 18px; display: none; align-items: center; gap: 12px; font-weight: 700; font-size: 14px; }
     .client-mode-banner.active { display: flex; }
     .client-mode-banner span { flex:1; }
-
-    /* client view sections hidden by default */
-    .client-only { display: none; }
-    /* internal-only: visible normally, hidden in client-mode.
-       Do NOT set display here — let each element use its natural display value */
     body.client-mode .client-only.tab-section { display: none; }
     body.client-mode .client-only.tab-section.active { display: block; }
     body.client-mode .internal-only  { display: none !important; }
-    /* Hide main tabs in client mode — navigation is via the tab bar which stays visible */
     body.client-mode .main-tabs-wrap { display: none !important; }
-
-    .client-kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4,1fr);
-      gap: 16px;
-      margin-bottom: 22px;
-    }
-    .client-kpi-card {
-      background: white;
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow: 0 4px 20px rgba(15,23,42,.07);
-      position: relative;
-      overflow: hidden;
-    }
-    .client-kpi-card::before {
-      content:'';
-      position:absolute;
-      top:0;left:0;right:0;height:3px;
-      border-radius:20px 20px 0 0;
-    }
+    .client-kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 22px; }
+    .client-kpi-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 20px rgba(15,23,42,.07); position: relative; overflow: hidden; }
+    .client-kpi-card::before { content:''; position:absolute; top:0;left:0;right:0;height:3px; border-radius:20px 20px 0 0; }
     .client-kpi-card.blue::before   { background: linear-gradient(90deg,#0ea5e9,#38bdf8); }
     .client-kpi-card.teal::before   { background: linear-gradient(90deg,#14b8a6,#2dd4bf); }
     .client-kpi-card.red::before    { background: linear-gradient(90deg,#ef4444,#fb7185); }
@@ -387,94 +278,44 @@
     .client-kpi-label  { font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.5px; }
     .client-kpi-value  { font-size:28px;font-weight:800;margin:6px 0 2px; }
     .client-kpi-sub    { font-size:11px;color:#94a3b8; }
-    .vs-badge {
-      display:inline-block;
-      padding:2px 8px;
-      border-radius:999px;
-      font-size:11px;
-      font-weight:700;
-      margin-left:6px;
-    }
+    .vs-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700; margin-left:6px; }
     .vs-up   { background:#dcfce7;color:#166534; }
     .vs-down { background:#fee2e2;color:#991b1b; }
     .vs-flat { background:#f1f5f9;color:#64748b; }
 
     /* ── MAIN TABS ── */
-    .main-tabs-wrap {
-      margin-bottom: 22px;
-    }
-    .main-tabs {
-      display: flex;
-      gap: 6px;
-      background: white;
-      border-radius: 18px;
-      padding: 8px;
-      box-shadow: 0 4px 20px rgba(15,23,42,.07);
-      overflow-x: auto;
-    }
-    .main-tab {
-      flex: 1;
-      min-width: 110px;
-      padding: 11px 10px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      background: transparent;
-      color: #64748b;
-      text-align: center;
-      transition: all .2s;
-      white-space: nowrap;
-    }
+    .main-tabs-wrap { margin-bottom: 22px; }
+    .main-tabs { display: flex; gap: 6px; background: white; border-radius: 18px; padding: 8px; box-shadow: 0 4px 20px rgba(15,23,42,.07); overflow-x: auto; }
+    .main-tab { flex: 1; min-width: 110px; padding: 11px 10px; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; background: transparent; color: #64748b; text-align: center; transition: all .2s; white-space: nowrap; }
     .main-tab:hover { background: #f1f5f9; color: #0f172a; }
-    .main-tab.active {
-      background: linear-gradient(135deg, #0f172a, #1e293b);
-      color: white;
-      box-shadow: 0 4px 12px rgba(15,23,42,.25);
-    }
+    .main-tab.active { background: linear-gradient(135deg, #0f172a, #1e293b); color: white; box-shadow: 0 4px 12px rgba(15,23,42,.25); }
     .main-tab.active.tab-analisis  { background: linear-gradient(135deg,#0ea5e9,#38bdf8); color:#0f172a; }
     .main-tab.active.tab-riesgos   { background: linear-gradient(135deg,#ef4444,#fb7185); color:white; }
     .main-tab.active.tab-agentes   { background: linear-gradient(135deg,#8b5cf6,#a78bfa); color:white; }
     .main-tab.active.tab-cliente   { background: linear-gradient(135deg,#0284c7,#0ea5e9); color:white; }
 
-    /* Tab sections */
     .tab-section { display: none; }
     .tab-section.active { display: block; }
 
-    /* ── RESPONSIVE ── */    /* ── RESPONSIVE ── */
-    @media(max-width:1100px) {
-      .filters-grid, .cards { grid-template-columns: repeat(2,1fr); }
-      .charts-2, .charts-3  { grid-template-columns: 1fr; }
-    }
-    @media(max-width:640px) {
-      .filters-grid, .cards { grid-template-columns: 1fr; }
-    }
+    @media(max-width:1100px) { .filters-grid, .cards { grid-template-columns: repeat(2,1fr); } .charts-2, .charts-3 { grid-template-columns: 1fr; } }
+    @media(max-width:640px)  { .filters-grid, .cards { grid-template-columns: 1fr; } }
   </style>
 </head>
-
 <body>
 <div class="app">
 
-  <!-- HEADER -->
   <div class="header">
     <div>
       <h1>📊 QA Intelligence Center</h1>
       <p>Client-ready QA performance · Errores críticos · Pareto · Riesgo · Seguimiento</p>
     </div>
     <div class="header-meta" style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
-      <button id="clientModeBtn" 
-        style="width:auto;padding:9px 18px;font-size:12px;border-radius:999px;
-               background:rgba(255,255,255,.12);color:white;border:1.5px solid rgba(255,255,255,.3);
-               font-weight:800;cursor:pointer;">
-        👁 Vista Cliente
-      </button>
+      <button id="clientModeBtn" style="width:auto;padding:9px 18px;font-size:12px;border-radius:999px;background:rgba(255,255,255,.12);color:white;border:1.5px solid rgba(255,255,255,.3);font-weight:800;cursor:pointer;">👁 Vista Cliente</button>
       <span id="lastUpdated" style="color:#94a3b8;font-size:12px;">–</span>
       <span id="recordCount" style="color:#62d3f5;font-weight:700;font-size:12px;">–</span>
     </div>
   </div>
 
-  <!-- FILTERS -->
   <div class="filters-sticky-wrap">
   <div class="filters">
     <div class="filters-grid">
@@ -488,15 +329,13 @@
       <div><label>&nbsp;</label><button id="actualizarBtn">🔄 Actualizar</button></div>
     </div>
   </div>
-  </div><!-- /filters-sticky-wrap -->
+  </div>
 
-  <!-- CLIENT MODE BANNER -->
   <div class="client-mode-banner" id="clientBanner">
     <span>👁 Vista Cliente — Aplazo · Comparativo evaluadores @aplazo.mx vs @evolvecx.io</span>
     <button id="clientExitBtn" style="width:auto;padding:7px 14px;font-size:11px;border-radius:999px;background:rgba(255,255,255,.2);color:white;border:1.5px solid rgba(255,255,255,.4);font-weight:800;">✕ Salir</button>
   </div>
 
-  <!-- ══════════════ MAIN TABS (internal only) ══════════════ -->
   <div class="main-tabs-wrap internal-only">
     <div class="main-tabs">
       <button class="main-tab active"        data-tab="resumen">📊 Resumen</button>
@@ -507,54 +346,27 @@
     </div>
   </div>
 
-  <!-- ══════════════ TAB: RESUMEN ══════════════ -->
+  <!-- TAB: RESUMEN -->
   <div class="tab-section active" id="tab-resumen">
     <div class="section-title">Resumen ejecutivo</div>
     <div class="cards">
-      <div class="card">
-        <div class="muted">Avg QA Score</div>
-        <div class="metric" id="avgScore">–</div>
-        <div class="trend flat" id="trendScore">–</div>
-      </div>
-      <div class="card">
-        <div class="muted">Evaluaciones</div>
-        <div class="metric" id="totalEvaluations">–</div>
-        <div class="trend flat" id="trendEvals">–</div>
-      </div>
-      <div class="card danger">
-        <div class="muted">Critical Error Rate</div>
-        <div class="metric" id="criticalRate">–</div>
-        <div class="trend flat" id="trendCritical">–</div>
-      </div>
-      <div class="card warn">
-        <div class="muted">Weekly Zero</div>
-        <div class="metric" id="weeklyZero">–</div>
-        <div class="trend flat" id="trendZero">–</div>
-      </div>
-      <div class="card success">
-        <div class="muted">Agentes evaluados</div>
-        <div class="metric" id="evaluatedAgents">–</div>
-        <div class="trend flat" id="trendAgents">–</div>
-      </div>
+      <div class="card"><div class="muted">Avg QA Score</div><div class="metric" id="avgScore">–</div><div class="trend flat" id="trendScore">–</div></div>
+      <div class="card"><div class="muted">Evaluaciones</div><div class="metric" id="totalEvaluations">–</div><div class="trend flat" id="trendEvals">–</div></div>
+      <div class="card danger"><div class="muted">Critical Error Rate</div><div class="metric" id="criticalRate">–</div><div class="trend flat" id="trendCritical">–</div></div>
+      <div class="card warn"><div class="muted">Weekly Zero</div><div class="metric" id="weeklyZero">–</div><div class="trend flat" id="trendZero">–</div></div>
+      <div class="card success"><div class="muted">Agentes evaluados</div><div class="metric" id="evaluatedAgents">–</div><div class="trend flat" id="trendAgents">–</div></div>
     </div>
-    <div class="insight" id="autoInsight">
-      <span class="loading-spinner"></span> Cargando insights...
-    </div>
+    <div class="insight" id="autoInsight"><span class="loading-spinner"></span> Cargando insights...</div>
     <div class="charts-2">
       <div class="chart-card">
         <h3>📅 Comparativa semana vs semana anterior</h3>
-        <table>
-          <thead><tr>
-            <th>Semana</th><th>Evaluaciones</th><th>Avg Score</th><th>Critical %</th><th>Δ Score</th>
-          </tr></thead>
-          <tbody id="weeklyCompareTable"></tbody>
-        </table>
+        <table><thead><tr><th>Semana</th><th>Evaluaciones</th><th>Avg Score</th><th>Critical %</th><th>Δ Score</th></tr></thead><tbody id="weeklyCompareTable"></tbody></table>
       </div>
       <div class="chart-card"><h3>📊 Distribución de scores</h3><canvas id="histogramChart"></canvas></div>
     </div>
   </div>
 
-  <!-- ══════════════ TAB: TENDENCIAS ══════════════ -->
+  <!-- TAB: TENDENCIAS -->
   <div class="tab-section" id="tab-analisis">
     <div class="section-title">Tendencias y análisis de fallas</div>
     <div class="charts-2">
@@ -562,14 +374,10 @@
       <div class="chart-card" id="paretoCard">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
           <h3 style="margin:0;" id="paretoCardTitle">🔴 Pareto de fallas</h3>
-          <button id="paretoToggleBtn" style="width:auto;padding:8px 16px;font-size:12px;border-radius:999px;background:#f1f5f9;color:#0f172a;border:1.5px solid #e2e8f0;">
-            📐 Ver detalle por rubro
-          </button>
+          <button id="paretoToggleBtn" style="width:auto;padding:8px 16px;font-size:12px;border-radius:999px;background:#f1f5f9;color:#0f172a;border:1.5px solid #e2e8f0;">📐 Ver detalle por rubro</button>
         </div>
         <div id="paretoView"><canvas id="paretoChart"></canvas></div>
-        <div id="rubricDetailView" style="display:none;overflow-x:auto;">
-          <div class="muted" style="padding:12px 0;" id="rubricDetailMsg">Cargando...</div>
-        </div>
+        <div id="rubricDetailView" style="display:none;overflow-x:auto;"><div class="muted" style="padding:12px 0;" id="rubricDetailMsg">Cargando...</div></div>
       </div>
     </div>
     <div class="charts-2">
@@ -580,61 +388,37 @@
           <div class="tab" data-group="lob_key">LOB</div>
           <div class="tab" data-group="queue_key">Queue</div>
         </div>
-        <table>
-          <thead><tr>
-            <th>Grupo</th><th>Evals</th><th>Avg Score</th><th>Critical %</th><th>Weekly Zero</th>
-          </tr></thead>
-          <tbody id="groupTable"></tbody>
-        </table>
+        <table><thead><tr><th>Grupo</th><th>Evals</th><th>Avg Score</th><th>Critical %</th><th>Weekly Zero</th></tr></thead><tbody id="groupTable"></tbody></table>
       </div>
       <div class="chart-card">
         <h3>👤 Estadísticas por evaluador</h3>
-        <table>
-          <thead><tr>
-            <th>Evaluador</th><th>Evals</th><th>Score prom.</th><th>Críticos</th><th>Zeros</th><th>Agentes</th>
-          </tr></thead>
-          <tbody id="evaluatorTable"></tbody>
-        </table>
+        <table><thead><tr><th>Evaluador</th><th>Evals</th><th>Score prom.</th><th>Críticos</th><th>Zeros</th><th>Agentes</th></tr></thead><tbody id="evaluatorTable"></tbody></table>
       </div>
     </div>
   </div>
 
-  <!-- ══════════════ TAB: RIESGOS ══════════════ -->
+  <!-- TAB: RIESGOS -->
   <div class="tab-section" id="tab-riesgos">
     <div class="section-title">Errores críticos y riesgo operativo</div>
     <div class="charts-2">
-      <div class="chart-card">
-        <h3>🚨 Top Riesgos Operativos</h3>
-        <div id="criticalErrorsList" class="critical-list"></div>
-      </div>
-      <div class="chart-card">
-        <h3>⚠️ Riesgo por agente (Top 10)</h3>
-        <canvas id="riskChart"></canvas>
-      </div>
+      <div class="chart-card"><h3>🚨 Top Riesgos Operativos</h3><div id="criticalErrorsList" class="critical-list"></div></div>
+      <div class="chart-card"><h3>⚠️ Riesgo por agente (Top 10)</h3><canvas id="riskChart"></canvas></div>
     </div>
     <div class="table-card">
       <h3>🏆 Agent Risk Ranking</h3>
-      <table>
-        <thead><tr>
-          <th>Agente</th><th>Campaña</th><th>LOB</th><th>Queue</th>
-          <th>Avg Score</th><th>ECs</th><th>Weekly Zero</th><th>Risk Score</th><th>Nivel</th>
-        </tr></thead>
-        <tbody id="riskTable"></tbody>
-      </table>
+      <table><thead><tr><th>Agente</th><th>Campaña</th><th>LOB</th><th>Queue</th><th>Avg Score</th><th>ECs</th><th>Weekly Zero</th><th>Risk Score</th><th>Nivel</th></tr></thead><tbody id="riskTable"></tbody></table>
     </div>
   </div>
 
-  <!-- ══════════════ TAB: AGENTES ══════════════ -->
+  <!-- TAB: AGENTES -->
   <div class="tab-section" id="tab-agentes">
     <div class="section-title">Score por rubro y detalle de evaluaciones</div>
     <div class="table-card" style="overflow-x:auto;">
-      <h3>📐 Score promedio por rubro (filtrado por periodo seleccionado)</h3>
-      <div id="rubricTableWrapper">
-        <div class="muted" style="padding:16px 0;"><span class="loading-spinner"></span> Cargando rubros...</div>
-      </div>
+      <h3>📐 Score promedio por rubro</h3>
+      <div id="rubricTableWrapper"><div class="muted" style="padding:16px 0;"><span class="loading-spinner"></span> Cargando rubros...</div></div>
     </div>
     <div class="table-card">
-      <h3>📝 Detalle de evaluaciones</h3>
+      <h3>📝 Detalle de evaluaciones <span style="font-size:11px;color:#94a3b8;font-weight:400;">— click en una fila para ver detalle y solicitar corrección</span></h3>
       <table>
         <thead><tr>
           <th>Fecha</th><th>Agente</th><th>Feedback</th><th>Campaña</th>
@@ -645,85 +429,46 @@
     </div>
   </div>
 
-  <!-- ══════════════ TAB: CLIENTE ══════════════ -->
+  <!-- TAB: CLIENTE -->
   <div class="tab-section client-only" id="tab-cliente">
     <div class="section-title" style="color:#0ea5e9;">Resumen comparativo — Aplazo vs Evolve CX</div>
     <div class="client-kpi-grid">
-      <div class="client-kpi-card blue">
-        <div class="client-kpi-label">Score Global</div>
-        <div class="client-kpi-value" id="cKpiGlobal">–</div>
-        <div class="client-kpi-sub">Todas las evaluaciones del periodo</div>
-      </div>
-      <div class="client-kpi-card teal">
-        <div class="client-kpi-label">Score Aplazo <small style="opacity:.7">(@aplazo.mx)</small></div>
-        <div class="client-kpi-value" id="cKpiAplazo">–</div>
-        <div class="client-kpi-sub" id="cKpiAplazoSub">– evaluaciones</div>
-      </div>
-      <div class="client-kpi-card blue">
-        <div class="client-kpi-label">Score Evolve CX <small style="opacity:.7">(@evolvecx.io)</small></div>
-        <div class="client-kpi-value" id="cKpiEvolve">–</div>
-        <div class="client-kpi-sub" id="cKpiEvolveSub">– evaluaciones</div>
-      </div>
-      <div class="client-kpi-card red">
-        <div class="client-kpi-label">Diferencia</div>
-        <div class="client-kpi-value" id="cKpiDiff">–</div>
-        <div class="client-kpi-sub">Aplazo vs Evolve CX</div>
-      </div>
+      <div class="client-kpi-card blue"><div class="client-kpi-label">Score Global</div><div class="client-kpi-value" id="cKpiGlobal">–</div><div class="client-kpi-sub">Todas las evaluaciones del periodo</div></div>
+      <div class="client-kpi-card teal"><div class="client-kpi-label">Score Aplazo</div><div class="client-kpi-value" id="cKpiAplazo">–</div><div class="client-kpi-sub" id="cKpiAplazoSub">– evaluaciones</div></div>
+      <div class="client-kpi-card blue"><div class="client-kpi-label">Score Evolve CX</div><div class="client-kpi-value" id="cKpiEvolve">–</div><div class="client-kpi-sub" id="cKpiEvolveSub">– evaluaciones</div></div>
+      <div class="client-kpi-card red"><div class="client-kpi-label">Diferencia</div><div class="client-kpi-value" id="cKpiDiff">–</div><div class="client-kpi-sub">Aplazo vs Evolve CX</div></div>
     </div>
-    <div class="section-title" style="color:#0ea5e9;">Tendencia semanal comparativa</div>
-    <div class="chart-card">
-      <h3>📈 Score semanal — Aplazo vs Evolve CX</h3>
-      <canvas id="clientWeeklyChart"></canvas>
-    </div>
-    <div class="section-title" style="color:#0ea5e9;">Score por rubro</div>
-    <div class="chart-card" style="overflow-x:auto;">
-      <h3>📐 Score promedio por rubro — Aplazo vs Evolve CX</h3>
-      <div id="clientRubricTable"><div class="muted">Cargando...</div></div>
-    </div>
-    <div class="section-title" style="color:#0ea5e9;">Análisis de fallas</div>
-    <div class="chart-card">
-      <h3>🔴 Pareto de fallas — Aplazo + Evolve CX (combinado)</h3>
-      <canvas id="clientParetoUnified"></canvas>
-    </div>
-    <div class="section-title" style="color:#0ea5e9;">Agentes</div>
-    <div class="table-card">
-      <h3>👤 Performance de agentes</h3>
-      <table>
-        <thead><tr>
-          <th>Agente</th><th>Campaña</th><th>LOB</th><th>Queue</th>
-          <th>Evaluaciones</th><th>Avg Score</th><th>Errores Críticos</th><th>Evaluador</th>
-        </tr></thead>
-        <tbody id="clientAgentTable"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- AGENT HISTORY MODAL -->
-  <div class="eval-modal-overlay" id="agentHistoryOverlay" style="z-index:100000;">
-    <div class="eval-modal" id="agentHistoryModal" style="max-width:900px;width:100%;">
-      <div class="eval-modal-header">
-        <div>
-          <h2 id="agentHistoryTitle">Historial del agente</h2>
-          <div id="agentHistorySubtitle" style="font-size:12px;color:#64748b;margin-top:2px;">Últimos 3 meses</div>
-        </div>
-        <button class="eval-modal-close" id="agentHistoryClose">✕</button>
-      </div>
-      <div class="eval-modal-body" id="agentHistoryBody"></div>
-    </div>
-  </div>
-
-  <!-- EVAL DETAIL MODAL -->
-  <div class="eval-modal-overlay" id="evalModalOverlay">
-    <div class="eval-modal" id="evalModal">
-      <div class="eval-modal-header">
-        <h2 id="evalModalTitle">Detalle de evaluación</h2>
-        <button class="eval-modal-close" id="evalModalClose">✕</button>
-      </div>
-      <div class="eval-modal-body" id="evalModalBody"></div>
+    <div class="chart-card"><h3>📈 Score semanal — Aplazo vs Evolve CX</h3><canvas id="clientWeeklyChart"></canvas></div>
+    <div class="chart-card" style="overflow-x:auto;"><h3>📐 Score promedio por rubro — Aplazo vs Evolve CX</h3><div id="clientRubricTable"><div class="muted">Cargando...</div></div></div>
+    <div class="chart-card"><h3>🔴 Pareto de fallas — Aplazo + Evolve CX</h3><canvas id="clientParetoUnified"></canvas></div>
+    <div class="table-card"><h3>👤 Performance de agentes</h3>
+      <table><thead><tr><th>Agente</th><th>Campaña</th><th>LOB</th><th>Queue</th><th>Evaluaciones</th><th>Avg Score</th><th>Errores Críticos</th><th>Evaluador</th></tr></thead><tbody id="clientAgentTable"></tbody></table>
     </div>
   </div>
 
 </div><!-- /app -->
+
+<!-- AGENT HISTORY MODAL -->
+<div class="eval-modal-overlay" id="agentHistoryOverlay" style="z-index:100000;">
+  <div class="eval-modal" id="agentHistoryModal" style="max-width:900px;width:100%;">
+    <div class="eval-modal-header">
+      <div><h2 id="agentHistoryTitle">Historial del agente</h2><div id="agentHistorySubtitle" style="font-size:12px;color:#64748b;margin-top:2px;">Últimos 3 meses</div></div>
+      <button class="eval-modal-close" id="agentHistoryClose">✕</button>
+    </div>
+    <div class="eval-modal-body" id="agentHistoryBody"></div>
+  </div>
+</div>
+
+<!-- EVAL DETAIL MODAL (with correction panel) -->
+<div class="eval-modal-overlay" id="evalModalOverlay">
+  <div class="eval-modal" id="evalModal">
+    <div class="eval-modal-header">
+      <h2 id="evalModalTitle">Detalle de evaluación</h2>
+      <button class="eval-modal-close" id="evalModalClose">✕</button>
+    </div>
+    <div class="eval-modal-body" id="evalModalBody"></div>
+  </div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════
@@ -734,9 +479,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabaseClient    = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let weeklyChart, paretoChart, histogramChart, riskChart;
-let filterOptionsData  = [];
-let allEvalData        = [];    // cache principal
-let groupTabsGroup     = "campaign_key";
+let filterOptionsData = [];
+let allEvalData       = [];
+let groupTabsGroup    = "campaign_key";
 
 /* ═══════════════════════════════════════════════
    UTILITIES
@@ -803,9 +548,7 @@ function scoreColor(score) {
    FILTER OPTIONS
 ═══════════════════════════════════════════════ */
 async function loadFilterOptions() {
-  const query = supabaseClient
-    .from("qa_v_evaluations_base")
-    .select("campaign_key,lob_key,queue_key,agent_identifier,agent_name,evaluator_name");
+  const query = supabaseClient.from("qa_v_evaluations_base").select("campaign_key,lob_key,queue_key,agent_identifier,agent_name,evaluator_name");
   filterOptionsData = await fetchAllRows(query);
   refreshAllFilterOptions();
   ["campaignFilter","lobFilter","queueFilter","agentFilter","evaluatorFilter"].forEach(id => {
@@ -818,11 +561,7 @@ function fillSelect(id, values) {
   const select = document.getElementById(id);
   const current = select.value;
   select.innerHTML = '<option value="">Todas</option>';
-  values.sort().forEach(v => {
-    const o = document.createElement("option");
-    o.value = v; o.textContent = v;
-    select.appendChild(o);
-  });
+  values.sort().forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = v; select.appendChild(o); });
   select.value = current;
 }
 
@@ -831,24 +570,13 @@ function fillAgentSelect(id, agentsMap) {
   if (!select) return;
   const current = select.value;
   select.innerHTML = '<option value="">Todos</option>';
-  Object.entries(agentsMap)
-    .sort((a,b) => String(a[1]).localeCompare(String(b[1]),"es",{sensitivity:"base"}))
-    .forEach(([agentId, agentName]) => {
-      const o = document.createElement("option");
-      o.value = agentId; o.textContent = `${agentName} (${agentId})`;
-      select.appendChild(o);
-    });
+  Object.entries(agentsMap).sort((a,b) => String(a[1]).localeCompare(String(b[1]),"es",{sensitivity:"base"}))
+    .forEach(([agentId, agentName]) => { const o = document.createElement("option"); o.value = agentId; o.textContent = `${agentName} (${agentId})`; select.appendChild(o); });
   select.value = current;
 }
 
 function getCurrentFilterValues() {
-  return {
-    campaign : document.getElementById("campaignFilter")?.value || "",
-    lob      : document.getElementById("lobFilter")?.value || "",
-    queue    : document.getElementById("queueFilter")?.value || "",
-    agent    : document.getElementById("agentFilter")?.value || "",
-    evaluator: document.getElementById("evaluatorFilter")?.value || ""
-  };
+  return { campaign: document.getElementById("campaignFilter")?.value||"", lob: document.getElementById("lobFilter")?.value||"", queue: document.getElementById("queueFilter")?.value||"", agent: document.getElementById("agentFilter")?.value||"", evaluator: document.getElementById("evaluatorFilter")?.value||"" };
 }
 
 function filterOptionsExcluding(excludeKey) {
@@ -868,9 +596,7 @@ function refreshAllFilterOptions() {
   fillSelect("campaignFilter", [...new Set(filterOptionsExcluding("campaign").map(x=>x.campaign_key).filter(Boolean))]);
   fillSelect("lobFilter",      [...new Set(filterOptionsExcluding("lob").map(x=>x.lob_key).filter(Boolean))]);
   fillSelect("queueFilter",    [...new Set(filterOptionsExcluding("queue").map(x=>x.queue_key).filter(Boolean))]);
-  const agents = filterOptionsExcluding("agent")
-    .filter(x=>x.agent_identifier && x.agent_name)
-    .reduce((acc,x)=>{ acc[x.agent_identifier]=x.agent_name; return acc; }, {});
+  const agents = filterOptionsExcluding("agent").filter(x=>x.agent_identifier&&x.agent_name).reduce((acc,x)=>{ acc[x.agent_identifier]=x.agent_name; return acc; }, {});
   fillAgentSelect("agentFilter", agents);
   fillSelect("evaluatorFilter",[...new Set(filterOptionsExcluding("evaluator").map(x=>x.evaluator_name).filter(Boolean))]);
   restoreSelectValue("campaignFilter", sel.campaign);
@@ -894,37 +620,22 @@ async function loadDashboard() {
   const filters = getFilters();
   document.getElementById("lastUpdated").textContent = "Actualizando...";
   resetParetoToggle();
-
-  // fetch all base evaluations once, reuse everywhere
   let q = supabaseClient.from("qa_v_evaluations_base").select("*");
   q = applyBaseFilters(q, filters);
   allEvalData = await fetchAllRows(q);
-
   document.getElementById("lastUpdated").textContent = `Actualizado: ${new Date().toLocaleString("es-MX")}`;
   document.getElementById("recordCount").textContent = `${allEvalData.length} registros`;
-
   await Promise.all([
-    loadExecutiveCards(filters),
-    loadWeeklyTrend(filters),
-    loadPareto(filters),
-    loadWeeklyCompare(),
-    loadHistogram(),
-    loadCriticalErrors(filters),
-    loadGroupTable(),
-    loadRiskRanking(),
-    loadEvaluatorTable(),
-    loadRubricTable(filters),
-    loadEvaluationsTable()
+    loadExecutiveCards(filters), loadWeeklyTrend(filters), loadPareto(filters),
+    loadWeeklyCompare(), loadHistogram(), loadCriticalErrors(filters),
+    loadGroupTable(), loadRiskRanking(), loadEvaluatorTable(),
+    loadRubricTable(filters), loadEvaluationsTable()
   ]);
-
-  // If client mode is active, rebuild with fresh allEvalData
-  if (typeof clientModeActive !== "undefined" && clientModeActive) {
-    await buildClientView();
-  }
+  if (typeof clientModeActive !== "undefined" && clientModeActive) await buildClientView();
 }
 
 /* ═══════════════════════════════════════════════
-   EXECUTIVE CARDS (with trend vs previous period)
+   EXECUTIVE CARDS
 ═══════════════════════════════════════════════ */
 async function loadExecutiveCards(filters) {
   const data = allEvalData;
@@ -935,7 +646,6 @@ async function loadExecutiveCards(filters) {
   const agents   = new Set(data.map(x=>x.agent_identifier||x.agent_name).filter(Boolean)).size;
   const critRate = total ? (critical/total)*100 : 0;
 
-  // Previous period (same window duration, shifted back)
   let prevAvg = null, prevTotal = null, prevCritRate = null, prevZero = null;
   try {
     const start = new Date(filters.startDate || new Date(Date.now()-30*86400000));
@@ -943,8 +653,7 @@ async function loadExecutiveCards(filters) {
     const dur   = end - start;
     const prevStart = new Date(start - dur).toISOString().split("T")[0];
     const prevEnd   = new Date(start - 1).toISOString().split("T")[0];
-    let pq = supabaseClient.from("qa_v_evaluations_base").select("score_final,critical_error_triggered,weekly_zero_triggered")
-      .gte("created_date_cdmx", prevStart).lte("created_date_cdmx", prevEnd);
+    let pq = supabaseClient.from("qa_v_evaluations_base").select("score_final,critical_error_triggered,weekly_zero_triggered").gte("created_date_cdmx", prevStart).lte("created_date_cdmx", prevEnd);
     if (filters.campaign)  pq = pq.eq("campaign_key", filters.campaign);
     if (filters.lob)       pq = pq.eq("lob_key", filters.lob);
     if (filters.queue)     pq = pq.eq("queue_key", filters.queue);
@@ -952,40 +661,25 @@ async function loadExecutiveCards(filters) {
     if (filters.evaluator) pq = pq.eq("evaluator_name", filters.evaluator);
     const prevData = await fetchAllRows(pq);
     if (prevData.length) {
-      prevTotal   = prevData.length;
-      prevAvg     = prevData.reduce((s,x)=>s+Number(x.score_final||0),0)/prevData.length;
-      const pCrit = prevData.filter(x=>x.critical_error_triggered).length;
+      prevTotal    = prevData.length;
+      prevAvg      = prevData.reduce((s,x)=>s+Number(x.score_final||0),0)/prevData.length;
+      const pCrit  = prevData.filter(x=>x.critical_error_triggered).length;
       prevCritRate = (pCrit/prevData.length)*100;
       prevZero     = prevData.filter(x=>x.weekly_zero_triggered).length;
     }
-  } catch(e) { /* skip */ }
+  } catch(e) {}
 
-  const t1 = deltaArrow(avg,      prevAvg);
-  const t2 = deltaArrow(total,    prevTotal);
-  const t3 = deltaArrow(critRate, prevCritRate);
-  const t4 = deltaArrow(weekZero, prevZero);
-
+  const t1 = deltaArrow(avg, prevAvg), t2 = deltaArrow(total, prevTotal), t3 = deltaArrow(critRate, prevCritRate), t4 = deltaArrow(weekZero, prevZero);
   document.getElementById("avgScore").textContent         = `${avg.toFixed(2)}%`;
   document.getElementById("totalEvaluations").textContent = total;
   document.getElementById("criticalRate").textContent     = `${critRate.toFixed(2)}%`;
   document.getElementById("weeklyZero").textContent       = weekZero;
   document.getElementById("evaluatedAgents").textContent  = agents;
-
-  function setTrend(id, t) {
-    const el = document.getElementById(id);
-    el.textContent = t.text;
-    el.className = `trend ${t.cls}`;
-  }
-  setTrend("trendScore",    t1);
-  setTrend("trendEvals",    t2);
-  setTrend("trendCritical", t3);
-  setTrend("trendZero",     t4);
-  setTrend("trendAgents",   { text: `${agents} agentes únicos`, cls: "flat" });
-
+  function setTrend(id, t) { const el = document.getElementById(id); el.textContent = t.text; el.className = `trend ${t.cls}`; }
+  setTrend("trendScore", t1); setTrend("trendEvals", t2); setTrend("trendCritical", t3); setTrend("trendZero", t4);
+  setTrend("trendAgents", { text: `${agents} agentes únicos`, cls: "flat" });
   document.getElementById("autoInsight").innerHTML = total
-    ? `En el periodo se realizaron <strong>${total}</strong> evaluaciones con un score promedio de <strong>${avg.toFixed(2)}%</strong>. ` +
-      `Se detectaron <strong>${critical}</strong> error(es) crítico(s) (${critRate.toFixed(1)}%) y <strong>${weekZero}</strong> caso(s) de Weekly Zero. ` +
-      `Se evaluaron <strong>${agents}</strong> agentes únicos.`
+    ? `En el periodo se realizaron <strong>${total}</strong> evaluaciones con un score promedio de <strong>${avg.toFixed(2)}%</strong>. Se detectaron <strong>${critical}</strong> error(es) crítico(s) (${critRate.toFixed(1)}%) y <strong>${weekZero}</strong> caso(s) de Weekly Zero. Se evaluaron <strong>${agents}</strong> agentes únicos.`
     : "No hay evaluaciones para los filtros seleccionados.";
 }
 
@@ -1002,48 +696,21 @@ async function loadWeeklyTrend(filters) {
   if (filters.agent)     q = q.eq("agent_identifier", filters.agent);
   if (filters.evaluator) q = q.eq("evaluator_name", filters.evaluator);
   const data = await fetchAllRows(q);
-
   const grouped = {};
-  data.forEach(row => {
-    if (!grouped[row.week_start]) grouped[row.week_start] = [];
-    grouped[row.week_start].push(Number(row.weekly_effective_score||0));
-  });
+  data.forEach(row => { if (!grouped[row.week_start]) grouped[row.week_start] = []; grouped[row.week_start].push(Number(row.weekly_effective_score||0)); });
   const labels = Object.keys(grouped).sort();
   const values = labels.map(w => { const a=grouped[w]; return a.reduce((s,b)=>s+b,0)/a.length; });
-
   destroyChart(weeklyChart);
   weeklyChart = new Chart(document.getElementById("weeklyScoreChart"), {
     type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: "Weekly Effective Score",
-        data: values,
-        borderWidth: 3, tension: 0.35,
-        pointRadius: 5, pointHoverRadius: 7,
-        borderColor: "#38bdf8",
-        backgroundColor: "rgba(56,189,248,.1)",
-        fill: true
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        datalabels: {
-          align:"top", anchor:"end", color:"#0f172a",
-          font:{ weight:"bold", size:11 },
-          formatter: v => Number(v).toFixed(2)+"%"
-        },
-        legend: { display: true }
-      },
-      scales: { y: { beginAtZero: false } }
-    },
+    data: { labels, datasets: [{ label: "Weekly Effective Score", data: values, borderWidth:3, tension:0.35, pointRadius:5, pointHoverRadius:7, borderColor:"#38bdf8", backgroundColor:"rgba(56,189,248,.1)", fill:true }] },
+    options: { responsive:true, plugins: { datalabels: { align:"top", anchor:"end", color:"#0f172a", font:{weight:"bold",size:11}, formatter: v => Number(v).toFixed(2)+"%" }, legend:{display:true} }, scales: { y:{beginAtZero:false} } },
     plugins: [ChartDataLabels]
   });
 }
 
 /* ═══════════════════════════════════════════════
-   PARETO CHART
+   PARETO
 ═══════════════════════════════════════════════ */
 async function loadPareto(filters) {
   let q = supabaseClient.from("qa_v_evaluation_responses_detail").select("*").eq("failed_item",true);
@@ -1055,952 +722,157 @@ async function loadPareto(filters) {
   if (filters.agent)     q = q.eq("agent_identifier", filters.agent);
   if (filters.evaluator) q = q.eq("evaluator_name", filters.evaluator);
   const data = await fetchAllRows(q);
-
   const grouped = {};
-  (data||[]).forEach(row => {
-    const key = row.rubric_item || row.field_key || "Rubro desconocido";
-    grouped[key] = (grouped[key]||0)+1;
-  });
+  (data||[]).forEach(row => { const key = row.rubric_item||row.field_key||"Rubro desconocido"; grouped[key]=(grouped[key]||0)+1; });
   const total = Object.values(grouped).reduce((s,c)=>s+c,0);
   const items = Object.entries(grouped).map(([l,c])=>({label:l,count:c})).sort((a,b)=>b.count-a.count).slice(0,10);
   let cum = 0;
-  const labels = items.map(i=>i.label.length>32?i.label.slice(0,32)+"...":i.label);
-  const counts = items.map(i=>i.count);
-  const cumPct = items.map(i=>{ cum+=i.count; return total?Number(((cum/total)*100).toFixed(2)):0; });
-
+  const labels  = items.map(i=>i.label.length>32?i.label.slice(0,32)+"...":i.label);
+  const counts  = items.map(i=>i.count);
+  const cumPct  = items.map(i=>{ cum+=i.count; return total?Number(((cum/total)*100).toFixed(2)):0; });
   destroyChart(paretoChart);
   paretoChart = new Chart(document.getElementById("paretoChart"), {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        { type:"bar",  label:"Fallas",       data:counts,  yAxisID:"y",  borderWidth:1, backgroundColor:"rgba(56,189,248,.7)" },
-        { type:"line", label:"% acumulado",  data:cumPct,  yAxisID:"y1", borderWidth:3, tension:0.25, pointRadius:4, borderColor:"#ef4444", backgroundColor:"transparent" }
-      ]
-    },
-    options: {
-      responsive: true,
-      interaction: { mode:"index", intersect:false },
-      plugins: {
-        legend: { display:true },
-        datalabels: {
-          display: ctx => ctx.dataset.type==="line",
-          align:"top", anchor:"end", color:"#0f172a", font:{weight:"bold",size:10},
-          formatter: v => Number(v).toFixed(0)+"%"
-        },
-        tooltip: {
-          callbacks: {
-            label: ctx => {
-              if (ctx.dataset.label==="% acumulado") return `% acumulado: ${Number(ctx.raw).toFixed(2)}%`;
-              const item=items[ctx.dataIndex];
-              const pct=total?((item.count/total)*100).toFixed(2):"0.00";
-              return `Fallas: ${item.count} (${pct}%)`;
-            }
-          }
-        }
-      },
-      scales: {
-        y:  { beginAtZero:true, position:"left",  title:{display:true,text:"Fallas"}, ticks:{precision:0} },
-        y1: { beginAtZero:true, max:100, position:"right", grid:{drawOnChartArea:false},
-              title:{display:true,text:"% acumulado"}, ticks:{callback:v=>v+"%"} }
-      }
-    },
+    type:"bar",
+    data: { labels, datasets: [ {type:"bar",label:"Fallas",data:counts,yAxisID:"y",borderWidth:1,backgroundColor:"rgba(56,189,248,.7)"}, {type:"line",label:"% acumulado",data:cumPct,yAxisID:"y1",borderWidth:3,tension:0.25,pointRadius:4,borderColor:"#ef4444",backgroundColor:"transparent"} ] },
+    options: { responsive:true, interaction:{mode:"index",intersect:false}, plugins: { legend:{display:true}, datalabels:{display:ctx=>ctx.dataset.type==="line",align:"top",anchor:"end",color:"#0f172a",font:{weight:"bold",size:10},formatter:v=>Number(v).toFixed(0)+"%"}, tooltip:{callbacks:{label:ctx=>{ if(ctx.dataset.label==="% acumulado") return `% acumulado: ${Number(ctx.raw).toFixed(2)}%`; const item=items[ctx.dataIndex]; const pct=total?((item.count/total)*100).toFixed(2):"0.00"; return `Fallas: ${item.count} (${pct}%)`; }}} }, scales: { y:{beginAtZero:true,position:"left",title:{display:true,text:"Fallas"},ticks:{precision:0}}, y1:{beginAtZero:true,max:100,position:"right",grid:{drawOnChartArea:false},title:{display:true,text:"% acumulado"},ticks:{callback:v=>v+"%"}} } },
     plugins: [ChartDataLabels]
   });
 }
 
 /* ═══════════════════════════════════════════════
-   CLIENT MODE
-   @aplazo.mx  = cliente
-   @evolvecx.io = Evolve CX (nosotros)
+   PARETO TOGGLE
 ═══════════════════════════════════════════════ */
-const CLIENT_DOMAIN  = "@aplazo.mx";
-const EVOLVE_DOMAIN  = "@evolvecx.io";
-let clientModeActive = false;
-let clientWeeklyChart, clientParetoAplazoChart, clientParetoEvolveChart;
-
-const CLIENT_CAMPAIGN_KEY = "aplazo"; // campaign_key value for Aplazo
-let previousCampaignValue = "";       // stores value before client mode
-
-async function toggleClientMode() {
-  clientModeActive = !clientModeActive;
-  const btn      = document.getElementById("clientModeBtn");
-  const banner   = document.getElementById("clientBanner");
-  const campSel  = document.getElementById("campaignFilter");
-
-  if (clientModeActive) {
-    // Save current campaign selection, then force Aplazo
-    previousCampaignValue = campSel.value;
-    campSel.value = CLIENT_CAMPAIGN_KEY;
-    // If the option doesn't exist yet, add it temporarily
-    if (campSel.value !== CLIENT_CAMPAIGN_KEY) {
-      const opt = document.createElement("option");
-      opt.value = CLIENT_CAMPAIGN_KEY;
-      opt.textContent = CLIENT_CAMPAIGN_KEY;
-      opt.id = "_clientTempOption";
-      campSel.appendChild(opt);
-      campSel.value = CLIENT_CAMPAIGN_KEY;
-    }
-
-    document.body.classList.add("client-mode");
-    banner.classList.add("active");
-    btn.textContent = "🔒 Vista Interna";
-    btn.style.background = "rgba(14,165,233,.35)";
-    btn.style.borderColor = "rgba(14,165,233,.6)";
-
-    // Reload dashboard with aplazo campaign filter — loadDashboard auto-calls buildClientView
-    await loadDashboard();
-    switchMainTab("cliente");
-
-  } else {
-    // Restore previous campaign and remove temp option if added
-    const tempOpt = document.getElementById("_clientTempOption");
-    if (tempOpt) tempOpt.remove();
-    campSel.value = previousCampaignValue;
-
-    document.body.classList.remove("client-mode");
-    banner.classList.remove("active");
-    btn.textContent = "👁 Vista Cliente";
-    btn.style.background = "rgba(255,255,255,.12)";
-    btn.style.borderColor = "rgba(255,255,255,.3)";
-
-    // Reload dashboard restoring original filters
-    await loadDashboard();
-    switchMainTab("resumen");
-  }
-}
-
-async function buildClientView() {
-  const filters = getFilters();
-
-  // Split allEvalData by evaluator domain
-  const aplazoData = allEvalData.filter(r =>
-    (r.evaluator_name || "").toLowerCase().includes(CLIENT_DOMAIN));
-  const evolveData = allEvalData.filter(r =>
-    (r.evaluator_name || "").toLowerCase().includes(EVOLVE_DOMAIN));
-  const allData    = allEvalData;
-
-  // ── KPI CARDS ──────────────────────────────────────────────────
-  function avgScore(arr) {
-    if (!arr.length) return 0;
-    return arr.reduce((s,r) => s + Number(r.score_final||0), 0) / arr.length;
-  }
-  const globalAvg = avgScore(allData);
-  const aplazoAvg = avgScore(aplazoData);
-  const evolveAvg = avgScore(evolveData);
-  const diff      = aplazoAvg - evolveAvg;
-
-  document.getElementById("cKpiGlobal").textContent   = globalAvg.toFixed(2) + "%";
-  document.getElementById("cKpiAplazo").textContent   = aplazoAvg.toFixed(2) + "%";
-  document.getElementById("cKpiAplazoSub").textContent = `${aplazoData.length} evaluaciones`;
-  document.getElementById("cKpiEvolve").textContent   = evolveAvg.toFixed(2) + "%";
-  document.getElementById("cKpiEvolveSub").textContent = `${evolveData.length} evaluaciones`;
-
-  const diffEl = document.getElementById("cKpiDiff");
-  diffEl.textContent = (diff >= 0 ? "+" : "") + diff.toFixed(2) + "%";
-  diffEl.style.color = diff >= 0 ? "#22c55e" : "#ef4444";
-
-  // ── WEEKLY TREND CHART ─────────────────────────────────────────
-  // Group by week: returns { weekKey: { scores:[], count:0 } }
-  function groupByWeek(arr) {
-    const out = {};
-    arr.forEach(row => {
-      const d = row.created_date_cdmx;
-      if (!d) return;
-      const dt  = new Date(d + "T12:00:00");
-      const dow = dt.getDay();
-      const diff = dow === 0 ? -6 : 1 - dow;
-      dt.setDate(dt.getDate() + diff);
-      const w = dt.toISOString().split("T")[0];
-      if (!out[w]) out[w] = { scores: [], count: 0 };
-      out[w].scores.push(Number(row.score_final || 0));
-      out[w].count++;
-    });
-    return out;
-  }
-  const aplazoWeeks = groupByWeek(aplazoData);
-  const evolveWeeks = groupByWeek(evolveData);
-  const allWeeks    = [...new Set([...Object.keys(aplazoWeeks), ...Object.keys(evolveWeeks)])].sort();
-
-  const aplazoScores = allWeeks.map(w => {
-    const g = aplazoWeeks[w];
-    return g ? g.scores.reduce((s,v)=>s+v,0)/g.scores.length : null;
-  });
-  const evolveScores = allWeeks.map(w => {
-    const g = evolveWeeks[w];
-    return g ? g.scores.reduce((s,v)=>s+v,0)/g.scores.length : null;
-  });
-  const aplazoCounts = allWeeks.map(w => aplazoWeeks[w]?.count || null);
-  const evolveCounts = allWeeks.map(w => evolveWeeks[w]?.count || null);
-
-  if (clientWeeklyChart) clientWeeklyChart.destroy();
-  clientWeeklyChart = new Chart(document.getElementById("clientWeeklyChart"), {
-    type: "bar",
-    data: {
-      labels: allWeeks,
-      datasets: [
-        {
-          type: "bar",
-          label: "Aplazo - Score",
-          data: aplazoScores,
-          backgroundColor: "rgba(14,165,233,.8)",
-          borderRadius: 6,
-          yAxisID: "yScore"
-        },
-        {
-          type: "bar",
-          label: "Evolve CX - Score",
-          data: evolveScores,
-          backgroundColor: "rgba(20,184,166,.8)",
-          borderRadius: 6,
-          yAxisID: "yScore"
-        },
-        {
-          type: "line",
-          label: "Aplazo - # Evals",
-          data: aplazoCounts,
-          borderColor: "#ec4899",
-          backgroundColor: "transparent",
-          borderWidth: 2.5,
-          pointRadius: 5,
-          pointBackgroundColor: "#ec4899",
-          tension: 0.3,
-          yAxisID: "yCount",
-          datalabels: {
-            display: true,
-            align: "top",
-            anchor: "end",
-            color: "#ec4899",
-            font: { weight: "bold", size: 11 },
-            formatter: v => v !== null ? v : ""
-          }
-        },
-        {
-          type: "line",
-          label: "Evolve CX - # Evals",
-          data: evolveCounts,
-          borderColor: "#f97316",
-          backgroundColor: "transparent",
-          borderWidth: 2.5,
-          pointRadius: 5,
-          pointBackgroundColor: "#f97316",
-          tension: 0.3,
-          yAxisID: "yCount",
-          datalabels: {
-            display: true,
-            align: "top",
-            anchor: "end",
-            color: "#f97316",
-            font: { weight: "bold", size: 11 },
-            formatter: v => v !== null ? v : ""
-          }
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      interaction: { mode: "index", intersect: false },
-      plugins: {
-        legend: { display: true },
-        datalabels: {
-          // Default for bars: score label centered inside
-          display: ctx => ctx.dataset.type === "bar" && ctx.raw !== null,
-          anchor: "center",
-          align: "center",
-          color: "white",
-          font: { weight: "bold", size: 11 },
-          formatter: v => v !== null ? v.toFixed(2) + "%" : ""
-        },
-        tooltip: {
-          callbacks: {
-            label: ctx => {
-              if (ctx.dataset.yAxisID === "yCount") {
-                return ` ${ctx.dataset.label}: ${ctx.raw} evals`;
-              }
-              return ` ${ctx.dataset.label}: ${ctx.raw !== null ? ctx.raw.toFixed(2)+"%" : "—"}`;
-            }
-          }
-        }
-      },
-      scales: {
-        yScore: {
-          type: "linear",
-          position: "left",
-          min: 0, max: 100,
-          title: { display: true, text: "Score %" },
-          grid: { drawOnChartArea: true }
-        },
-        yCount: {
-          type: "linear",
-          position: "right",
-          beginAtZero: true,
-          title: { display: true, text: "# Evaluaciones" },
-          grid: { drawOnChartArea: false }
-        }
-      }
-    },
-    plugins: [ChartDataLabels]
-  });
-
-  // ── RUBRIC TABLE comparativo ────────────────────────────────────
-  await buildClientRubricTable(filters, aplazoData, evolveData);
-
-  // ── PARETO comparativo ──────────────────────────────────────────
-  await buildClientPareto(filters);
-
-  // ── AGENT TABLE ─────────────────────────────────────────────────
-  buildClientAgentTable(allData);
-}
-
-async function buildClientRubricTable(filters, aplazoEvals, evolveEvals) {
-  const el = document.getElementById("clientRubricTable");
-  el.innerHTML = '<div class="muted">Cargando rubros...</div>';
-
-  const aplazoIds = new Set(aplazoEvals.map(r => r.agent_identifier || r.agent_name).filter(Boolean));
-  const evolveIds = new Set(evolveEvals.map(r => r.agent_identifier || r.agent_name).filter(Boolean));
-
-  let q = supabaseClient
-    .from("qa_v_evaluation_responses_detail")
-    .select("evaluator_name,rubric_item,field_key,calculated_score,weight,is_bonus");
-  if (filters.startDate) q = q.gte("created_at", filters.startDate + "T00:00:00");
-  if (filters.endDate)   q = q.lte("created_at", filters.endDate + "T23:59:59");
-  if (filters.campaign)  q = q.eq("campaign_key", filters.campaign);
-  if (filters.lob)       q = q.eq("lob_key", filters.lob);
-  if (filters.queue)     q = q.eq("queue_key", filters.queue);
-
-  const raw = await fetchAllRows(q);
-  const data = (raw || []).filter(r => !r.is_bonus);
-
-  // Split by evaluator domain
-  const byRubric = { aplazo: {}, evolve: {} };
-  data.forEach(row => {
-    const ev  = (row.evaluator_name || "").toLowerCase();
-    const rub = row.rubric_item || row.field_key || "Sin rubro";
-    const sc  = Number(row.calculated_score || 0);
-    const mx  = Number(row.weight || 0);
-    const grp = ev.includes(CLIENT_DOMAIN) ? "aplazo" :
-                ev.includes(EVOLVE_DOMAIN) ? "evolve" : null;
-    if (!grp) return;
-    if (!byRubric[grp][rub]) byRubric[grp][rub] = { sum: 0, count: 0, maxW: mx };
-    byRubric[grp][rub].sum   += sc;
-    byRubric[grp][rub].count += 1;
-    if (mx > byRubric[grp][rub].maxW) byRubric[grp][rub].maxW = mx;
-  });
-
-  const rubrics = [...new Set([
-    ...Object.keys(byRubric.aplazo),
-    ...Object.keys(byRubric.evolve)
-  ])].sort();
-
-  if (!rubrics.length) {
-    el.innerHTML = '<div class="muted">Sin datos de rubros para este periodo.</div>';
-    return;
-  }
-
-  function pct(grp, rub) {
-    const d = byRubric[grp][rub];
-    if (!d || !d.count || !d.maxW) return null;
-    return (d.sum / d.count) / d.maxW * 100;
-  }
-  function cell(p) {
-    if (p === null) return `<td style="text-align:center;color:#94a3b8;">—</td>`;
-    const bg = p >= 90 ? "#dcfce7" : p >= 70 ? "#fef9c3" : "#fee2e2";
-    const cl = p >= 90 ? "#166534" : p >= 70 ? "#854d0e" : "#991b1b";
-    return `<td style="text-align:center;background:${bg};color:${cl};font-weight:800;border-radius:6px;">${p.toFixed(2)}%</td>`;
-  }
-  function diffCell(a, b) {
-    if (a === null || b === null) return `<td style="text-align:center;color:#94a3b8;">—</td>`;
-    const d = a - b;
-    const cls = d > 0.5 ? "vs-up" : d < -0.5 ? "vs-down" : "vs-flat";
-    return `<td style="text-align:center;"><span class="vs-badge ${cls}">${d>=0?"+":""}${d.toFixed(2)}%</span></td>`;
-  }
-
-  const rows = rubrics.map(r => {
-    const pa = pct("aplazo", r);
-    const pe = pct("evolve", r);
-    return `<tr>
-      <td><strong>${r}</strong></td>
-      ${cell(pa)}
-      ${cell(pe)}
-      ${diffCell(pa, pe)}
-    </tr>`;
-  }).join("");
-
-  el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
-    <thead><tr>
-      <th style="min-width:200px;">Rubro</th>
-      <th style="text-align:center;min-width:110px;">Aplazo</th>
-      <th style="text-align:center;min-width:110px;">Evolve CX</th>
-      <th style="text-align:center;min-width:100px;">Diferencia</th>
-    </tr></thead>
-    <tbody>${rows}</tbody>
-  </table>`;
-}
-
-async function buildClientPareto(filters) {
-  // Single unified pareto: all failures from both Aplazo + Evolve CX evaluators
-  let q = supabaseClient
-    .from("qa_v_evaluation_responses_detail")
-    .select("rubric_item,field_key,evaluator_name")
-    .eq("failed_item", true);
-  if (filters.startDate) q = q.gte("created_at", filters.startDate + "T00:00:00");
-  if (filters.endDate)   q = q.lte("created_at", filters.endDate + "T23:59:59");
-  if (filters.campaign)  q = q.eq("campaign_key", filters.campaign);
-  if (filters.lob)       q = q.eq("lob_key", filters.lob);
-  if (filters.queue)     q = q.eq("queue_key", filters.queue);
-
-  const raw = await fetchAllRows(q);
-
-  const grouped = {};
-  (raw || []).forEach(r => {
-    const k = r.rubric_item || r.field_key || "Desconocido";
-    grouped[k] = (grouped[k] || 0) + 1;
-  });
-
-  const total = Object.values(grouped).reduce((s,c)=>s+c,0);
-  const items = Object.entries(grouped)
-    .map(([l,c])=>({l,c}))
-    .sort((a,b)=>b.c-a.c)
-    .slice(0,10);
-
-  let cum = 0;
-  const cumPct = items.map(i => { cum+=i.c; return total ? (cum/total*100) : 0; });
-
-  if (clientParetoAplazoChart) { clientParetoAplazoChart.destroy(); clientParetoAplazoChart = null; }
-
-  clientParetoAplazoChart = new Chart(document.getElementById("clientParetoUnified"), {
-    type: "bar",
-    data: {
-      labels: items.map(i => i.l.length > 32 ? i.l.slice(0,32)+"…" : i.l),
-      datasets: [
-        {
-          type: "bar",
-          label: "Fallas",
-          data: items.map(i=>i.c),
-          yAxisID: "y",
-          backgroundColor: "rgba(14,165,233,.75)",
-          borderRadius: 6
-        },
-        {
-          type: "line",
-          label: "% acumulado",
-          data: cumPct,
-          yAxisID: "y1",
-          borderColor: "#ef4444",
-          borderWidth: 2.5,
-          pointRadius: 4,
-          tension: 0.25,
-          backgroundColor: "transparent"
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      interaction: { mode: "index", intersect: false },
-      plugins: {
-        legend: { display: true },
-        datalabels: {
-          display: ctx => ctx.dataset.type === "line",
-          align: "top", anchor: "end",
-          color: "#0f172a", font: { weight: "bold", size: 10 },
-          formatter: v => v.toFixed(0) + "%"
-        },
-        tooltip: {
-          callbacks: {
-            label: ctx => {
-              if (ctx.dataset.label === "% acumulado")
-                return `% acumulado: ${ctx.raw.toFixed(2)}%`;
-              const pct = total ? ((items[ctx.dataIndex].c / total)*100).toFixed(2) : "0";
-              return `Fallas: ${items[ctx.dataIndex].c} (${pct}%)`;
-            }
-          }
-        }
-      },
-      scales: {
-        y:  { beginAtZero:true, position:"left",  title:{display:true,text:"Fallas"}, ticks:{precision:0} },
-        y1: { beginAtZero:true, max:100, position:"right",
-              grid:{drawOnChartArea:false},
-              title:{display:true,text:"% acumulado"},
-              ticks:{callback:v=>v+"%"} }
-      }
-    },
-    plugins: [ChartDataLabels]
-  });
-}
-
-function buildClientAgentTable(data) {
-  const grouped = {};
-  data.forEach(row => {
-    const key = row.agent_identifier || row.agent_name || "Unknown";
-    if (!grouped[key]) grouped[key] = {
-      name: row.agent_name || key,
-      campaign: row.campaign_key || "",
-      lob: row.lob_key || "",
-      queue: row.queue_key || "",
-      evaluator: row.evaluator_name || "",
-      scores: [], criticals: 0
-    };
-    grouped[key].scores.push(Number(row.score_final || 0));
-    if (row.critical_error_triggered) grouped[key].criticals++;
-  });
-
-  const rows = Object.values(grouped)
-    .map(a => ({ ...a, avg: a.scores.reduce((s,v)=>s+v,0)/a.scores.length }))
-    .sort((a,b) => b.avg - a.avg);
-
-  document.getElementById("clientAgentTable").innerHTML = rows.map(r => `
-    <tr>
-      <td><strong>${r.name}</strong></td>
-      <td>${r.campaign}</td>
-      <td>${r.lob}</td>
-      <td>${r.queue}</td>
-      <td style="text-align:center;">${r.scores.length}</td>
-      <td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td>
-      <td style="text-align:center;">${r.criticals > 0
-        ? `<span class="badge badge-red">${r.criticals}</span>`
-        : `<span class="badge badge-green">0</span>`}</td>
-      <td style="font-size:11px;color:#64748b;">${r.evaluator}</td>
-    </tr>`).join("");
-}
-
-/* ═══════════════════════════════════════════════
-   PARETO ↔ RUBRIC DETAIL TOGGLE
-═══════════════════════════════════════════════ */
-let paretoShowingDetail = false;
-let rubricDetailBuilt   = false;
-
+let paretoShowingDetail = false, rubricDetailBuilt = false;
 function toggleParetoView() {
   paretoShowingDetail = !paretoShowingDetail;
-  const btn       = document.getElementById("paretoToggleBtn");
-  const title     = document.getElementById("paretoCardTitle");
-  const parView   = document.getElementById("paretoView");
-  const detView   = document.getElementById("rubricDetailView");
-
+  const btn = document.getElementById("paretoToggleBtn"), title = document.getElementById("paretoCardTitle");
+  const parView = document.getElementById("paretoView"), detView = document.getElementById("rubricDetailView");
   if (paretoShowingDetail) {
-    parView.style.display  = "none";
-    detView.style.display  = "block";
-    title.textContent      = "📐 Score por rubro";
-    btn.textContent        = "🔴 Ver Pareto de fallas";
-    btn.style.background   = "#ecfeff";
-    btn.style.borderColor  = "#a5f3fc";
-    btn.style.color        = "#164e63";
+    parView.style.display="none"; detView.style.display="block"; title.textContent="📐 Score por rubro"; btn.textContent="🔴 Ver Pareto de fallas"; btn.style.background="#ecfeff"; btn.style.borderColor="#a5f3fc"; btn.style.color="#164e63";
     if (!rubricDetailBuilt) buildRubricDetailTable();
   } else {
-    parView.style.display  = "block";
-    detView.style.display  = "none";
-    title.textContent      = "🔴 Pareto de fallas";
-    btn.textContent        = "📐 Ver detalle por rubro";
-    btn.style.background   = "#f1f5f9";
-    btn.style.borderColor  = "#e2e8f0";
-    btn.style.color        = "#0f172a";
+    parView.style.display="block"; detView.style.display="none"; title.textContent="🔴 Pareto de fallas"; btn.textContent="📐 Ver detalle por rubro"; btn.style.background="#f1f5f9"; btn.style.borderColor="#e2e8f0"; btn.style.color="#0f172a";
   }
 }
-
-// Called after every loadDashboard so fresh data resets the detail view
 function resetParetoToggle() {
-  paretoShowingDetail = false;
-  rubricDetailBuilt   = false;
-  const parView = document.getElementById("paretoView");
-  const detView = document.getElementById("rubricDetailView");
-  const btn     = document.getElementById("paretoToggleBtn");
-  const title   = document.getElementById("paretoCardTitle");
-  if (parView) parView.style.display  = "block";
-  if (detView) { detView.style.display = "none"; detView.innerHTML = '<div class="muted" style="padding:12px 0;">Cargando...</div>'; }
-  if (btn)   { btn.textContent = "📐 Ver detalle por rubro"; btn.style.background="#f1f5f9"; btn.style.borderColor="#e2e8f0"; btn.style.color="#0f172a"; }
-  if (title) title.textContent = "🔴 Pareto de fallas";
+  paretoShowingDetail=false; rubricDetailBuilt=false;
+  const parView=document.getElementById("paretoView"), detView=document.getElementById("rubricDetailView"), btn=document.getElementById("paretoToggleBtn"), title=document.getElementById("paretoCardTitle");
+  if(parView) parView.style.display="block"; if(detView){detView.style.display="none";detView.innerHTML='<div class="muted" style="padding:12px 0;">Cargando...</div>';}
+  if(btn){btn.textContent="📐 Ver detalle por rubro";btn.style.background="#f1f5f9";btn.style.borderColor="#e2e8f0";btn.style.color="#0f172a";}
+  if(title) title.textContent="🔴 Pareto de fallas";
 }
-
 async function buildRubricDetailTable() {
   const detView = document.getElementById("rubricDetailView");
   detView.innerHTML = '<div class="muted" style="padding:12px 0;"><span class="loading-spinner"></span> Cargando detalle...</div>';
-
   const filters = getFilters();
-
-  // Fetch all rubric responses with confirmed columns
-  let q = supabaseClient
-    .from("qa_v_evaluation_responses_detail")
-    .select("agent_identifier,rubric_item,field_key,calculated_score,weight,failed_item,is_bonus");
-
-  if (filters.startDate) q = q.gte("created_at", filters.startDate + "T00:00:00");
-  if (filters.endDate)   q = q.lte("created_at", filters.endDate + "T23:59:59");
-  if (filters.campaign)  q = q.eq("campaign_key", filters.campaign);
-  if (filters.lob)       q = q.eq("lob_key", filters.lob);
-  if (filters.queue)     q = q.eq("queue_key", filters.queue);
-  if (filters.agent)     q = q.eq("agent_identifier", filters.agent);
-  if (filters.evaluator) q = q.eq("evaluator_name", filters.evaluator);
-
+  let q = supabaseClient.from("qa_v_evaluation_responses_detail").select("agent_identifier,rubric_item,field_key,calculated_score,weight,failed_item,is_bonus");
+  if (filters.startDate) q=q.gte("created_at",filters.startDate+"T00:00:00"); if(filters.endDate) q=q.lte("created_at",filters.endDate+"T23:59:59"); if(filters.campaign) q=q.eq("campaign_key",filters.campaign); if(filters.lob) q=q.eq("lob_key",filters.lob); if(filters.queue) q=q.eq("queue_key",filters.queue); if(filters.agent) q=q.eq("agent_identifier",filters.agent); if(filters.evaluator) q=q.eq("evaluator_name",filters.evaluator);
   const rawData = await fetchAllRows(q);
-
-  if (!rawData || rawData.length === 0) {
-    detView.innerHTML = '<div class="muted" style="padding:12px;">No hay datos de rubros para este periodo.</div>';
-    return;
-  }
-
-  // Only non-bonus rows
-  const data = rawData.filter(r => !r.is_bonus);
-
-  // Aggregate by rubric_item
-  const rubricMap = {};
-  data.forEach(row => {
-    const rub = row.rubric_item || row.field_key || "Sin rubro";
-    const sc  = Number(row.calculated_score || 0);
-    const mx  = Number(row.weight || 0);
-    const fail = !!row.failed_item;
-
-    if (!rubricMap[rub]) rubricMap[rub] = { sum: 0, count: 0, maxWeight: mx, failures: 0 };
-    rubricMap[rub].sum      += sc;
-    rubricMap[rub].count    += 1;
-    rubricMap[rub].failures += fail ? 1 : 0;
-    if (mx > rubricMap[rub].maxWeight) rubricMap[rub].maxWeight = mx;
-  });
-
-  const rows = Object.entries(rubricMap).map(([rub, v]) => ({
-    rubric:   rub,
-    avg:      v.count ? v.sum / v.count : 0,
-    maxW:     v.maxWeight,
-    failures: v.failures,
-    count:    v.count,
-    pct:      v.maxWeight > 0 ? (v.count ? (v.sum / v.count) / v.maxWeight * 100 : 0) : 0
-  })).sort((a, b) => a.pct - b.pct);  // worst first
-
-  function rowColor(pct) {
-    if (pct >= 90) return { bg: "#dcfce7", color: "#166534" };
-    if (pct >= 70) return { bg: "#fef9c3", color: "#854d0e" };
-    return { bg: "#fee2e2", color: "#991b1b" };
-  }
-
-  const thead = `<thead><tr>
-    <th style="min-width:200px;">Rubro</th>
-    <th style="text-align:center;">Evaluaciones</th>
-    <th style="text-align:center;">Penalizaciones</th>
-    <th style="text-align:center;min-width:100px;">Score</th>
-  </tr></thead>`;
-
-  const tbody = rows.map(r => {
-    const c = rowColor(r.pct);
-    return `<tr>
-      <td><strong>${r.rubric}</strong></td>
-      <td style="text-align:center;">${r.count}</td>
-      <td style="text-align:center;">${r.failures}</td>
-      <td style="text-align:center;background:${c.bg};color:${c.color};font-weight:800;border-radius:8px;">
-        ${r.pct.toFixed(2)}%
-      </td>
-    </tr>`;
-  }).join("");
-
-  detView.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
-    ${thead}<tbody>${tbody}</tbody>
-  </table>`;
-
-  rubricDetailBuilt = true;
+  if (!rawData||rawData.length===0){detView.innerHTML='<div class="muted" style="padding:12px;">No hay datos de rubros para este periodo.</div>';return;}
+  const data=rawData.filter(r=>!r.is_bonus);
+  const rubricMap={};
+  data.forEach(row=>{const rub=row.rubric_item||row.field_key||"Sin rubro";const sc=Number(row.calculated_score||0);const mx=Number(row.weight||0);const fail=!!row.failed_item;if(!rubricMap[rub])rubricMap[rub]={sum:0,count:0,maxWeight:mx,failures:0};rubricMap[rub].sum+=sc;rubricMap[rub].count+=1;rubricMap[rub].failures+=fail?1:0;if(mx>rubricMap[rub].maxWeight)rubricMap[rub].maxWeight=mx;});
+  const rows=Object.entries(rubricMap).map(([rub,v])=>({rubric:rub,pct:v.maxWeight>0?(v.count?((v.sum/v.count)/v.maxWeight*100):0):0,failures:v.failures,count:v.count})).sort((a,b)=>a.pct-b.pct);
+  function rowColor(pct){if(pct>=90)return{bg:"#dcfce7",color:"#166534"};if(pct>=70)return{bg:"#fef9c3",color:"#854d0e"};return{bg:"#fee2e2",color:"#991b1b"};}
+  detView.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr><th style="min-width:200px;">Rubro</th><th style="text-align:center;">Evaluaciones</th><th style="text-align:center;">Penalizaciones</th><th style="text-align:center;min-width:100px;">Score</th></tr></thead><tbody>${rows.map(r=>{const c=rowColor(r.pct);return`<tr><td><strong>${r.rubric}</strong></td><td style="text-align:center;">${r.count}</td><td style="text-align:center;">${r.failures}</td><td style="text-align:center;background:${c.bg};color:${c.color};font-weight:800;border-radius:8px;">${r.pct.toFixed(2)}%</td></tr>`;}).join("")}</tbody></table>`;
+  rubricDetailBuilt=true;
 }
 
 /* ═══════════════════════════════════════════════
-   WEEKLY COMPARE TABLE (from cached data)
+   WEEKLY COMPARE
 ═══════════════════════════════════════════════ */
 function loadWeeklyCompare() {
-  const data = allEvalData;
-  // group by ISO week (Monday)
-  function getWeekMonday(dateStr) {
-    const d = new Date(dateStr+"T12:00:00");
-    const day = d.getDay(); // 0=Sun
-    const diff = (day===0?-6:1-day);
-    d.setDate(d.getDate()+diff);
-    return d.toISOString().split("T")[0];
-  }
-
-  const byWeek = {};
-  data.forEach(row => {
-    if (!row.created_date_cdmx) return;
-    const w = getWeekMonday(row.created_date_cdmx);
-    if (!byWeek[w]) byWeek[w] = { scores:[], criticals:0, total:0 };
-    byWeek[w].scores.push(Number(row.score_final||0));
-    if (row.critical_error_triggered) byWeek[w].criticals++;
-    byWeek[w].total++;
-  });
-
-  const weeks = Object.keys(byWeek).sort().reverse().slice(0,8).reverse();
-  const rows  = weeks.map(w => {
-    const g = byWeek[w];
-    return {
-      week: w,
-      evals: g.total,
-      avg: g.scores.reduce((a,b)=>a+b,0)/g.scores.length,
-      critPct: (g.criticals/g.total)*100
-    };
-  });
-
-  const tbody = document.getElementById("weeklyCompareTable");
-  tbody.innerHTML = rows.map((r,i) => {
-    const prev = i>0 ? rows[i-1] : null;
-    const d = prev ? deltaArrow(r.avg, prev.avg) : null;
-    return `<tr>
-      <td><strong>${r.week}</strong></td>
-      <td>${r.evals}</td>
-      <td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td>
-      <td>${r.critPct.toFixed(1)}%</td>
-      <td class="${d?`delta-${d.cls}`:''}">${d?d.text:"—"}</td>
-    </tr>`;
-  }).join("");
+  const data=allEvalData;
+  function getWeekMonday(dateStr){const d=new Date(dateStr+"T12:00:00");const day=d.getDay();const diff=(day===0?-6:1-day);d.setDate(d.getDate()+diff);return d.toISOString().split("T")[0];}
+  const byWeek={};
+  data.forEach(row=>{if(!row.created_date_cdmx)return;const w=getWeekMonday(row.created_date_cdmx);if(!byWeek[w])byWeek[w]={scores:[],criticals:0,total:0};byWeek[w].scores.push(Number(row.score_final||0));if(row.critical_error_triggered)byWeek[w].criticals++;byWeek[w].total++;});
+  const weeks=Object.keys(byWeek).sort().reverse().slice(0,8).reverse();
+  const rows=weeks.map(w=>{const g=byWeek[w];return{week:w,evals:g.total,avg:g.scores.reduce((a,b)=>a+b,0)/g.scores.length,critPct:(g.criticals/g.total)*100};});
+  document.getElementById("weeklyCompareTable").innerHTML=rows.map((r,i)=>{const prev=i>0?rows[i-1]:null;const d=prev?deltaArrow(r.avg,prev.avg):null;return`<tr><td><strong>${r.week}</strong></td><td>${r.evals}</td><td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td><td>${r.critPct.toFixed(1)}%</td><td class="${d?`delta-${d.cls}`:''}">${d?d.text:"—"}</td></tr>`;}).join("");
 }
 
 /* ═══════════════════════════════════════════════
    HISTOGRAM
 ═══════════════════════════════════════════════ */
 function loadHistogram() {
-  const scores = allEvalData.map(x=>Number(x.score_final||0));
-  const bins   = ["<60","60–69","70–79","80–89","90–94","95–100"];
-  const counts = [0,0,0,0,0,0];
-  scores.forEach(s => {
-    if      (s < 60) counts[0]++;
-    else if (s < 70) counts[1]++;
-    else if (s < 80) counts[2]++;
-    else if (s < 90) counts[3]++;
-    else if (s < 95) counts[4]++;
-    else             counts[5]++;
-  });
-
+  const scores=allEvalData.map(x=>Number(x.score_final||0));
+  const bins=["<60","60–69","70–79","80–89","90–94","95–100"];
+  const counts=[0,0,0,0,0,0];
+  scores.forEach(s=>{if(s<60)counts[0]++;else if(s<70)counts[1]++;else if(s<80)counts[2]++;else if(s<90)counts[3]++;else if(s<95)counts[4]++;else counts[5]++;});
   destroyChart(histogramChart);
-  histogramChart = new Chart(document.getElementById("histogramChart"), {
-    type: "bar",
-    data: {
-      labels: bins,
-      datasets: [{
-        label: "Agentes",
-        data: counts,
-        backgroundColor: ["#ef4444","#f97316","#f59e0b","#84cc16","#22c55e","#16a34a"],
-        borderRadius: 8
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend:    { display:false },
-        datalabels: {
-          anchor:"end", align:"top", color:"#0f172a",
-          font:{ weight:"bold", size:11 },
-          formatter: v => v
-        }
-      },
-      scales: {
-        y: { beginAtZero:true, ticks:{ precision:0 }, title:{ display:true, text:"Evaluaciones" } },
-        x: { title:{ display:true, text:"Rango de score" } }
-      }
-    },
-    plugins: [ChartDataLabels]
-  });
+  histogramChart=new Chart(document.getElementById("histogramChart"),{type:"bar",data:{labels:bins,datasets:[{label:"Agentes",data:counts,backgroundColor:["#ef4444","#f97316","#f59e0b","#84cc16","#22c55e","#16a34a"],borderRadius:8}]},options:{responsive:true,plugins:{legend:{display:false},datalabels:{anchor:"end",align:"top",color:"#0f172a",font:{weight:"bold",size:11},formatter:v=>v}},scales:{y:{beginAtZero:true,ticks:{precision:0},title:{display:true,text:"Evaluaciones"}},x:{title:{display:true,text:"Rango de score"}}}},plugins:[ChartDataLabels]});
 }
 
 /* ═══════════════════════════════════════════════
    CRITICAL ERRORS
 ═══════════════════════════════════════════════ */
 function getCriticalShortName(label) {
-  const v = String(label||"").toLowerCase();
-  if (v.includes("tipificación")||v.includes("tipificacion")) return "Tipificación reincidente";
-  if (v.includes("malas prácticas")||v.includes("malas practicas"))  return "Malas prácticas recurrentes";
-  if (v.includes("reclamos"))   return "Reclamos recurrentes";
-  if (v.includes("conocimiento")) return "Falla de conocimiento";
-  if (v.includes("contactos"))  return "Gestión incorrecta";
-  if (v.includes("información")||v.includes("informacion")) return "Información incorrecta";
-  if (v.includes("seguimiento")) return "Falta de seguimiento";
+  const v=String(label||"").toLowerCase();
+  if(v.includes("tipificación")||v.includes("tipificacion"))return"Tipificación reincidente";
+  if(v.includes("malas prácticas")||v.includes("malas practicas"))return"Malas prácticas recurrentes";
+  if(v.includes("reclamos"))return"Reclamos recurrentes";
+  if(v.includes("conocimiento"))return"Falla de conocimiento";
+  if(v.includes("contactos"))return"Gestión incorrecta";
+  if(v.includes("información")||v.includes("informacion"))return"Información incorrecta";
+  if(v.includes("seguimiento"))return"Falta de seguimiento";
   return label.length>32?label.slice(0,32)+"...":label;
 }
-
 async function loadCriticalErrors(filters) {
-  let q = supabaseClient.from("qa_v_policy_flags_detail").select("*");
-  if (filters.startDate) q = q.gte("created_date_cdmx", filters.startDate);
-  if (filters.endDate)   q = q.lte("created_date_cdmx", filters.endDate);
-  if (filters.campaign)  q = q.eq("campaign_key", filters.campaign);
-  if (filters.lob)       q = q.eq("lob_key", filters.lob);
-  if (filters.queue)     q = q.eq("queue_key", filters.queue);
-  if (filters.agent)     q = q.eq("agent_identifier", filters.agent);
-  if (filters.evaluator) q = q.eq("evaluator_name", filters.evaluator);
-  const data = await fetchAllRows(q);
-
-  const grouped = {};
-  (data||[]).forEach(row => {
-    const lbl = row.policy_flag||row.display_label||row.field_key||row.policy_flag_id||"Unknown";
-    grouped[lbl] = (grouped[lbl]||0)+1;
-  });
-  const items = Object.keys(grouped).map(l=>({label:l,shortName:getCriticalShortName(l),count:grouped[l]}))
-    .sort((a,b)=>b.count-a.count).slice(0,10);
-  const maxCount = items.length ? Math.max(...items.map(i=>i.count)) : 0;
-
-  const list = document.getElementById("criticalErrorsList");
-  list.innerHTML = items.length
-    ? items.map(item=>`
-      <div class="critical-card" title="${item.label}">
-        <div class="critical-card-header">
-          <div class="critical-title">${item.shortName}</div>
-          <div class="critical-count">${item.count}</div>
-        </div>
-        <div class="critical-bar"><div class="critical-bar-fill" style="width:${maxCount?(item.count/maxCount)*100:0}%"></div></div>
-        <div class="critical-detail">${item.label}</div>
-      </div>`).join("")
-    : `<div class="muted">No hay errores críticos para estos filtros.</div>`;
+  let q=supabaseClient.from("qa_v_policy_flags_detail").select("*");
+  if(filters.startDate)q=q.gte("created_date_cdmx",filters.startDate);if(filters.endDate)q=q.lte("created_date_cdmx",filters.endDate);if(filters.campaign)q=q.eq("campaign_key",filters.campaign);if(filters.lob)q=q.eq("lob_key",filters.lob);if(filters.queue)q=q.eq("queue_key",filters.queue);if(filters.agent)q=q.eq("agent_identifier",filters.agent);if(filters.evaluator)q=q.eq("evaluator_name",filters.evaluator);
+  const data=await fetchAllRows(q);
+  const grouped={};
+  (data||[]).forEach(row=>{const lbl=row.policy_flag||row.display_label||row.field_key||row.policy_flag_id||"Unknown";grouped[lbl]=(grouped[lbl]||0)+1;});
+  const items=Object.keys(grouped).map(l=>({label:l,shortName:getCriticalShortName(l),count:grouped[l]})).sort((a,b)=>b.count-a.count).slice(0,10);
+  const maxCount=items.length?Math.max(...items.map(i=>i.count)):0;
+  const list=document.getElementById("criticalErrorsList");
+  list.innerHTML=items.length?items.map(item=>`<div class="critical-card" title="${item.label}"><div class="critical-card-header"><div class="critical-title">${item.shortName}</div><div class="critical-count">${item.count}</div></div><div class="critical-bar"><div class="critical-bar-fill" style="width:${maxCount?(item.count/maxCount)*100:0}%"></div></div><div class="critical-detail">${item.label}</div></div>`).join(""):`<div class="muted">No hay errores críticos para estos filtros.</div>`;
 }
 
 /* ═══════════════════════════════════════════════
-   GROUP TABLE (Campaña / LOB / Queue)
+   GROUP TABLE
 ═══════════════════════════════════════════════ */
 function loadGroupTable() {
-  const data = allEvalData;
-  const key  = groupTabsGroup;
-  const grouped = {};
-  data.forEach(row => {
-    const g = row[key] || "Sin clasificar";
-    if (!grouped[g]) grouped[g] = { scores:[], criticals:0, zeros:0, total:0 };
-    grouped[g].scores.push(Number(row.score_final||0));
-    if (row.critical_error_triggered) grouped[g].criticals++;
-    if (row.weekly_zero_triggered)    grouped[g].zeros++;
-    grouped[g].total++;
-  });
-
-  const rows = Object.entries(grouped).map(([g,v]) => ({
-    group: g,
-    evals: v.total,
-    avg:   v.scores.reduce((a,b)=>a+b,0)/v.scores.length,
-    critPct: (v.criticals/v.total)*100,
-    zeros: v.zeros
-  })).sort((a,b)=>b.evals-a.evals);
-
-  document.getElementById("groupTable").innerHTML = rows.map(r=>`
-    <tr>
-      <td><strong>${r.group}</strong></td>
-      <td>${r.evals}</td>
-      <td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td>
-      <td>${r.critPct.toFixed(1)}%</td>
-      <td>${r.zeros}</td>
-    </tr>`).join("");
+  const data=allEvalData, key=groupTabsGroup, grouped={};
+  data.forEach(row=>{const g=row[key]||"Sin clasificar";if(!grouped[g])grouped[g]={scores:[],criticals:0,zeros:0,total:0};grouped[g].scores.push(Number(row.score_final||0));if(row.critical_error_triggered)grouped[g].criticals++;if(row.weekly_zero_triggered)grouped[g].zeros++;grouped[g].total++;});
+  const rows=Object.entries(grouped).map(([g,v])=>({group:g,evals:v.total,avg:v.scores.reduce((a,b)=>a+b,0)/v.scores.length,critPct:(v.criticals/v.total)*100,zeros:v.zeros})).sort((a,b)=>b.evals-a.evals);
+  document.getElementById("groupTable").innerHTML=rows.map(r=>`<tr><td><strong>${r.group}</strong></td><td>${r.evals}</td><td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td><td>${r.critPct.toFixed(1)}%</td><td>${r.zeros}</td></tr>`).join("");
 }
 
 /* ═══════════════════════════════════════════════
-   RISK RANKING + CHART
+   RISK RANKING
 ═══════════════════════════════════════════════ */
 function loadRiskRanking() {
-  const data = allEvalData;
-  const grouped = {};
-  data.forEach(row => {
-    const key = row.agent_identifier || row.agent_name || "Unknown";
-    if (!grouped[key]) grouped[key] = {
-      agent_name: row.agent_name||key,
-      campaign_key: row.campaign_key||"",
-      lob_key: row.lob_key||"",
-      queue_key: row.queue_key||"",
-      scores: [], criticals: 0, zeros: 0
-    };
-    grouped[key].scores.push(Number(row.score_final||0));
-    if (row.critical_error_triggered) grouped[key].criticals++;
-    if (row.weekly_zero_triggered)    grouped[key].zeros++;
-  });
-
-  const ranking = Object.values(grouped).map(a => {
-    const avg = a.scores.reduce((s,b)=>s+b,0)/a.scores.length;
-    const risk = (100-avg)+(a.criticals*25)+(a.zeros*15);
-    return { ...a, avg_score:avg, risk_score:risk };
-  }).sort((a,b)=>b.risk_score-a.risk_score);
-
-  const top = ranking.slice(0,10);
-
-  document.getElementById("riskTable").innerHTML = top.map(r => {
-    const lvl = riskLevel(r.risk_score);
-    return `<tr>
-      <td><strong>${r.agent_name||""}</strong></td>
-      <td>${r.campaign_key||""}</td>
-      <td>${r.lob_key||""}</td>
-      <td>${r.queue_key||""}</td>
-      <td style="color:${scoreColor(r.avg_score)};font-weight:700;">${r.avg_score.toFixed(2)}%</td>
-      <td>${r.criticals}</td>
-      <td>${r.zeros}</td>
-      <td><strong>${r.risk_score.toFixed(2)}</strong></td>
-      <td><span class="risk-pill ${lvl.cls}">${lvl.label}</span></td>
-    </tr>`;
-  }).join("");
-
+  const data=allEvalData, grouped={};
+  data.forEach(row=>{const key=row.agent_identifier||row.agent_name||"Unknown";if(!grouped[key])grouped[key]={agent_name:row.agent_name||key,campaign_key:row.campaign_key||"",lob_key:row.lob_key||"",queue_key:row.queue_key||"",scores:[],criticals:0,zeros:0};grouped[key].scores.push(Number(row.score_final||0));if(row.critical_error_triggered)grouped[key].criticals++;if(row.weekly_zero_triggered)grouped[key].zeros++;});
+  const ranking=Object.values(grouped).map(a=>{const avg=a.scores.reduce((s,b)=>s+b,0)/a.scores.length;const risk=(100-avg)+(a.criticals*25)+(a.zeros*15);return{...a,avg_score:avg,risk_score:risk};}).sort((a,b)=>b.risk_score-a.risk_score);
+  const top=ranking.slice(0,10);
+  document.getElementById("riskTable").innerHTML=top.map(r=>{const lvl=riskLevel(r.risk_score);return`<tr><td><strong>${r.agent_name||""}</strong></td><td>${r.campaign_key||""}</td><td>${r.lob_key||""}</td><td>${r.queue_key||""}</td><td style="color:${scoreColor(r.avg_score)};font-weight:700;">${r.avg_score.toFixed(2)}%</td><td>${r.criticals}</td><td>${r.zeros}</td><td><strong>${r.risk_score.toFixed(2)}</strong></td><td><span class="risk-pill ${lvl.cls}">${lvl.label}</span></td></tr>`;}).join("");
   destroyChart(riskChart);
-  riskChart = new Chart(document.getElementById("riskChart"), {
-    type: "bar",
-    data: {
-      labels: top.map(x=>x.agent_name),
-      datasets: [{
-        label: "Risk Score",
-        data: top.map(x=>Number(x.risk_score.toFixed(2))),
-        backgroundColor: top.map(x=>x.risk_score>=80?"#ef4444":x.risk_score>=40?"#f59e0b":"#22c55e"),
-        borderRadius: 8
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display:false },
-        datalabels: {
-          anchor:"end", align:"top", color:"#0f172a", font:{weight:"bold",size:11},
-          formatter: v => v
-        }
-      },
-      scales: {
-        y: { beginAtZero:true, title:{ display:true, text:"Risk Score" } }
-      }
-    },
-    plugins: [ChartDataLabels]
-  });
+  riskChart=new Chart(document.getElementById("riskChart"),{type:"bar",data:{labels:top.map(x=>x.agent_name),datasets:[{label:"Risk Score",data:top.map(x=>Number(x.risk_score.toFixed(2))),backgroundColor:top.map(x=>x.risk_score>=80?"#ef4444":x.risk_score>=40?"#f59e0b":"#22c55e"),borderRadius:8}]},options:{responsive:true,plugins:{legend:{display:false},datalabels:{anchor:"end",align:"top",color:"#0f172a",font:{weight:"bold",size:11},formatter:v=>v}},scales:{y:{beginAtZero:true,title:{display:true,text:"Risk Score"}}}},plugins:[ChartDataLabels]});
 }
 
 /* ═══════════════════════════════════════════════
    EVALUATOR TABLE
 ═══════════════════════════════════════════════ */
 function loadEvaluatorTable() {
-  const data = allEvalData;
-  const grouped = {};
-  data.forEach(row => {
-    const ev = row.evaluator_name || "Sin evaluador";
-    if (!grouped[ev]) grouped[ev] = { scores:[], criticals:0, zeros:0, agents:new Set() };
-    grouped[ev].scores.push(Number(row.score_final||0));
-    if (row.critical_error_triggered) grouped[ev].criticals++;
-    if (row.weekly_zero_triggered)    grouped[ev].zeros++;
-    if (row.agent_identifier||row.agent_name) grouped[ev].agents.add(row.agent_identifier||row.agent_name);
-  });
-
-  const rows = Object.entries(grouped).map(([ev,v])=>({
-    evaluator: ev,
-    evals: v.scores.length,
-    avg: v.scores.reduce((a,b)=>a+b,0)/v.scores.length,
-    criticals: v.criticals,
-    zeros: v.zeros,
-    agents: v.agents.size
-  })).sort((a,b)=>b.evals-a.evals);
-
-  document.getElementById("evaluatorTable").innerHTML = rows.map(r=>`
-    <tr>
-      <td><strong>${r.evaluator}</strong></td>
-      <td>${r.evals}</td>
-      <td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td>
-      <td>${r.criticals} <span class="badge badge-red">${r.evals?((r.criticals/r.evals)*100).toFixed(1):0}%</span></td>
-      <td>${r.zeros}</td>
-      <td>${r.agents}</td>
-    </tr>`).join("");
+  const data=allEvalData, grouped={};
+  data.forEach(row=>{const ev=row.evaluator_name||"Sin evaluador";if(!grouped[ev])grouped[ev]={scores:[],criticals:0,zeros:0,agents:new Set()};grouped[ev].scores.push(Number(row.score_final||0));if(row.critical_error_triggered)grouped[ev].criticals++;if(row.weekly_zero_triggered)grouped[ev].zeros++;if(row.agent_identifier||row.agent_name)grouped[ev].agents.add(row.agent_identifier||row.agent_name);});
+  const rows=Object.entries(grouped).map(([ev,v])=>({evaluator:ev,evals:v.scores.length,avg:v.scores.reduce((a,b)=>a+b,0)/v.scores.length,criticals:v.criticals,zeros:v.zeros,agents:v.agents.size})).sort((a,b)=>b.evals-a.evals);
+  document.getElementById("evaluatorTable").innerHTML=rows.map(r=>`<tr><td><strong>${r.evaluator}</strong></td><td>${r.evals}</td><td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td><td>${r.criticals} <span class="badge badge-red">${r.evals?((r.criticals/r.evals)*100).toFixed(1):0}%</span></td><td>${r.zeros}</td><td>${r.agents}</td></tr>`).join("");
 }
 
 /* ═══════════════════════════════════════════════
-   EVALUATIONS DETAIL TABLE
+   EVALUATIONS TABLE
 ═══════════════════════════════════════════════ */
-// Store eval data indexed by a row key for modal lookup
 const evalRowMap = {};
-
 function loadEvaluationsTable() {
-  const data = [...allEvalData].sort((a,b)=>(b.created_date_cdmx||"").localeCompare(a.created_date_cdmx||""));
-
-  document.getElementById("evaluationsTable").innerHTML = data.map((row, i) => {
-    const key = `eval_${i}`;
-    evalRowMap[key] = row;
-    const feedbackPreview = row.feedback
-      ? (row.feedback.length > 50 ? row.feedback.slice(0,50)+"..." : row.feedback)
-      : "Sin feedback";
-    const commitPreview = row.agent_commitment
-      ? (row.agent_commitment.length > 50 ? row.agent_commitment.slice(0,50)+"..." : row.agent_commitment)
-      : "Sin compromiso";
-
-    return `<tr style="cursor:pointer;" onclick="openEvalModal('${key}')" title="Click para ver detalle completo">
+  const data=[...allEvalData].sort((a,b)=>(b.created_date_cdmx||"").localeCompare(a.created_date_cdmx||""));
+  document.getElementById("evaluationsTable").innerHTML=data.map((row,i)=>{
+    const key=`eval_${i}`; evalRowMap[key]=row;
+    const feedbackPreview=row.feedback?(row.feedback.length>50?row.feedback.slice(0,50)+"...":row.feedback):"Sin feedback";
+    const commitPreview=row.agent_commitment?(row.agent_commitment.length>50?row.agent_commitment.slice(0,50)+"...":row.agent_commitment):"Sin compromiso";
+    return `<tr style="cursor:pointer;" onclick="openEvalModal('${key}')" title="Click para ver detalle y solicitar corrección">
       <td>${row.created_date_cdmx||""}</td>
       <td style="font-weight:700;">${row.agent_name||""}</td>
       <td style="color:#475569;">${feedbackPreview}</td>
@@ -2015,61 +887,76 @@ function loadEvaluationsTable() {
   }).join("");
 }
 
+/* ═══════════════════════════════════════════════
+   RUBRIC TABLE
+═══════════════════════════════════════════════ */
+async function loadRubricTable(filters) {
+  const wrapper=document.getElementById("rubricTableWrapper");
+  wrapper.innerHTML=`<div class="muted" style="padding:16px 0;"><span class="loading-spinner"></span> Cargando rubros...</div>`;
+  if(allEvalData.length===0){wrapper.innerHTML=`<div class="muted" style="padding:16px;">No hay evaluaciones para este periodo.</div>`;return;}
+  const agentEvalCount={},agentScoreSum={},agentNames={},validAgentKeys=new Set();
+  allEvalData.forEach(row=>{const key=row.agent_identifier||row.agent_name||"Unknown";agentEvalCount[key]=(agentEvalCount[key]||0)+1;agentScoreSum[key]=(agentScoreSum[key]||0)+Number(row.score_final||0);if(!agentNames[key])agentNames[key]=row.agent_name||key;validAgentKeys.add(key);});
+  let q=supabaseClient.from("qa_v_evaluation_responses_detail").select("agent_identifier,agent_name,rubric_item,field_key,calculated_score,weight,is_bonus");
+  if(filters.startDate)q=q.gte("created_at",filters.startDate+"T00:00:00");if(filters.endDate)q=q.lte("created_at",filters.endDate+"T23:59:59");if(filters.campaign)q=q.eq("campaign_key",filters.campaign);if(filters.lob)q=q.eq("lob_key",filters.lob);if(filters.queue)q=q.eq("queue_key",filters.queue);if(filters.agent)q=q.eq("agent_identifier",filters.agent);if(filters.evaluator)q=q.eq("evaluator_name",filters.evaluator);
+  const rawData=await fetchAllRows(q);
+  if(!rawData||rawData.length===0){wrapper.innerHTML=`<div class="muted" style="padding:16px;">No hay datos de rubros para este periodo.</div>`;return;}
+  const data=rawData.filter(row=>{const key=row.agent_identifier||row.agent_name||"Unknown";return validAgentKeys.has(key)&&!row.is_bonus;});
+  if(data.length===0){wrapper.innerHTML=`<div class="muted" style="padding:16px;">No hay datos de rubros para los agentes en este filtro.</div>`;return;}
+  const rubricSet=new Set(),agentMap={};
+  data.forEach(row=>{const key=row.agent_identifier||row.agent_name||"Unknown";const rub=row.rubric_item||row.field_key||"Sin rubro";const sc=Number(row.calculated_score||0);const mx=Number(row.weight||0);rubricSet.add(rub);if(!agentMap[key])agentMap[key]={rubrics:{}};if(!agentMap[key].rubrics[rub])agentMap[key].rubrics[rub]={sum:0,count:0,maxWeight:mx};agentMap[key].rubrics[rub].sum+=sc;agentMap[key].rubrics[rub].count+=1;if(mx>agentMap[key].rubrics[rub].maxWeight)agentMap[key].rubrics[rub].maxWeight=mx;});
+  const rubrics=[...rubricSet].sort();
+  function rubricCellClass(avg,maxWeight){if(maxWeight<=0)return"rubric-cell-gray";const pct=(avg/maxWeight)*100;if(pct>=90)return"rubric-cell-green";if(pct>=70)return"rubric-cell-yellow";return"rubric-cell-red";}
+  const agents=[...validAgentKeys].map(key=>({key,agent_name:agentNames[key]||key,evals:agentEvalCount[key]||0,avgScore:agentEvalCount[key]?(agentScoreSum[key]/agentEvalCount[key]):0,rubrics:agentMap[key]?.rubrics||{}})).sort((a,b)=>b.avgScore-a.avgScore);
+  const thRubrics=rubrics.map(r=>`<th title="${r}" style="min-width:90px;">${r.length>22?r.slice(0,22)+"…":r}</th>`).join("");
+  const thead=`<thead><tr><th style="min-width:160px;">Agente</th><th style="text-align:center;min-width:60px;"># Evals</th><th style="text-align:center;min-width:80px;">Score</th>${thRubrics}</tr></thead>`;
+  const tbody=agents.map(a=>{const cells=rubrics.map(r=>{const d=a.rubrics[r];if(!d||d.count===0)return`<td class="rubric-cell-gray">—</td>`;const avg=d.sum/d.count;const cls=rubricCellClass(avg,d.maxWeight);return`<td class="${cls}" title="${r}: ${avg.toFixed(2)} / ${d.maxWeight}">${avg.toFixed(2)}</td>`;}).join("");return`<tr><td><span onclick="openAgentHistory('${a.key.replace(/'/g,"\\'")}','${a.agent_name.replace(/'/g,"\\'")}' )" style="cursor:pointer;color:#0284c7;font-weight:700;text-decoration:underline;" title="Ver historial de ${a.agent_name}">${a.agent_name}</span></td><td style="text-align:center;">${a.evals}</td><td style="text-align:center;color:${scoreColor(a.avgScore)};font-weight:700;">${a.avgScore.toFixed(2)}%</td>${cells}</tr>`;}).join("");
+  wrapper.innerHTML=`<div style="overflow-x:auto;"><table class="rubric-table">${thead}<tbody>${tbody}</tbody></table></div>`;
+}
+
+/* ═══════════════════════════════════════════════
+   EVAL DETAIL MODAL + CORRECTION PANEL
+═══════════════════════════════════════════════ */
+let currentEvalForCorrection = null;
+let currentRubricData = [];
+
 async function openEvalModal(key) {
   const row = evalRowMap[key];
   if (!row) return;
+  currentEvalForCorrection = row;
+  currentRubricData = [];
 
   const overlay = document.getElementById("evalModalOverlay");
   const body    = document.getElementById("evalModalBody");
   const title   = document.getElementById("evalModalTitle");
 
   title.textContent = row.agent_name || "Detalle de evaluación";
-  body.innerHTML = `<div class="muted" style="padding:20px 0;text-align:center;"><span class="loading-spinner"></span> Cargando rubros...</div>`;
+  body.innerHTML = `<div class="muted" style="padding:20px 0;text-align:center;"><span class="loading-spinner"></span> Cargando...</div>`;
   overlay.classList.add("active");
 
-  // Build static content first
   const sc = Number(row.score_final || 0);
+
   const kpis = `
     <div class="eval-modal-kpis">
-      <div class="eval-modal-kpi">
-        <div class="label">Fecha</div>
-        <div class="value" style="font-size:16px;">${row.created_date_cdmx||"–"}</div>
-      </div>
-      <div class="eval-modal-kpi">
-        <div class="label">Score</div>
-        <div class="value" style="color:${scoreColor(sc)}">${sc}%</div>
-      </div>
-      <div class="eval-modal-kpi">
-        <div class="label">Error Crítico</div>
-        <div class="value" style="font-size:16px;">${row.critical_error_triggered
-          ? '<span class="badge badge-red" style="font-size:14px;">Sí</span>'
-          : '<span class="badge badge-green" style="font-size:14px;">No</span>'}</div>
-      </div>
+      <div class="eval-modal-kpi"><div class="label">Fecha</div><div class="value" style="font-size:16px;">${row.created_date_cdmx||"–"}</div></div>
+      <div class="eval-modal-kpi"><div class="label">Score</div><div class="value" style="color:${scoreColor(sc)}">${sc}%</div></div>
+      <div class="eval-modal-kpi"><div class="label">Error Crítico</div><div class="value" style="font-size:16px;">${row.critical_error_triggered?'<span class="badge badge-red" style="font-size:14px;">Sí</span>':'<span class="badge badge-green" style="font-size:14px;">No</span>'}</div></div>
     </div>
     <div class="eval-modal-kpis" style="grid-template-columns:repeat(4,1fr);">
-      <div class="eval-modal-kpi">
-        <div class="label">Campaña</div>
-        <div class="value" style="font-size:13px;">${row.campaign_key||"–"}</div>
-      </div>
-      <div class="eval-modal-kpi">
-        <div class="label">LOB</div>
-        <div class="value" style="font-size:13px;">${row.lob_key||"–"}</div>
-      </div>
-      <div class="eval-modal-kpi">
-        <div class="label">Queue</div>
-        <div class="value" style="font-size:13px;">${row.queue_key||"–"}</div>
-      </div>
-      <div class="eval-modal-kpi">
-        <div class="label">Evaluador</div>
-        <div class="value" style="font-size:12px;">${row.evaluator_name||"–"}</div>
-      </div>
+      <div class="eval-modal-kpi"><div class="label">Campaña</div><div class="value" style="font-size:13px;">${row.campaign_key||"–"}</div></div>
+      <div class="eval-modal-kpi"><div class="label">LOB</div><div class="value" style="font-size:13px;">${row.lob_key||"–"}</div></div>
+      <div class="eval-modal-kpi"><div class="label">Queue</div><div class="value" style="font-size:13px;">${row.queue_key||"–"}</div></div>
+      <div class="eval-modal-kpi"><div class="label">Evaluador</div><div class="value" style="font-size:12px;">${row.evaluator_name||"–"}</div></div>
     </div>`;
+
+  const interactionLink = row.interaction_link
+    ? `<a href="${row.interaction_link}" target="_blank" rel="noopener" class="eval-feedback-link">🔗 Ver interacción</a>`
+    : `<span style="font-size:12px;color:#94a3b8;">Sin interaction link</span>`;
 
   const feedback = `
     <div class="eval-modal-section">
       <h4>💬 Feedback</h4>
       <p>${row.feedback || "Sin feedback registrado."}</p>
-      ${row.interaction_link ? `<a href="${row.interaction_link}" target="_blank" class="eval-feedback-link">🔗 Ver interacción</a>` : ""}
+      <div style="margin-top:8px;">${interactionLink}</div>
     </div>`;
 
   const commitment = `
@@ -2078,514 +965,373 @@ async function openEvalModal(key) {
       <p>${row.agent_commitment || "Sin compromiso registrado."}</p>
     </div>`;
 
-  // Fetch rubric detail for this evaluation
+  // Fetch rubrics
   let rubricSection = "";
   try {
     const evalId = row.evaluation_id || row.id;
-    let rubricData = [];
-
     if (evalId) {
       const { data: rData, error } = await supabaseClient
         .from("qa_v_evaluation_responses_detail")
-        .select("rubric_item,field_key,calculated_score,weight,failed_item,is_bonus")
+        .select("rubric_item,field_key,calculated_score,weight,failed_item,is_bonus,rubric_item_id,selected_option_id")
         .eq("evaluation_id", evalId);
-      if (!error && rData) rubricData = rData.filter(r => !r.is_bonus);
+      if (!error && rData) {
+        currentRubricData = rData.filter(r => !r.is_bonus);
+        if (currentRubricData.length > 0) {
+          const rubricRows = currentRubricData.map(r => {
+            const rub  = r.rubric_item || r.field_key || "Sin rubro";
+            const sc   = Number(r.calculated_score || 0);
+            const mx   = Number(r.weight || 0);
+            const pct  = mx > 0 ? (sc / mx) * 100 : 0;
+            const bg   = pct >= 90 ? "#dcfce7" : pct >= 70 ? "#fef9c3" : "#fee2e2";
+            const cl   = pct >= 90 ? "#166534" : pct >= 70 ? "#854d0e" : "#991b1b";
+            const fail = r.failed_item ? '<span class="badge badge-red">Falla</span>' : '<span class="badge badge-green">OK</span>';
+            return `<tr><td>${rub}</td><td style="text-align:center;">${fail}</td><td style="text-align:center;background:${bg};color:${cl};font-weight:700;border-radius:6px;">${pct.toFixed(2)}%</td><td style="text-align:center;color:#94a3b8;">${sc} / ${mx}</td></tr>`;
+          }).join("");
+          rubricSection = `
+            <div class="eval-modal-section">
+              <h4>📐 Score por rubro</h4>
+              <table class="eval-modal-rubrics">
+                <thead><tr><th>Rubro</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Score %</th><th style="text-align:center;">Pts</th></tr></thead>
+                <tbody>${rubricRows}</tbody>
+              </table>
+            </div>`;
+        }
+      }
     }
+  } catch(e) {}
 
-    if (rubricData.length > 0) {
-      const rubricRows = rubricData.map(r => {
-        const rub  = r.rubric_item || r.field_key || "Sin rubro";
-        const sc   = Number(r.calculated_score || 0);
-        const mx   = Number(r.weight || 0);
-        const pct  = mx > 0 ? (sc / mx) * 100 : 0;
-        const bg   = pct >= 90 ? "#dcfce7" : pct >= 70 ? "#fef9c3" : "#fee2e2";
-        const cl   = pct >= 90 ? "#166534" : pct >= 70 ? "#854d0e" : "#991b1b";
-        const fail = r.failed_item
-          ? '<span class="badge badge-red">Falla</span>'
-          : '<span class="badge badge-green">OK</span>';
-        return `<tr>
-          <td>${rub}</td>
-          <td style="text-align:center;">${fail}</td>
-          <td style="text-align:center;background:${bg};color:${cl};font-weight:700;border-radius:6px;">${pct.toFixed(2)}%</td>
-          <td style="text-align:center;color:#94a3b8;">${sc} / ${mx}</td>
-        </tr>`;
+  // Correction panel
+  const correctionPanel = buildCorrectionPanel(row);
+
+  body.innerHTML = kpis + feedback + commitment + rubricSection + correctionPanel;
+
+  // Wire correction form events after inject
+  wireCorrectionForm();
+}
+
+function buildCorrectionPanel(row) {
+  return `
+    <div class="correction-panel">
+      <div class="correction-panel-header">
+        <div class="correction-panel-title">✏️ Corrección de evaluación</div>
+        <button class="btn-request-correction" id="btnOpenCorrectionForm" onclick="toggleCorrectionForm()">
+          ✏️ Solicitar corrección
+        </button>
+      </div>
+
+      <div class="correction-form" id="correctionForm">
+
+        <div class="corr-field">
+          <label class="corr-label">Tipo de corrección</label>
+          <select class="corr-select" id="corrType" onchange="onCorrTypeChange()">
+            <option value="">Selecciona una opción</option>
+            <option value="cambio_agente">Cambio de agente (nombre / ID)</option>
+            <option value="correccion_score">Corrección de score y rubros</option>
+            <option value="eliminar">Eliminar evaluación</option>
+          </select>
+        </div>
+
+        <!-- Cambio de agente -->
+        <div id="corrSectionAgente" style="display:none;">
+          <div class="corr-section-title">Datos del agente correcto</div>
+          <div class="corr-grid-2">
+            <div class="corr-field">
+              <label class="corr-label">Nombre correcto del agente</label>
+              <input type="text" class="corr-input" id="corrNewAgentName" placeholder="Nombre completo">
+            </div>
+            <div class="corr-field">
+              <label class="corr-label">ID correcto del agente</label>
+              <input type="text" class="corr-input" id="corrNewAgentId" placeholder="Ej. CX00712">
+            </div>
+          </div>
+        </div>
+
+        <!-- Corrección de score -->
+        <div id="corrSectionScore" style="display:none;">
+          <div class="corr-section-title">Nuevo score y rubros</div>
+          <div class="corr-field">
+            <label class="corr-label">Nuevo score final (0–100)</label>
+            <input type="number" class="corr-input" id="corrNewScore" min="0" max="100" step="0.01" placeholder="Ej. 87.5" style="max-width:160px;">
+          </div>
+          <div id="corrRubricRows"></div>
+        </div>
+
+        <div class="corr-field" style="margin-top:16px;">
+          <label class="corr-label">Razón de la corrección <span style="color:#ef4444;">*</span></label>
+          <textarea class="corr-textarea" id="corrReason" placeholder="Describe por qué se necesita esta corrección…"></textarea>
+        </div>
+
+        <div class="corr-actions">
+          <button class="btn-cancel-correction" onclick="toggleCorrectionForm()">Cancelar</button>
+          <button class="btn-submit-correction" id="btnSubmitCorrection" onclick="submitCorrection()">
+            Enviar solicitud de corrección
+          </button>
+        </div>
+
+        <div class="correction-success" id="correctionSuccess">
+          ✅ Solicitud enviada correctamente. El manager la revisará pronto.
+        </div>
+
+      </div>
+    </div>`;
+}
+
+function wireCorrectionForm() {
+  // nothing extra needed — onclick attrs handle it
+}
+
+function toggleCorrectionForm() {
+  const form = document.getElementById("correctionForm");
+  const btn  = document.getElementById("btnOpenCorrectionForm");
+  const success = document.getElementById("correctionSuccess");
+  if (!form) return;
+  const isOpen = form.classList.contains("open");
+  form.classList.toggle("open", !isOpen);
+  btn.textContent = isOpen ? "✏️ Solicitar corrección" : "✕ Cerrar";
+  if (success) success.style.display = "none";
+}
+
+function onCorrTypeChange() {
+  const type = document.getElementById("corrType")?.value;
+  const sAgent = document.getElementById("corrSectionAgente");
+  const sScore = document.getElementById("corrSectionScore");
+  if (sAgent) sAgent.style.display = type === "cambio_agente" ? "block" : "none";
+  if (sScore) sScore.style.display = type === "correccion_score" ? "block" : "none";
+
+  // Build rubric edit rows if score correction
+  if (type === "correccion_score") {
+    const container = document.getElementById("corrRubricRows");
+    if (!container) return;
+    if (currentRubricData.length > 0) {
+      container.innerHTML = currentRubricData.map((r, i) => {
+        const rub = r.rubric_item || r.field_key || `Rubro ${i+1}`;
+        const sc  = Number(r.calculated_score || 0);
+        return `
+          <div class="rubric-edit-row">
+            <div class="rubric-edit-label">${rub}</div>
+            <input type="number" class="rubric-edit-input" id="corrRub_${i}"
+              value="${sc}" min="0" max="${r.weight||10}" step="0.01"
+              placeholder="0–${r.weight||10}">
+          </div>`;
       }).join("");
-
-      rubricSection = `
-        <div class="eval-modal-section">
-          <h4>📐 Score por rubro</h4>
-          <table class="eval-modal-rubrics">
-            <thead><tr>
-              <th>Rubro</th>
-              <th style="text-align:center;">Estado</th>
-              <th style="text-align:center;">Score %</th>
-              <th style="text-align:center;">Pts</th>
-            </tr></thead>
-            <tbody>${rubricRows}</tbody>
-          </table>
-        </div>`;
+    } else {
+      container.innerHTML = `<p style="font-size:12px;color:#94a3b8;">No hay rubros disponibles para esta evaluación.</p>`;
     }
-  } catch(e) { /* skip rubrics on error */ }
+  }
+}
 
-  body.innerHTML = kpis + feedback + commitment + rubricSection;
+async function submitCorrection() {
+  const btn    = document.getElementById("btnSubmitCorrection");
+  const type   = document.getElementById("corrType")?.value;
+  const reason = document.getElementById("corrReason")?.value?.trim();
+
+  if (!type)   { alert("Selecciona el tipo de corrección."); return; }
+  if (!reason) { alert("La razón de corrección es obligatoria."); return; }
+
+  const row = currentEvalForCorrection;
+  if (!row) return;
+
+  // Evaluator comes automatically from the evaluation — no need to ask
+  const reqBy = row.evaluator_name || "Sin evaluador";
+
+  btn.disabled = true;
+  btn.textContent = "Enviando...";
+
+  // Build rubric responses JSON if score correction
+  let newRubricResponses = null;
+  if (type === "correccion_score" && currentRubricData.length > 0) {
+    newRubricResponses = currentRubricData.map((r, i) => ({
+      rubric_item_id : r.rubric_item_id || null,
+      rubric_item    : r.rubric_item || r.field_key || `Rubro ${i+1}`,
+      original_score : Number(r.calculated_score || 0),
+      new_score      : Number(document.getElementById(`corrRub_${i}`)?.value || 0),
+      weight         : Number(r.weight || 0)
+    }));
+  }
+
+  const payload = {
+    evaluation_id            : row.evaluation_id || row.id || null,
+    correction_type          : type,
+    status                   : "Pendiente",
+    requested_by             : reqBy,
+    requested_at             : new Date().toISOString(),
+    original_agent_name      : row.agent_name || null,
+    original_agent_identifier: row.agent_identifier || null,
+    original_score_raw       : Number(row.score_raw || 0),
+    original_score_final     : Number(row.score_final || 0),
+    original_evaluator_name  : row.evaluator_name || null,
+    interaction_link         : row.interaction_link || null,
+    new_agent_name           : type === "cambio_agente" ? (document.getElementById("corrNewAgentName")?.value?.trim() || null) : null,
+    new_agent_identifier     : type === "cambio_agente" ? (document.getElementById("corrNewAgentId")?.value?.trim() || null) : null,
+    new_score_raw            : type === "correccion_score" ? Number(document.getElementById("corrNewScore")?.value || 0) : null,
+    new_score_final          : type === "correccion_score" ? Number(document.getElementById("corrNewScore")?.value || 0) : null,
+    new_rubric_responses     : newRubricResponses,
+    correction_reason        : reason,
+    // legacy columns
+    corrected_by             : reqBy,
+    evaluator_name           : row.evaluator_name || null
+  };
+
+  try {
+    const { error } = await supabaseClient.from("qa_evaluation_corrections").insert([payload]);
+    if (error) throw error;
+
+    const success = document.getElementById("correctionSuccess");
+    if (success) success.style.display = "block";
+    btn.textContent = "✅ Enviado";
+
+    // Scroll success into view
+    success?.scrollIntoView({ behavior: "smooth", block: "center" });
+  } catch(e) {
+    console.error("Correction error:", e);
+    alert("Error al enviar la solicitud: " + (e.message || e));
+    btn.disabled = false;
+    btn.textContent = "Enviar solicitud de corrección";
+  }
 }
 
 function closeEvalModal() {
   document.getElementById("evalModalOverlay").classList.remove("active");
+  currentEvalForCorrection = null;
+  currentRubricData = [];
 }
 
 /* ═══════════════════════════════════════════════
-   RUBRIC SCORE TABLE
-   Confirmed columns (from information_schema):
-   evaluation_id, created_at (timestamptz), agent_identifier,
-   agent_name, evaluator_name, campaign_key, lob_key, queue_key,
-   field_key, rubric_item, category, weight, item_weight,
-   calculated_score, failed_item, scoring_type, is_bonus.
-   Score = calculated_score  |  Max = weight
-═══════════════════════════════════════════════ */
-async function loadRubricTable(filters) {
-  const wrapper = document.getElementById("rubricTableWrapper");
-  wrapper.innerHTML = `<div class="muted" style="padding:16px 0;"><span class="loading-spinner"></span> Cargando rubros...</div>`;
-
-  if (allEvalData.length === 0) {
-    wrapper.innerHTML = `<div class="muted" style="padding:16px;">No hay evaluaciones para este periodo.</div>`;
-    return;
-  }
-
-  // Build agent totals from allEvalData (already correctly filtered)
-  const agentEvalCount = {};
-  const agentScoreSum  = {};
-  const agentNames     = {};
-  const validAgentKeys = new Set();
-  allEvalData.forEach(row => {
-    const key = row.agent_identifier || row.agent_name || "Unknown";
-    agentEvalCount[key] = (agentEvalCount[key] || 0) + 1;
-    agentScoreSum[key]  = (agentScoreSum[key]  || 0) + Number(row.score_final || 0);
-    if (!agentNames[key]) agentNames[key] = row.agent_name || key;
-    validAgentKeys.add(key);
-  });
-
-  // All confirmed columns — no guessing
-  let q = supabaseClient
-    .from("qa_v_evaluation_responses_detail")
-    .select("agent_identifier,agent_name,rubric_item,field_key,calculated_score,weight,is_bonus");
-
-  if (filters.startDate) q = q.gte("created_at", filters.startDate + "T00:00:00");
-  if (filters.endDate)   q = q.lte("created_at", filters.endDate + "T23:59:59");
-  if (filters.campaign)  q = q.eq("campaign_key", filters.campaign);
-  if (filters.lob)       q = q.eq("lob_key", filters.lob);
-  if (filters.queue)     q = q.eq("queue_key", filters.queue);
-  if (filters.agent)     q = q.eq("agent_identifier", filters.agent);
-  if (filters.evaluator) q = q.eq("evaluator_name", filters.evaluator);
-
-  const rawData = await fetchAllRows(q);
-
-  if (!rawData || rawData.length === 0) {
-    wrapper.innerHTML = `<div class="muted" style="padding:16px;">No hay datos de rubros para este periodo.</div>`;
-    return;
-  }
-
-  // Client-side: keep only agents in allEvalData (enforces any filter gap)
-  // Also skip bonus items — they skew averages
-  const data = rawData.filter(row => {
-    const key = row.agent_identifier || row.agent_name || "Unknown";
-    return validAgentKeys.has(key) && !row.is_bonus;
-  });
-
-  if (data.length === 0) {
-    wrapper.innerHTML = `<div class="muted" style="padding:16px;">No hay datos de rubros para los agentes en este filtro.</div>`;
-    return;
-  }
-
-  // Aggregate: agentKey → rubric → { sum, count, maxWeight }
-  const rubricSet = new Set();
-  const agentMap  = {};
-
-  data.forEach(row => {
-    const key = row.agent_identifier || row.agent_name || "Unknown";
-    const rub = row.rubric_item || row.field_key || "Sin rubro";
-    const sc  = Number(row.calculated_score || 0);
-    const mx  = Number(row.weight || 0);
-    rubricSet.add(rub);
-
-    if (!agentMap[key]) agentMap[key] = { rubrics: {} };
-    if (!agentMap[key].rubrics[rub]) agentMap[key].rubrics[rub] = { sum: 0, count: 0, maxWeight: mx };
-    agentMap[key].rubrics[rub].sum   += sc;
-    agentMap[key].rubrics[rub].count += 1;
-    if (mx > agentMap[key].rubrics[rub].maxWeight) agentMap[key].rubrics[rub].maxWeight = mx;
-  });
-
-  const rubrics = [...rubricSet].sort();
-
-  function rubricCellClass(avg, maxWeight) {
-    if (maxWeight <= 0) return "rubric-cell-gray";
-    const pct = (avg / maxWeight) * 100;
-    if (pct >= 90) return "rubric-cell-green";
-    if (pct >= 70) return "rubric-cell-yellow";
-    return "rubric-cell-red";
-  }
-
-  const agents = [...validAgentKeys].map(key => ({
-    key,
-    agent_name: agentNames[key] || key,
-    evals:      agentEvalCount[key] || 0,
-    avgScore:   agentEvalCount[key] ? (agentScoreSum[key] / agentEvalCount[key]) : 0,
-    rubrics:    agentMap[key]?.rubrics || {}
-  })).sort((a, b) => b.avgScore - a.avgScore);
-
-  const thRubrics = rubrics.map(r =>
-    `<th title="${r}" style="min-width:90px;">${r.length > 22 ? r.slice(0, 22) + "…" : r}</th>`
-  ).join("");
-
-  const thead = `<thead><tr>
-    <th style="min-width:160px;">Agente</th>
-    <th style="text-align:center;min-width:60px;"># Evals</th>
-    <th style="text-align:center;min-width:80px;">Score</th>
-    ${thRubrics}
-  </tr></thead>`;
-
-  const tbody = agents.map(a => {
-    const cells = rubrics.map(r => {
-      const d = a.rubrics[r];
-      if (!d || d.count === 0) return `<td class="rubric-cell-gray">—</td>`;
-      const avg = d.sum / d.count;
-      const cls = rubricCellClass(avg, d.maxWeight);
-      return `<td class="${cls}" title="${r}: ${avg.toFixed(2)} / ${d.maxWeight}">${avg.toFixed(2)}</td>`;
-    }).join("");
-    return `<tr>
-      <td>
-        <span onclick="openAgentHistory('${a.key.replace(/'/g,"\\'")}','${a.agent_name.replace(/'/g,"\\'")}' )"
-          style="cursor:pointer;color:#0284c7;font-weight:700;text-decoration:underline;"
-          title="Ver historial de ${a.agent_name}">
-          ${a.agent_name}
-        </span>
-      </td>
-      <td style="text-align:center;">${a.evals}</td>
-      <td style="text-align:center;color:${scoreColor(a.avgScore)};font-weight:700;">${a.avgScore.toFixed(2)}%</td>
-      ${cells}
-    </tr>`;
-  }).join("");
-
-  wrapper.innerHTML = `<div style="overflow-x:auto;"><table class="rubric-table">${thead}<tbody>${tbody}</tbody></table></div>`;
-}
-
-/* ═══════════════════════════════════════════════
-   AGENT HISTORY MODAL  (last 3 months)
+   AGENT HISTORY MODAL
 ═══════════════════════════════════════════════ */
 let agentHistoryChart = null;
-
 async function openAgentHistory(agentId, agentName) {
-  const overlay  = document.getElementById("agentHistoryOverlay");
-  const body     = document.getElementById("agentHistoryBody");
-  const title    = document.getElementById("agentHistoryTitle");
-  const subtitle = document.getElementById("agentHistorySubtitle");
+  const overlay=document.getElementById("agentHistoryOverlay"),body=document.getElementById("agentHistoryBody"),title=document.getElementById("agentHistoryTitle"),subtitle=document.getElementById("agentHistorySubtitle");
+  title.textContent=agentName; body.innerHTML='<div class="muted" style="padding:30px;text-align:center;"><span class="loading-spinner"></span> Cargando historial...</div>'; overlay.classList.add("active");
+  const today=new Date(),threeBack=new Date(today);threeBack.setMonth(today.getMonth()-3);
+  const dateFrom=threeBack.toISOString().split("T")[0],dateTo=today.toISOString().split("T")[0];
+  subtitle.textContent=`Historial: ${dateFrom} → ${dateTo}`;
+  const{data:evals,error}=await supabaseClient.from("qa_v_evaluations_base").select("*").eq("agent_identifier",agentId).gte("created_date_cdmx",dateFrom).lte("created_date_cdmx",dateTo).order("created_date_cdmx",{ascending:true});
+  if(error||!evals||evals.length===0){body.innerHTML='<div class="muted" style="padding:30px;text-align:center;">No hay evaluaciones en los últimos 3 meses.</div>';return;}
+  const totalEvals=evals.length,avgSc=evals.reduce((s,r)=>s+Number(r.score_final||0),0)/totalEvals,criticals=evals.filter(r=>r.critical_error_triggered).length,zeros=evals.filter(r=>r.weekly_zero_triggered).length;
+  const kpis=`<div class="eval-modal-kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;"><div class="eval-modal-kpi"><div class="label">Evaluaciones</div><div class="value">${totalEvals}</div></div><div class="eval-modal-kpi"><div class="label">Avg Score</div><div class="value" style="color:${scoreColor(avgSc)}">${avgSc.toFixed(2)}%</div></div><div class="eval-modal-kpi"><div class="label">Errores Críticos</div><div class="value" style="color:${criticals>0?'#ef4444':'#22c55e'}">${criticals}</div></div><div class="eval-modal-kpi"><div class="label">Weekly Zeros</div><div class="value" style="color:${zeros>0?'#f59e0b':'#22c55e'}">${zeros}</div></div></div>`;
+  const byWeek={};
+  evals.forEach(r=>{const d=r.created_date_cdmx;if(!d)return;const dt=new Date(d+"T12:00:00");const dow=dt.getDay();dt.setDate(dt.getDate()+(dow===0?-6:1-dow));const w=dt.toISOString().split("T")[0];if(!byWeek[w])byWeek[w]={scores:[],criticals:0,count:0};byWeek[w].scores.push(Number(r.score_final||0));if(r.critical_error_triggered)byWeek[w].criticals++;byWeek[w].count++;});
+  const weeks=Object.keys(byWeek).sort(),weekScores=weeks.map(w=>{const g=byWeek[w];return g.scores.reduce((a,b)=>a+b,0)/g.scores.length;}),weekCounts=weeks.map(w=>byWeek[w].count),weekCrits=weeks.map(w=>byWeek[w].criticals);
+  const chartId="agentTrendChart_"+Date.now();
+  const chartHtml=`<div class="eval-modal-section"><h4>📈 Tendencia semanal</h4><canvas id="${chartId}" height="100"></canvas></div>`;
+  const{data:rubricData}=await supabaseClient.from("qa_v_evaluation_responses_detail").select("rubric_item,field_key,calculated_score,weight,failed_item,is_bonus").eq("agent_identifier",agentId).gte("created_at",dateFrom+"T00:00:00").lte("created_at",dateTo+"T23:59:59");
+  let rubricSection="";
+  if(rubricData&&rubricData.length>0){const nonBonus=rubricData.filter(r=>!r.is_bonus);const rubMap={};nonBonus.forEach(r=>{const rub=r.rubric_item||r.field_key||"Sin rubro";const sc=Number(r.calculated_score||0);const mx=Number(r.weight||0);if(!rubMap[rub])rubMap[rub]={sum:0,count:0,maxW:mx,fails:0};rubMap[rub].sum+=sc;rubMap[rub].count++;if(r.failed_item)rubMap[rub].fails++;if(mx>rubMap[rub].maxW)rubMap[rub].maxW=mx;});const rubRows=Object.entries(rubMap).map(([rub,v])=>({rub,pct:v.maxW>0?(v.sum/v.count)/v.maxW*100:0,fails:v.fails,count:v.count})).sort((a,b)=>a.pct-b.pct).map(r=>{const bg=r.pct>=90?"#dcfce7":r.pct>=70?"#fef9c3":"#fee2e2";const cl=r.pct>=90?"#166534":r.pct>=70?"#854d0e":"#991b1b";return`<tr><td><strong>${r.rub}</strong></td><td style="text-align:center;">${r.count}</td><td style="text-align:center;color:#ef4444;font-weight:700;">${r.fails}</td><td style="text-align:center;background:${bg};color:${cl};font-weight:800;border-radius:6px;">${r.pct.toFixed(2)}%</td></tr>`;}).join("");rubricSection=`<div class="eval-modal-section"><h4>📐 Score promedio por rubro (3 meses)</h4><table class="eval-modal-rubrics"><thead><tr><th>Rubro</th><th style="text-align:center;">Evals</th><th style="text-align:center;">Fallas</th><th style="text-align:center;">Score %</th></tr></thead><tbody>${rubRows}</tbody></table></div>`;}
+  const evalLog=[...evals].reverse().map((r,i)=>{const sc=Number(r.score_final||0);const key=`agentEval_${i}`;evalRowMap[key]=r;return`<tr style="cursor:pointer;" onclick="openEvalModal('${key}')" title="Ver detalle"><td>${r.created_date_cdmx||""}</td><td style="color:${scoreColor(sc)};font-weight:700;">${sc}%</td><td>${r.critical_error_triggered?'<span class="badge badge-red">Sí</span>':'<span class="badge badge-green">No</span>'}</td><td style="font-size:12px;color:#64748b;">${r.evaluator_name||"–"}</td><td style="color:#475569;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.feedback?(r.feedback.length>60?r.feedback.slice(0,60)+"...":r.feedback):"Sin feedback"}</td></tr>`;}).join("");
+  const evalLogSection=`<div class="eval-modal-section"><h4>📝 Historial de evaluaciones <span style="color:#94a3b8;font-weight:400;">(click para ver detalle)</span></h4><table class="eval-modal-rubrics"><thead><tr><th>Fecha</th><th>Score</th><th>EC</th><th>Evaluador</th><th>Feedback</th></tr></thead><tbody>${evalLog}</tbody></table></div>`;
+  body.innerHTML=kpis+chartHtml+rubricSection+evalLogSection;
+  if(agentHistoryChart){agentHistoryChart.destroy();agentHistoryChart=null;}
+  agentHistoryChart=new Chart(document.getElementById(chartId),{type:"line",data:{labels:weeks,datasets:[{type:"bar",label:"# Evals",data:weekCounts,backgroundColor:"rgba(56,189,248,.3)",borderRadius:6,yAxisID:"yCount"},{type:"line",label:"Score",data:weekScores,borderColor:"#0284c7",backgroundColor:"rgba(2,132,199,.1)",borderWidth:3,pointRadius:5,tension:0.3,fill:true,yAxisID:"yScore"},{type:"bar",label:"Errores Críticos",data:weekCrits,backgroundColor:"rgba(239,68,68,.6)",borderRadius:4,yAxisID:"yCount"}]},options:{responsive:true,interaction:{mode:"index",intersect:false},plugins:{legend:{display:true},datalabels:{display:ctx=>ctx.dataset.label==="Score",align:"top",anchor:"end",color:"#0284c7",font:{weight:"bold",size:11},formatter:v=>v?v.toFixed(1)+"%":""}},scales:{yScore:{type:"linear",position:"left",min:0,max:100,title:{display:true,text:"Score %"}},yCount:{type:"linear",position:"right",beginAtZero:true,grid:{drawOnChartArea:false},title:{display:true,text:"# Evals"}}}},plugins:[ChartDataLabels]});
+}
 
-  title.textContent = agentName;
-  body.innerHTML = '<div class="muted" style="padding:30px;text-align:center;"><span class="loading-spinner"></span> Cargando historial...</div>';
-  overlay.classList.add("active");
+/* ═══════════════════════════════════════════════
+   CLIENT MODE
+═══════════════════════════════════════════════ */
+const CLIENT_DOMAIN="@aplazo.mx",EVOLVE_DOMAIN="@evolvecx.io";
+let clientModeActive=false,clientWeeklyChart,clientParetoAplazoChart;
+const CLIENT_CAMPAIGN_KEY="aplazo";
+let previousCampaignValue="";
 
-  // 3 months back from today
-  const today     = new Date();
-  const threeBack = new Date(today);
-  threeBack.setMonth(today.getMonth() - 3);
-  const dateFrom  = threeBack.toISOString().split("T")[0];
-  const dateTo    = today.toISOString().split("T")[0];
+async function toggleClientMode() {
+  clientModeActive=!clientModeActive;
+  const btn=document.getElementById("clientModeBtn"),banner=document.getElementById("clientBanner"),campSel=document.getElementById("campaignFilter");
+  if(clientModeActive){previousCampaignValue=campSel.value;campSel.value=CLIENT_CAMPAIGN_KEY;if(campSel.value!==CLIENT_CAMPAIGN_KEY){const opt=document.createElement("option");opt.value=CLIENT_CAMPAIGN_KEY;opt.textContent=CLIENT_CAMPAIGN_KEY;opt.id="_clientTempOption";campSel.appendChild(opt);campSel.value=CLIENT_CAMPAIGN_KEY;}document.body.classList.add("client-mode");banner.classList.add("active");btn.textContent="🔒 Vista Interna";btn.style.background="rgba(14,165,233,.35)";btn.style.borderColor="rgba(14,165,233,.6)";await loadDashboard();switchMainTab("cliente");}
+  else{const tempOpt=document.getElementById("_clientTempOption");if(tempOpt)tempOpt.remove();campSel.value=previousCampaignValue;document.body.classList.remove("client-mode");banner.classList.remove("active");btn.textContent="👁 Vista Cliente";btn.style.background="rgba(255,255,255,.12)";btn.style.borderColor="rgba(255,255,255,.3)";await loadDashboard();switchMainTab("resumen");}
+}
 
-  subtitle.textContent = `Historial: ${dateFrom} → ${dateTo}`;
+async function buildClientView() {
+  const filters=getFilters();
+  const aplazoData=allEvalData.filter(r=>(r.evaluator_name||"").toLowerCase().includes(CLIENT_DOMAIN));
+  const evolveData=allEvalData.filter(r=>(r.evaluator_name||"").toLowerCase().includes(EVOLVE_DOMAIN));
+  const allData=allEvalData;
+  function avgScore(arr){if(!arr.length)return 0;return arr.reduce((s,r)=>s+Number(r.score_final||0),0)/arr.length;}
+  const globalAvg=avgScore(allData),aplazoAvg=avgScore(aplazoData),evolveAvg=avgScore(evolveData),diff=aplazoAvg-evolveAvg;
+  document.getElementById("cKpiGlobal").textContent=globalAvg.toFixed(2)+"%";document.getElementById("cKpiAplazo").textContent=aplazoAvg.toFixed(2)+"%";document.getElementById("cKpiAplazoSub").textContent=`${aplazoData.length} evaluaciones`;document.getElementById("cKpiEvolve").textContent=evolveAvg.toFixed(2)+"%";document.getElementById("cKpiEvolveSub").textContent=`${evolveData.length} evaluaciones`;
+  const diffEl=document.getElementById("cKpiDiff");diffEl.textContent=(diff>=0?"+":"")+diff.toFixed(2)+"%";diffEl.style.color=diff>=0?"#22c55e":"#ef4444";
+  function groupByWeek(arr){const out={};arr.forEach(row=>{const d=row.created_date_cdmx;if(!d)return;const dt=new Date(d+"T12:00:00");const dow=dt.getDay();const diff=dow===0?-6:1-dow;dt.setDate(dt.getDate()+diff);const w=dt.toISOString().split("T")[0];if(!out[w])out[w]={scores:[],count:0};out[w].scores.push(Number(row.score_final||0));out[w].count++;});return out;}
+  const aplazoWeeks=groupByWeek(aplazoData),evolveWeeks=groupByWeek(evolveData),allWeeks=[...new Set([...Object.keys(aplazoWeeks),...Object.keys(evolveWeeks)])].sort();
+  const aplazoScores=allWeeks.map(w=>{const g=aplazoWeeks[w];return g?g.scores.reduce((s,v)=>s+v,0)/g.scores.length:null;}),evolveScores=allWeeks.map(w=>{const g=evolveWeeks[w];return g?g.scores.reduce((s,v)=>s+v,0)/g.scores.length:null;}),aplazoCounts=allWeeks.map(w=>aplazoWeeks[w]?.count||null),evolveCounts=allWeeks.map(w=>evolveWeeks[w]?.count||null);
+  if(clientWeeklyChart)clientWeeklyChart.destroy();
+  clientWeeklyChart=new Chart(document.getElementById("clientWeeklyChart"),{type:"bar",data:{labels:allWeeks,datasets:[{type:"bar",label:"Aplazo - Score",data:aplazoScores,backgroundColor:"rgba(14,165,233,.8)",borderRadius:6,yAxisID:"yScore"},{type:"bar",label:"Evolve CX - Score",data:evolveScores,backgroundColor:"rgba(20,184,166,.8)",borderRadius:6,yAxisID:"yScore"},{type:"line",label:"Aplazo - # Evals",data:aplazoCounts,borderColor:"#ec4899",backgroundColor:"transparent",borderWidth:2.5,pointRadius:5,pointBackgroundColor:"#ec4899",tension:0.3,yAxisID:"yCount",datalabels:{display:true,align:"top",anchor:"end",color:"#ec4899",font:{weight:"bold",size:11},formatter:v=>v!==null?v:""}},{type:"line",label:"Evolve CX - # Evals",data:evolveCounts,borderColor:"#f97316",backgroundColor:"transparent",borderWidth:2.5,pointRadius:5,pointBackgroundColor:"#f97316",tension:0.3,yAxisID:"yCount",datalabels:{display:true,align:"top",anchor:"end",color:"#f97316",font:{weight:"bold",size:11},formatter:v=>v!==null?v:""}}]},options:{responsive:true,interaction:{mode:"index",intersect:false},plugins:{legend:{display:true},datalabels:{display:ctx=>ctx.dataset.type==="bar"&&ctx.raw!==null,anchor:"center",align:"center",color:"white",font:{weight:"bold",size:11},formatter:v=>v!==null?v.toFixed(2)+"%":""},tooltip:{callbacks:{label:ctx=>{if(ctx.dataset.yAxisID==="yCount")return` ${ctx.dataset.label}: ${ctx.raw} evals`;return` ${ctx.dataset.label}: ${ctx.raw!==null?ctx.raw.toFixed(2)+"%":"—"}`;}}}},scales:{yScore:{type:"linear",position:"left",min:0,max:100,title:{display:true,text:"Score %"},grid:{drawOnChartArea:true}},yCount:{type:"linear",position:"right",beginAtZero:true,title:{display:true,text:"# Evaluaciones"},grid:{drawOnChartArea:false}}}},plugins:[ChartDataLabels]});
+  await buildClientRubricTable(filters,aplazoData,evolveData);
+  await buildClientPareto(filters);
+  buildClientAgentTable(allData);
+}
 
-  // Fetch all evaluations for this agent in the last 3 months
-  const { data: evals, error } = await supabaseClient
-    .from("qa_v_evaluations_base")
-    .select("*")
-    .eq("agent_identifier", agentId)
-    .gte("created_date_cdmx", dateFrom)
-    .lte("created_date_cdmx", dateTo)
-    .order("created_date_cdmx", { ascending: true });
+async function buildClientRubricTable(filters,aplazoEvals,evolveEvals) {
+  const el=document.getElementById("clientRubricTable");el.innerHTML='<div class="muted">Cargando rubros...</div>';
+  let q=supabaseClient.from("qa_v_evaluation_responses_detail").select("evaluator_name,rubric_item,field_key,calculated_score,weight,is_bonus");
+  if(filters.startDate)q=q.gte("created_at",filters.startDate+"T00:00:00");if(filters.endDate)q=q.lte("created_at",filters.endDate+"T23:59:59");if(filters.campaign)q=q.eq("campaign_key",filters.campaign);if(filters.lob)q=q.eq("lob_key",filters.lob);if(filters.queue)q=q.eq("queue_key",filters.queue);
+  const raw=await fetchAllRows(q);const data=(raw||[]).filter(r=>!r.is_bonus);
+  const byRubric={aplazo:{},evolve:{}};
+  data.forEach(row=>{const ev=(row.evaluator_name||"").toLowerCase();const rub=row.rubric_item||row.field_key||"Sin rubro";const sc=Number(row.calculated_score||0);const mx=Number(row.weight||0);const grp=ev.includes(CLIENT_DOMAIN)?"aplazo":ev.includes(EVOLVE_DOMAIN)?"evolve":null;if(!grp)return;if(!byRubric[grp][rub])byRubric[grp][rub]={sum:0,count:0,maxW:mx};byRubric[grp][rub].sum+=sc;byRubric[grp][rub].count+=1;if(mx>byRubric[grp][rub].maxW)byRubric[grp][rub].maxW=mx;});
+  const rubrics=[...new Set([...Object.keys(byRubric.aplazo),...Object.keys(byRubric.evolve)])].sort();
+  if(!rubrics.length){el.innerHTML='<div class="muted">Sin datos de rubros para este periodo.</div>';return;}
+  function pct(grp,rub){const d=byRubric[grp][rub];if(!d||!d.count||!d.maxW)return null;return(d.sum/d.count)/d.maxW*100;}
+  function cell(p){if(p===null)return`<td style="text-align:center;color:#94a3b8;">—</td>`;const bg=p>=90?"#dcfce7":p>=70?"#fef9c3":"#fee2e2";const cl=p>=90?"#166534":p>=70?"#854d0e":"#991b1b";return`<td style="text-align:center;background:${bg};color:${cl};font-weight:800;border-radius:6px;">${p.toFixed(2)}%</td>`;}
+  function diffCell(a,b){if(a===null||b===null)return`<td style="text-align:center;color:#94a3b8;">—</td>`;const d=a-b;const cls=d>0.5?"vs-up":d<-0.5?"vs-down":"vs-flat";return`<td style="text-align:center;"><span class="vs-badge ${cls}">${d>=0?"+":""}${d.toFixed(2)}%</span></td>`;}
+  const rows=rubrics.map(r=>{const pa=pct("aplazo",r),pe=pct("evolve",r);return`<tr><td><strong>${r}</strong></td>${cell(pa)}${cell(pe)}${diffCell(pa,pe)}</tr>`;}).join("");
+  el.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr><th style="min-width:200px;">Rubro</th><th style="text-align:center;min-width:110px;">Aplazo</th><th style="text-align:center;min-width:110px;">Evolve CX</th><th style="text-align:center;min-width:100px;">Diferencia</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
 
-  if (error || !evals || evals.length === 0) {
-    body.innerHTML = '<div class="muted" style="padding:30px;text-align:center;">No hay evaluaciones en los últimos 3 meses.</div>';
-    return;
-  }
+async function buildClientPareto(filters) {
+  let q=supabaseClient.from("qa_v_evaluation_responses_detail").select("rubric_item,field_key,evaluator_name").eq("failed_item",true);
+  if(filters.startDate)q=q.gte("created_at",filters.startDate+"T00:00:00");if(filters.endDate)q=q.lte("created_at",filters.endDate+"T23:59:59");if(filters.campaign)q=q.eq("campaign_key",filters.campaign);if(filters.lob)q=q.eq("lob_key",filters.lob);if(filters.queue)q=q.eq("queue_key",filters.queue);
+  const raw=await fetchAllRows(q);const grouped={};(raw||[]).forEach(r=>{const k=r.rubric_item||r.field_key||"Desconocido";grouped[k]=(grouped[k]||0)+1;});
+  const total=Object.values(grouped).reduce((s,c)=>s+c,0);const items=Object.entries(grouped).map(([l,c])=>({l,c})).sort((a,b)=>b.c-a.c).slice(0,10);
+  let cum=0;const cumPct=items.map(i=>{cum+=i.c;return total?(cum/total*100):0;});
+  if(clientParetoAplazoChart){clientParetoAplazoChart.destroy();clientParetoAplazoChart=null;}
+  clientParetoAplazoChart=new Chart(document.getElementById("clientParetoUnified"),{type:"bar",data:{labels:items.map(i=>i.l.length>32?i.l.slice(0,32)+"…":i.l),datasets:[{type:"bar",label:"Fallas",data:items.map(i=>i.c),yAxisID:"y",backgroundColor:"rgba(14,165,233,.75)",borderRadius:6},{type:"line",label:"% acumulado",data:cumPct,yAxisID:"y1",borderColor:"#ef4444",borderWidth:2.5,pointRadius:4,tension:0.25,backgroundColor:"transparent"}]},options:{responsive:true,interaction:{mode:"index",intersect:false},plugins:{legend:{display:true},datalabels:{display:ctx=>ctx.dataset.type==="line",align:"top",anchor:"end",color:"#0f172a",font:{weight:"bold",size:10},formatter:v=>v.toFixed(0)+"%"},tooltip:{callbacks:{label:ctx=>{if(ctx.dataset.label==="% acumulado")return`% acumulado: ${ctx.raw.toFixed(2)}%`;const pct=total?((items[ctx.dataIndex].c/total)*100).toFixed(2):"0";return`Fallas: ${items[ctx.dataIndex].c} (${pct}%)`;}}}},scales:{y:{beginAtZero:true,position:"left",title:{display:true,text:"Fallas"},ticks:{precision:0}},y1:{beginAtZero:true,max:100,position:"right",grid:{drawOnChartArea:false},title:{display:true,text:"% acumulado"},ticks:{callback:v=>v+"%"}}}},plugins:[ChartDataLabels]});
+}
 
-  // ── KPI summary ────────────────────────────────────────────────
-  const totalEvals  = evals.length;
-  const avgSc       = evals.reduce((s,r)=>s+Number(r.score_final||0),0)/totalEvals;
-  const criticals   = evals.filter(r=>r.critical_error_triggered).length;
-  const zeros       = evals.filter(r=>r.weekly_zero_triggered).length;
-  const lastEval    = evals[evals.length-1];
-
-  const kpis = `
-    <div class="eval-modal-kpis" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
-      <div class="eval-modal-kpi">
-        <div class="label">Evaluaciones</div>
-        <div class="value">${totalEvals}</div>
-      </div>
-      <div class="eval-modal-kpi">
-        <div class="label">Avg Score</div>
-        <div class="value" style="color:${scoreColor(avgSc)}">${avgSc.toFixed(2)}%</div>
-      </div>
-      <div class="eval-modal-kpi">
-        <div class="label">Errores Críticos</div>
-        <div class="value" style="color:${criticals>0?'#ef4444':'#22c55e'}">${criticals}</div>
-      </div>
-      <div class="eval-modal-kpi">
-        <div class="label">Weekly Zeros</div>
-        <div class="value" style="color:${zeros>0?'#f59e0b':'#22c55e'}">${zeros}</div>
-      </div>
-    </div>`;
-
-  // ── Trend chart by week ────────────────────────────────────────
-  const byWeek = {};
-  evals.forEach(r => {
-    const d   = r.created_date_cdmx;
-    if (!d) return;
-    const dt  = new Date(d+"T12:00:00");
-    const dow = dt.getDay();
-    dt.setDate(dt.getDate()+(dow===0?-6:1-dow));
-    const w   = dt.toISOString().split("T")[0];
-    if (!byWeek[w]) byWeek[w] = { scores:[], criticals:0, count:0 };
-    byWeek[w].scores.push(Number(r.score_final||0));
-    if (r.critical_error_triggered) byWeek[w].criticals++;
-    byWeek[w].count++;
-  });
-  const weeks      = Object.keys(byWeek).sort();
-  const weekScores = weeks.map(w=>{const g=byWeek[w];return g.scores.reduce((a,b)=>a+b,0)/g.scores.length;});
-  const weekCounts = weeks.map(w=>byWeek[w].count);
-  const weekCrits  = weeks.map(w=>byWeek[w].criticals);
-
-  const chartId = "agentTrendChart_"+Date.now();
-  const chartHtml = `
-    <div class="eval-modal-section">
-      <h4>📈 Tendencia semanal</h4>
-      <canvas id="${chartId}" height="100"></canvas>
-    </div>`;
-
-  // ── Rubric averages ────────────────────────────────────────────
-  const { data: rubricData } = await supabaseClient
-    .from("qa_v_evaluation_responses_detail")
-    .select("rubric_item,field_key,calculated_score,weight,failed_item,is_bonus")
-    .eq("agent_identifier", agentId)
-    .gte("created_at", dateFrom+"T00:00:00")
-    .lte("created_at", dateTo+"T23:59:59");
-
-  let rubricSection = "";
-  if (rubricData && rubricData.length > 0) {
-    const nonBonus = rubricData.filter(r=>!r.is_bonus);
-    const rubMap = {};
-    nonBonus.forEach(r=>{
-      const rub = r.rubric_item||r.field_key||"Sin rubro";
-      const sc  = Number(r.calculated_score||0);
-      const mx  = Number(r.weight||0);
-      if (!rubMap[rub]) rubMap[rub]={sum:0,count:0,maxW:mx,fails:0};
-      rubMap[rub].sum+=sc; rubMap[rub].count++;
-      if (r.failed_item) rubMap[rub].fails++;
-      if (mx>rubMap[rub].maxW) rubMap[rub].maxW=mx;
-    });
-    const rubRows = Object.entries(rubMap)
-      .map(([rub,v])=>({rub,avg:v.sum/v.count,maxW:v.maxW,pct:v.maxW>0?(v.sum/v.count)/v.maxW*100:0,fails:v.fails,count:v.count}))
-      .sort((a,b)=>a.pct-b.pct)
-      .map(r=>{
-        const bg=r.pct>=90?"#dcfce7":r.pct>=70?"#fef9c3":"#fee2e2";
-        const cl=r.pct>=90?"#166534":r.pct>=70?"#854d0e":"#991b1b";
-        return `<tr>
-          <td><strong>${r.rub}</strong></td>
-          <td style="text-align:center;">${r.count}</td>
-          <td style="text-align:center;color:#ef4444;font-weight:700;">${r.fails}</td>
-          <td style="text-align:center;background:${bg};color:${cl};font-weight:800;border-radius:6px;">${r.pct.toFixed(2)}%</td>
-        </tr>`;
-      }).join("");
-
-    rubricSection = `
-      <div class="eval-modal-section">
-        <h4>📐 Score promedio por rubro (3 meses)</h4>
-        <table class="eval-modal-rubrics">
-          <thead><tr>
-            <th>Rubro</th>
-            <th style="text-align:center;">Evals</th>
-            <th style="text-align:center;">Fallas</th>
-            <th style="text-align:center;">Score %</th>
-          </tr></thead>
-          <tbody>${rubRows}</tbody>
-        </table>
-      </div>`;
-  }
-
-  // ── Evaluation log ─────────────────────────────────────────────
-  const evalLog = [...evals].reverse().map((r,i)=>{
-    const sc = Number(r.score_final||0);
-    const key = `agentEval_${i}`;
-    evalRowMap[key] = r;
-    return `<tr style="cursor:pointer;" onclick="openEvalModal('${key}')" title="Ver detalle">
-      <td>${r.created_date_cdmx||""}</td>
-      <td style="color:${scoreColor(sc)};font-weight:700;">${sc}%</td>
-      <td>${r.critical_error_triggered?'<span class="badge badge-red">Sí</span>':'<span class="badge badge-green">No</span>'}</td>
-      <td style="font-size:12px;color:#64748b;">${r.evaluator_name||"–"}</td>
-      <td style="color:#475569;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-        ${r.feedback?(r.feedback.length>60?r.feedback.slice(0,60)+"...":r.feedback):"Sin feedback"}
-      </td>
-    </tr>`;
-  }).join("");
-
-  const evalLogSection = `
-    <div class="eval-modal-section">
-      <h4>📝 Historial de evaluaciones <span style="color:#94a3b8;font-weight:400;">(click para ver detalle)</span></h4>
-      <table class="eval-modal-rubrics">
-        <thead><tr>
-          <th>Fecha</th><th>Score</th><th>EC</th><th>Evaluador</th><th>Feedback</th>
-        </tr></thead>
-        <tbody>${evalLog}</tbody>
-      </table>
-    </div>`;
-
-  body.innerHTML = kpis + chartHtml + rubricSection + evalLogSection;
-
-  // Draw chart after HTML is injected
-  if (agentHistoryChart) { agentHistoryChart.destroy(); agentHistoryChart = null; }
-  agentHistoryChart = new Chart(document.getElementById(chartId), {
-    type: "line",
-    data: {
-      labels: weeks,
-      datasets: [
-        {
-          type: "bar",
-          label: "# Evals",
-          data: weekCounts,
-          backgroundColor: "rgba(56,189,248,.3)",
-          borderRadius: 6,
-          yAxisID: "yCount"
-        },
-        {
-          type: "line",
-          label: "Score",
-          data: weekScores,
-          borderColor: "#0284c7",
-          backgroundColor: "rgba(2,132,199,.1)",
-          borderWidth: 3,
-          pointRadius: 5,
-          tension: 0.3,
-          fill: true,
-          yAxisID: "yScore"
-        },
-        {
-          type: "bar",
-          label: "Errores Críticos",
-          data: weekCrits,
-          backgroundColor: "rgba(239,68,68,.6)",
-          borderRadius: 4,
-          yAxisID: "yCount"
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      interaction: { mode:"index", intersect:false },
-      plugins: {
-        legend: { display:true },
-        datalabels: {
-          display: ctx => ctx.dataset.label==="Score",
-          align:"top", anchor:"end",
-          color:"#0284c7", font:{weight:"bold",size:11},
-          formatter: v => v?v.toFixed(1)+"%":""
-        }
-      },
-      scales: {
-        yScore: { type:"linear", position:"left",  min:0, max:100, title:{display:true,text:"Score %"} },
-        yCount: { type:"linear", position:"right", beginAtZero:true, grid:{drawOnChartArea:false}, title:{display:true,text:"# Evals"} }
-      }
-    },
-    plugins: [ChartDataLabels]
-  });
+function buildClientAgentTable(data) {
+  const grouped={};
+  data.forEach(row=>{const key=row.agent_identifier||row.agent_name||"Unknown";if(!grouped[key])grouped[key]={name:row.agent_name||key,campaign:row.campaign_key||"",lob:row.lob_key||"",queue:row.queue_key||"",evaluator:row.evaluator_name||"",scores:[],criticals:0};grouped[key].scores.push(Number(row.score_final||0));if(row.critical_error_triggered)grouped[key].criticals++;});
+  const rows=Object.values(grouped).map(a=>({...a,avg:a.scores.reduce((s,v)=>s+v,0)/a.scores.length})).sort((a,b)=>b.avg-a.avg);
+  document.getElementById("clientAgentTable").innerHTML=rows.map(r=>`<tr><td><strong>${r.name}</strong></td><td>${r.campaign}</td><td>${r.lob}</td><td>${r.queue}</td><td style="text-align:center;">${r.scores.length}</td><td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td><td style="text-align:center;">${r.criticals>0?`<span class="badge badge-red">${r.criticals}</span>`:`<span class="badge badge-green">0</span>`}</td><td style="font-size:11px;color:#64748b;">${r.evaluator}</td></tr>`).join("");
 }
 
 /* ═══════════════════════════════════════════════
    MAIN TAB NAVIGATION
 ═══════════════════════════════════════════════ */
-let activeMainTab = "resumen";
-
+let activeMainTab="resumen";
 function switchMainTab(tabId) {
-  // Update buttons
-  document.querySelectorAll(".main-tab").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.tab === tabId);
-  });
-  // Update sections
-  document.querySelectorAll(".tab-section").forEach(sec => {
-    sec.classList.toggle("active", sec.id === "tab-" + tabId);
-  });
-  activeMainTab = tabId;
-  // Trigger chart resize so canvases render correctly when tab becomes visible
-  setTimeout(() => window.dispatchEvent(new Event("resize")), 50);
+  document.querySelectorAll(".main-tab").forEach(btn=>btn.classList.toggle("active",btn.dataset.tab===tabId));
+  document.querySelectorAll(".tab-section").forEach(sec=>sec.classList.toggle("active",sec.id==="tab-"+tabId));
+  activeMainTab=tabId;
+  setTimeout(()=>window.dispatchEvent(new Event("resize")),50);
 }
-
-/* ═══════════════════════════════════════════════
-   GROUP TABS
-═══════════════════════════════════════════════ */
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("#groupTabs .tab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      document.querySelectorAll("#groupTabs .tab").forEach(t=>t.classList.remove("active"));
-      tab.classList.add("active");
-      groupTabsGroup = tab.dataset.group;
-      loadGroupTable();
-    });
-  });
-});
 
 /* ═══════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════ */
 document.addEventListener("DOMContentLoaded", async () => {
-  // Default: current week Monday → Sunday
-  const today = new Date();
-  const dow   = today.getDay();
-  const diffToMonday = (dow === 0 ? -6 : 1 - dow);
-  const monday = new Date(today);
-  monday.setDate(today.getDate() + diffToMonday);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
+  const today=new Date(),dow=today.getDay(),diffToMonday=(dow===0?-6:1-dow),monday=new Date(today);
+  monday.setDate(today.getDate()+diffToMonday);
+  const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
+  document.getElementById("startDate").value=monday.toISOString().split("T")[0];
+  document.getElementById("endDate").value=sunday.toISOString().split("T")[0];
 
-  document.getElementById("startDate").value = monday.toISOString().split("T")[0];
-  document.getElementById("endDate").value   = sunday.toISOString().split("T")[0];
+  document.querySelectorAll(".main-tab").forEach(btn=>btn.addEventListener("click",()=>switchMainTab(btn.dataset.tab)));
+  document.querySelectorAll("#groupTabs .tab").forEach(tab=>tab.addEventListener("click",()=>{document.querySelectorAll("#groupTabs .tab").forEach(t=>t.classList.remove("active"));tab.classList.add("active");groupTabsGroup=tab.dataset.group;loadGroupTable();}));
 
-  // ── Wire buttons via addEventListener (CSP-safe, works in Squarespace) ──
-  // Main tab buttons
-  document.querySelectorAll(".main-tab").forEach(btn => {
-    btn.addEventListener("click", () => switchMainTab(btn.dataset.tab));
-  });
-
-  document.getElementById("actualizarBtn")
-    ?.addEventListener("click", () => loadDashboard());
-  document.getElementById("clientModeBtn")
-    ?.addEventListener("click", () => toggleClientMode());
-  document.getElementById("clientExitBtn")
-    ?.addEventListener("click", () => toggleClientMode());
-  document.getElementById("paretoToggleBtn")
-    ?.addEventListener("click", () => toggleParetoView());
-  document.getElementById("evalModalClose")
-    ?.addEventListener("click", () => closeEvalModal());
-  document.getElementById("evalModalOverlay")
-    ?.addEventListener("click", e => { if (e.target.id === "evalModalOverlay") closeEvalModal(); });
-  document.getElementById("agentHistoryClose")
-    ?.addEventListener("click", () => document.getElementById("agentHistoryOverlay").classList.remove("active"));
-  document.getElementById("agentHistoryOverlay")
-    ?.addEventListener("click", e => { if (e.target.id === "agentHistoryOverlay") document.getElementById("agentHistoryOverlay").classList.remove("active"); });
+  document.getElementById("actualizarBtn")?.addEventListener("click",()=>loadDashboard());
+  document.getElementById("clientModeBtn")?.addEventListener("click",()=>toggleClientMode());
+  document.getElementById("clientExitBtn")?.addEventListener("click",()=>toggleClientMode());
+  document.getElementById("paretoToggleBtn")?.addEventListener("click",()=>toggleParetoView());
+  document.getElementById("evalModalClose")?.addEventListener("click",()=>closeEvalModal());
+  document.getElementById("evalModalOverlay")?.addEventListener("click",e=>{if(e.target.id==="evalModalOverlay")closeEvalModal();});
+  document.getElementById("agentHistoryClose")?.addEventListener("click",()=>document.getElementById("agentHistoryOverlay").classList.remove("active"));
+  document.getElementById("agentHistoryOverlay")?.addEventListener("click",e=>{if(e.target.id==="agentHistoryOverlay")document.getElementById("agentHistoryOverlay").classList.remove("active");});
 
   await loadFilterOptions();
   await loadDashboard();
 
-  // ── Squarespace iframe auto-resize ──────────────────────────────
-  // Posts content height to parent so iframe grows with content
-  function notifyHeight() {
-    const h = document.documentElement.scrollHeight;
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({ type: "iframeHeight", height: h }, "*");
-    }
-  }
-  // Notify on load and whenever DOM changes
+  function notifyHeight(){const h=document.documentElement.scrollHeight;if(window.parent&&window.parent!==window)window.parent.postMessage({type:"iframeHeight",height:h},"*");}
   notifyHeight();
-  new MutationObserver(notifyHeight).observe(document.body, {
-    childList: true, subtree: true, attributes: false
-  });
-  window.addEventListener("resize", notifyHeight);
+  new MutationObserver(notifyHeight).observe(document.body,{childList:true,subtree:true,attributes:false});
+  window.addEventListener("resize",notifyHeight);
 });
 </script>
 </body>
