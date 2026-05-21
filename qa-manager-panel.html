@@ -799,13 +799,13 @@ async function openDisputeModal(id) {
       if (itemIds.length > 0) {
         const inFilter = itemIds.map(id => `"${id}"`).join(",");
         const namesRes = await fetch(
-          `${SB_URL}/rest/v1/qa_rubric_items?id=in.(${inFilter})&select=id,label`,
+          `${SB_URL}/rest/v1/qa_rubric_items?id=in.(${inFilter})&select=id,display_label`,
           { headers: H }
         );
         if (namesRes.ok) {
           const namesJson = await namesRes.json();
           const namesMap = {};
-          namesJson.forEach(item => { namesMap[item.id] = item.label || item.id; });
+          namesJson.forEach(item => { namesMap[item.id] = item.display_label || item.id; });
           rubricData = rubricData.map(r => ({
             ...r,
             rubric_name: namesMap[r.rubric_item_id] || `Rubro`
@@ -923,8 +923,11 @@ async function openDisputeModal(id) {
     </div>
     <div class="field-block">
       <span class="field-label">Resuelto por</span>
-      <input type="text" class="m-input" id="d-resolved-by"
-        value="${esc(d.resolved_by||"")}" placeholder="Tu nombre o alias de manager">
+      <select class="m-select" id="d-resolved-by">
+        <option value="">Selecciona…</option>
+        <option value="maria.mora@evolvecx.io" ${d.resolved_by==="maria.mora@evolvecx.io"?"selected":""}>maria.mora@evolvecx.io</option>
+        <option value="rodrigo.castro@evolvecx.io" ${d.resolved_by==="rodrigo.castro@evolvecx.io"?"selected":""}>rodrigo.castro@evolvecx.io</option>
+      </select>
     </div>
 
     ${d.dispute_status !== "Pendiente" && d.dispute_status
@@ -1220,7 +1223,12 @@ function openCorrModal(id) {
     <hr class="divider">
     <div class="field-block" style="margin-bottom:14px;">
       <span class="field-label">Resuelto por</span>
-      <input type="text" class="m-input" id="c-resolved-by" value="${esc(c.resolved_by||"")}" placeholder="Tu nombre…" ${!isPending?"disabled":""}>
+      <select class="m-select" id="c-resolved-by" ${!isPending?"disabled":""}>
+        <option value="">Selecciona…</option>
+        <option value="maria.mora@evolvecx.io" ${c.resolved_by==="maria.mora@evolvecx.io"?"selected":""}>maria.mora@evolvecx.io</option>
+        <option value="rodrigo.castro@evolvecx.io" ${c.resolved_by==="rodrigo.castro@evolvecx.io"?"selected":""}>rodrigo.castro@evolvecx.io</option>
+      </select>
+    </div>
     </div>
     <div class="field-block">
       <span class="field-label">Nota de resolución</span>
