@@ -1025,9 +1025,9 @@ function buildCorrectionPanel(row) {
           <label class="corr-label">Tipo de corrección</label>
           <select class="corr-select" id="corrType" onchange="onCorrTypeChange()">
             <option value="">Selecciona una opción</option>
-            <option value="cambio_agente">Cambio de agente (nombre / ID)</option>
-            <option value="correccion_score">Corrección de score y rubros</option>
-            <option value="eliminar">Eliminar evaluación</option>
+            <option value="Cambio de agente">Cambio de agente (nombre / ID)</option>
+            <option value="Corrección de score">Corrección de score y rubros</option>
+            <option value="Eliminar evaluación">Eliminar evaluación</option>
           </select>
         </div>
 
@@ -1095,11 +1095,11 @@ function onCorrTypeChange() {
   const type = document.getElementById("corrType")?.value;
   const sAgent = document.getElementById("corrSectionAgente");
   const sScore = document.getElementById("corrSectionScore");
-  if (sAgent) sAgent.style.display = type === "cambio_agente" ? "block" : "none";
-  if (sScore) sScore.style.display = type === "correccion_score" ? "block" : "none";
+  if (sAgent) sAgent.style.display = type === "Cambio de agente" ? "block" : "none";
+  if (sScore) sScore.style.display = type === "Corrección de score" ? "block" : "none";
 
   // Build rubric edit rows if score correction
-  if (type === "correccion_score") {
+  if (type === "Corrección de score") {
     const container = document.getElementById("corrRubricRows");
     if (!container) return;
     if (currentRubricData.length > 0) {
@@ -1139,7 +1139,7 @@ async function submitCorrection() {
 
   // Build rubric responses JSON if score correction
   let newRubricResponses = null;
-  if (type === "correccion_score" && currentRubricData.length > 0) {
+  if (type === "Corrección de score" && currentRubricData.length > 0) {
     newRubricResponses = currentRubricData.map((r, i) => ({
       rubric_item_id : r.rubric_item_id || null,
       rubric_item    : r.rubric_item || r.field_key || `Rubro ${i+1}`,
@@ -1161,13 +1161,12 @@ async function submitCorrection() {
     original_score_final     : Number(row.score_final || 0),
     original_evaluator_name  : row.evaluator_name || null,
     interaction_link         : row.interaction_link || null,
-    new_agent_name           : type === "cambio_agente" ? (document.getElementById("corrNewAgentName")?.value?.trim() || null) : null,
-    new_agent_identifier     : type === "cambio_agente" ? (document.getElementById("corrNewAgentId")?.value?.trim() || null) : null,
-    new_score_raw            : type === "correccion_score" ? Number(document.getElementById("corrNewScore")?.value || 0) : null,
-    new_score_final          : type === "correccion_score" ? Number(document.getElementById("corrNewScore")?.value || 0) : null,
+    new_agent_name           : type === "Cambio de agente" ? (document.getElementById("corrNewAgentName")?.value?.trim() || null) : null,
+    new_agent_identifier     : type === "Cambio de agente" ? (document.getElementById("corrNewAgentId")?.value?.trim() || null) : null,
+    new_score_raw            : type === "Corrección de score" ? (parseFloat(document.getElementById("corrNewScore")?.value) || null) : null,
+    new_score_final          : type === "Corrección de score" ? (parseFloat(document.getElementById("corrNewScore")?.value) || null) : null,
     new_rubric_responses     : newRubricResponses,
     correction_reason        : reason,
-    // legacy columns
     corrected_by             : reqBy,
     evaluator_name           : row.evaluator_name || null
   };
