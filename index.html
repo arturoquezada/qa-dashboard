@@ -397,11 +397,11 @@
           <div class="tab" data-group="lob_key">LOB</div>
           <div class="tab" data-group="queue_key">Queue</div>
         </div>
-        <table><thead><tr><th>Grupo</th><th>Evals</th><th>Avg Score</th><th>Critical %</th><th>Weekly Zero</th></tr></thead><tbody id="groupTable"></tbody></table>
+        <table><thead><tr><th>Grupo</th><th>Evals</th><th>Avg Score</th><th>Critical %</th><th>Weekly Zero</th><th style="text-align:center;">⏱️ Feedback<br>On Time</th><th style="text-align:center;">🤝 Commitment<br>Rate</th></tr></thead><tbody id="groupTable"></tbody></table>
       </div>
       <div class="chart-card">
         <h3>👤 Estadísticas por evaluador</h3>
-        <table><thead><tr><th>Evaluador</th><th>Evals</th><th>Score prom.</th><th>Críticos</th><th>Zeros</th><th>Agentes</th></tr></thead><tbody id="evaluatorTable"></tbody></table>
+        <table><thead><tr><th>Evaluador</th><th>Evals</th><th>Score prom.</th><th>Críticos</th><th>Zeros</th><th>Agentes</th><th title="% de evaluaciones con feedback enviado en menos de 48 hrs">⏱️ Feedback On Time</th><th title="% de evaluaciones con compromiso del agente registrado">🤝 Commitment Rate</th></tr></thead><tbody id="evaluatorTable"></tbody></table>
       </div>
     </div>
   </div>
@@ -900,10 +900,63 @@ async function loadCriticalErrors(filters) {
    GROUP TABLE
 ═══════════════════════════════════════════════ */
 function loadGroupTable() {
-  const data=allEvalData, key=groupTabsGroup, grouped={};
-  data.forEach(row=>{const g=row[key]||"Sin clasificar";if(!grouped[g])grouped[g]={scores:[],criticals:0,zeros:0,total:0};grouped[g].scores.push(Number(row.score_final||0));if(row.critical_error_triggered)grouped[g].criticals++;if(row.weekly_zero_triggered)grouped[g].zeros++;grouped[g].total++;});
-  const rows=Object.entries(grouped).map(([g,v])=>({group:g,evals:v.total,avg:v.scores.reduce((a,b)=>a+b,0)/v.scores.length,critPct:(v.criticals/v.total)*100,zeros:v.zeros})).sort((a,b)=>b.evals-a.evals);
-  document.getElementById("groupTable").innerHTML=rows.map(r=>`<tr><td><strong>${r.group}</strong></td><td>${r.evals}</td><td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td><td>${r.critPct.toFixed(1)}%</td><td>${r.zeros}</td></tr>`).join("");
+  const data = allEvalData, key = groupTabsGroup, grouped = {};
+  data.forEach(row => {
+    const g = row[key] || "Sin clasificar";
+    if (!grouped[g]) grouped[g] = { scores:[], criticals:0, zeros:0, total:0, fotOnTime:0, fotTotal:0, commitments:0 };
+    grouped[g].scores.push(Number(row.score_final || 0));
+    if (row.critical_error_triggered) grouped[g].criticals++;
+    if (row.weekly_zero_triggered)    grouped[g].zeros++;
+    grouped[g].total++;
+
+    // Feedback on time
+    const createdAt  = row.created_at || row.created_date_cdmx;
+    const feedbackAt = row.commitment_created_at;
+    if (createdAt && feedbackAt) {
+      grouped[g].fotTotal++;
+      const diffHrs = (new Date(feedbackAt) - new Date(createdAt)) / 3600000;
+      if (diffHrs >= 0 && diffHrs <= 48) grouped[g].fotOnTime++;
+    }
+
+    // Commitment rate
+    if (row.agent_commitment) grouped[g].commitments++;
+  });
+
+  const rows = Object.entries(grouped).map(([g, v]) => ({
+    group:       g,
+    evals:       v.total,
+    avg:         v.scores.reduce((a,b) => a+b, 0) / v.scores.length,
+    critPct:     (v.criticals / v.total) * 100,
+    zeros:       v.zeros,
+    fotRate:     v.fotTotal > 0 ? (v.fotOnTime / v.fotTotal) * 100 : null,
+    commitRate:  v.total > 0 ? (v.commitments / v.total) * 100 : null
+  })).sort((a, b) => b.evals - a.evals);
+
+  function miniRate(rate) {
+    if (rate === null) return `<span style="color:#94a3b8;font-size:11px;">Sin datos</span>`;
+    const bg    = rate >= 90 ? "#dcfce7" : rate >= 70 ? "#fef9c3" : "#fee2e2";
+    const color = rate >= 90 ? "#166534" : rate >= 70 ? "#854d0e" : "#991b1b";
+    return `<span style="background:${bg};color:${color};font-weight:800;border-radius:8px;padding:2px 8px;font-size:12px;">${rate.toFixed(1)}%</span>`;
+  }
+
+  document.getElementById("groupTable").innerHTML = rows.map(r => `
+    <tr>
+      <td><strong>${r.group}</strong></td>
+      <td>${r.evals}</td>
+      <td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td>
+      <td>${r.critPct.toFixed(1)}%</td>
+      <td>${r.zeros}</td>
+      <td style="text-align:center;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          ${miniRate(r.fotRate)}
+        </div>
+      </td>
+      <td style="text-align:center;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          ${miniRate(r.commitRate)}
+        </div>
+      </td>
+    </tr>`).join("");
 }
 
 /* ═══════════════════════════════════════════════
@@ -923,10 +976,70 @@ function loadRiskRanking() {
    EVALUATOR TABLE
 ═══════════════════════════════════════════════ */
 function loadEvaluatorTable() {
-  const data=allEvalData, grouped={};
-  data.forEach(row=>{const ev=row.evaluator_name||"Sin evaluador";if(!grouped[ev])grouped[ev]={scores:[],criticals:0,zeros:0,agents:new Set()};grouped[ev].scores.push(Number(row.score_final||0));if(row.critical_error_triggered)grouped[ev].criticals++;if(row.weekly_zero_triggered)grouped[ev].zeros++;if(row.agent_identifier||row.agent_name)grouped[ev].agents.add(row.agent_identifier||row.agent_name);});
-  const rows=Object.entries(grouped).map(([ev,v])=>({evaluator:ev,evals:v.scores.length,avg:v.scores.reduce((a,b)=>a+b,0)/v.scores.length,criticals:v.criticals,zeros:v.zeros,agents:v.agents.size})).sort((a,b)=>b.evals-a.evals);
-  document.getElementById("evaluatorTable").innerHTML=rows.map(r=>`<tr><td><strong>${r.evaluator}</strong></td><td>${r.evals}</td><td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td><td>${r.criticals} <span class="badge badge-red">${r.evals?((r.criticals/r.evals)*100).toFixed(1):0}%</span></td><td>${r.zeros}</td><td>${r.agents}</td></tr>`).join("");
+  const data = allEvalData;
+  const grouped = {};
+
+  data.forEach(row => {
+    const ev = row.evaluator_name || "Sin evaluador";
+    if (!grouped[ev]) grouped[ev] = {
+      scores: [], criticals: 0, zeros: 0, agents: new Set(),
+      feedbackOnTime: 0, feedbackTotal: 0,
+      commitments: 0
+    };
+
+    grouped[ev].scores.push(Number(row.score_final || 0));
+    if (row.critical_error_triggered) grouped[ev].criticals++;
+    if (row.weekly_zero_triggered)    grouped[ev].zeros++;
+    if (row.agent_identifier || row.agent_name)
+      grouped[ev].agents.add(row.agent_identifier || row.agent_name);
+
+    // Feedback on time: created_at vs commitment_created_at ≤ 48 hrs
+    const createdAt    = row.created_at || row.created_date_cdmx;
+    const feedbackAt   = row.commitment_created_at;
+    if (createdAt && feedbackAt) {
+      grouped[ev].feedbackTotal++;
+      const diffHrs = (new Date(feedbackAt) - new Date(createdAt)) / 3600000;
+      if (diffHrs >= 0 && diffHrs <= 48) grouped[ev].feedbackOnTime++;
+    }
+
+    // Commitment rate: agent_commitment not null
+    if (row.agent_commitment) grouped[ev].commitments++;
+  });
+
+  const rows = Object.entries(grouped).map(([ev, v]) => ({
+    evaluator:       ev,
+    evals:           v.scores.length,
+    avg:             v.scores.reduce((a,b) => a+b, 0) / v.scores.length,
+    criticals:       v.criticals,
+    zeros:           v.zeros,
+    agents:          v.agents.size,
+    fotRate:         v.feedbackTotal > 0 ? (v.feedbackOnTime / v.feedbackTotal) * 100 : null,
+    fotTotal:        v.feedbackTotal,
+    commitRate:      v.scores.length > 0 ? (v.commitments / v.scores.length) * 100 : null
+  })).sort((a, b) => b.evals - a.evals);
+
+  function rateCell(rate) {
+    if (rate === null) return `<td style="text-align:center;color:#94a3b8;font-size:11px;">Sin datos</td>`;
+    const bg    = rate >= 90 ? "#dcfce7" : rate >= 70 ? "#fef9c3" : "#fee2e2";
+    const color = rate >= 90 ? "#166534" : rate >= 70 ? "#854d0e" : "#991b1b";
+    return `<td style="text-align:center;">
+      <span style="background:${bg};color:${color};font-weight:800;border-radius:8px;padding:3px 9px;font-size:12px;">
+        ${rate.toFixed(1)}%
+      </span>
+    </td>`;
+  }
+
+  document.getElementById("evaluatorTable").innerHTML = rows.map(r => `
+    <tr>
+      <td><strong>${r.evaluator}</strong></td>
+      <td>${r.evals}</td>
+      <td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td>
+      <td>${r.criticals} <span class="badge badge-red">${r.evals ? ((r.criticals/r.evals)*100).toFixed(1) : 0}%</span></td>
+      <td>${r.zeros}</td>
+      <td>${r.agents}</td>
+      ${rateCell(r.fotRate)}
+      ${rateCell(r.commitRate)}
+    </tr>`).join("");
 }
 
 /* ═══════════════════════════════════════════════
