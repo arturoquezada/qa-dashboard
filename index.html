@@ -292,7 +292,16 @@
     .main-tab.active.tab-analisis  { background: linear-gradient(135deg,#0ea5e9,#38bdf8); color:#0f172a; }
     .main-tab.active.tab-riesgos   { background: linear-gradient(135deg,#ef4444,#fb7185); color:white; }
     .main-tab.active.tab-agentes   { background: linear-gradient(135deg,#8b5cf6,#a78bfa); color:white; }
-    .main-tab.active.tab-cliente   { background: linear-gradient(135deg,#0284c7,#0ea5e9); color:white; }
+    .main-tab.active.tab-correcciones { background: linear-gradient(135deg,#f59e0b,#fbbf24); color:#0f172a; }
+
+    /* ── CORRECCIONES TAB ── */
+    .corr-leader-row { display:flex; align-items:center; gap:10px; padding:10px 14px; background:#f8fafc; border:1px solid #f1f5f9; border-radius:14px; margin-bottom:6px; }
+    .corr-leader-rank { font-size:11px; font-weight:800; color:#94a3b8; width:22px; text-align:center; }
+    .corr-leader-name { flex:1; font-size:13px; font-weight:700; color:#0f172a; }
+    .corr-leader-track { flex:2; height:5px; background:#e2e8f0; border-radius:999px; overflow:hidden; }
+    .corr-leader-fill  { height:100%; background:linear-gradient(90deg,#f59e0b,#ef4444); border-radius:999px; }
+    .corr-leader-count { background:#fee2e2; color:#991b1b; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:800; white-space:nowrap; }
+    .corr-leader-badge { background:#fef9c3; color:#854d0e; border-radius:999px; padding:2px 6px; font-size:10px; font-weight:700; margin-left:4px; }
 
     .tab-section { display: none; }
     .tab-section.active { display: block; }
@@ -342,7 +351,7 @@
       <button class="main-tab tab-analisis"  data-tab="analisis">📈 Tendencias</button>
       <button class="main-tab tab-riesgos"   data-tab="riesgos">🚨 Riesgos</button>
       <button class="main-tab tab-agentes"   data-tab="agentes">👤 Agentes</button>
-      <button class="main-tab tab-cliente"   data-tab="cliente">👁 Cliente</button>
+      <button class="main-tab tab-correcciones" data-tab="correcciones">✏️ Correcciones</button>
     </div>
   </div>
 
@@ -429,20 +438,78 @@
     </div>
   </div>
 
-  <!-- TAB: CLIENTE -->
-  <div class="tab-section client-only" id="tab-cliente">
-    <div class="section-title" style="color:#0ea5e9;">Resumen comparativo — Aplazo vs Evolve CX</div>
-    <div class="client-kpi-grid">
-      <div class="client-kpi-card blue"><div class="client-kpi-label">Score Global</div><div class="client-kpi-value" id="cKpiGlobal">–</div><div class="client-kpi-sub">Todas las evaluaciones del periodo</div></div>
-      <div class="client-kpi-card teal"><div class="client-kpi-label">Score Aplazo</div><div class="client-kpi-value" id="cKpiAplazo">–</div><div class="client-kpi-sub" id="cKpiAplazoSub">– evaluaciones</div></div>
-      <div class="client-kpi-card blue"><div class="client-kpi-label">Score Evolve CX</div><div class="client-kpi-value" id="cKpiEvolve">–</div><div class="client-kpi-sub" id="cKpiEvolveSub">– evaluaciones</div></div>
-      <div class="client-kpi-card red"><div class="client-kpi-label">Diferencia</div><div class="client-kpi-value" id="cKpiDiff">–</div><div class="client-kpi-sub">Aplazo vs Evolve CX</div></div>
+  <!-- TAB: CORRECCIONES -->
+  <div class="tab-section" id="tab-correcciones">
+    <div class="section-title">Dashboard de correcciones y disputas por evaluador</div>
+
+    <!-- KPI CARDS -->
+    <div class="cards" style="grid-template-columns:repeat(7,1fr);">
+      <div class="card"><div class="muted">Correcciones</div><div class="metric" id="corr-kpi-total">—</div></div>
+      <div class="card warn"><div class="muted">Pendientes</div><div class="metric" id="corr-kpi-pending">—</div></div>
+      <div class="card success"><div class="muted">Aprobadas</div><div class="metric" id="corr-kpi-approved">—</div></div>
+      <div class="card danger"><div class="muted">Rechazadas</div><div class="metric" id="corr-kpi-rejected">—</div></div>
+      <div class="card"><div class="muted">Disputas</div><div class="metric" id="disp-kpi-total">—</div></div>
+      <div class="card warn"><div class="muted">Disp. Pend.</div><div class="metric" id="disp-kpi-pending">—</div></div>
+      <div class="card success"><div class="muted">Disp. Aprobadas</div><div class="metric" id="disp-kpi-approved">—</div></div>
     </div>
-    <div class="chart-card"><h3>📈 Score semanal — Aplazo vs Evolve CX</h3><canvas id="clientWeeklyChart"></canvas></div>
-    <div class="chart-card" style="overflow-x:auto;"><h3>📐 Score promedio por rubro — Aplazo vs Evolve CX</h3><div id="clientRubricTable"><div class="muted">Cargando...</div></div></div>
-    <div class="chart-card"><h3>🔴 Pareto de fallas — Aplazo + Evolve CX</h3><canvas id="clientParetoUnified"></canvas></div>
-    <div class="table-card"><h3>👤 Performance de agentes</h3>
-      <table><thead><tr><th>Agente</th><th>Campaña</th><th>LOB</th><th>Queue</th><th>Evaluaciones</th><th>Avg Score</th><th>Errores Críticos</th><th>Evaluador</th></tr></thead><tbody id="clientAgentTable"></tbody></table>
+
+    <!-- INSIGHT -->
+    <div class="insight" id="corr-insight">
+      <span class="loading-spinner"></span> Cargando análisis…
+    </div>
+
+    <div class="charts-2">
+      <!-- LEADERBOARD -->
+      <div class="chart-card">
+        <h3>🎯 Evaluadores con más solicitudes en su contra</h3>
+        <div id="corr-leaderboard" style="margin-top:4px;">
+          <div class="muted"><span class="loading-spinner"></span> Cargando…</div>
+        </div>
+      </div>
+
+      <!-- TYPE BREAKDOWN -->
+      <div class="chart-card">
+        <h3>📊 Tipos de corrección solicitados</h3>
+        <canvas id="corr-type-chart" height="200"></canvas>
+      </div>
+    </div>
+
+    <div class="charts-2">
+      <!-- WEEKLY TREND -->
+      <div class="chart-card">
+        <h3>📈 Tendencia semanal — Correcciones y Disputas</h3>
+        <canvas id="corr-weekly-chart" height="180"></canvas>
+      </div>
+
+      <!-- AVG RESOLUTION TIME -->
+      <div class="chart-card">
+        <h3>⏱️ Tiempo promedio de resolución (días)</h3>
+        <canvas id="corr-resolution-chart" height="180"></canvas>
+      </div>
+    </div>
+
+    <div class="charts-2">
+      <!-- RECENT CORRECTIONS -->
+      <div class="table-card" style="margin-bottom:0;">
+        <h3>✏️ Correcciones recientes</h3>
+        <table>
+          <thead><tr>
+            <th>Fecha</th><th>Evaluador</th><th>Agente</th><th>Tipo</th><th>Estatus</th>
+          </tr></thead>
+          <tbody id="corr-recent-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- RECENT DISPUTES -->
+      <div class="table-card" style="margin-bottom:0;">
+        <h3>🥊 Disputas recientes</h3>
+        <table>
+          <thead><tr>
+            <th>Fecha</th><th>Agente</th><th>Razón</th><th>Estatus</th>
+          </tr></thead>
+          <tbody id="disp-recent-tbody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -1227,68 +1294,257 @@ async function openAgentHistory(agentId, agentName) {
 /* ═══════════════════════════════════════════════
    CLIENT MODE
 ═══════════════════════════════════════════════ */
-const CLIENT_DOMAIN="@aplazo.mx",EVOLVE_DOMAIN="@evolvecx.io";
-let clientModeActive=false,clientWeeklyChart,clientParetoAplazoChart;
+/* ═══════════════════════════════════════════════
+   CORRECCIONES TAB
+═══════════════════════════════════════════════ */
+const CLIENT_DOMAIN="@aplazo.mx", EVOLVE_DOMAIN="@evolvecx.io";
+let clientModeActive=false;
 const CLIENT_CAMPAIGN_KEY="aplazo";
 let previousCampaignValue="";
+let corrWeeklyChart=null, corrTypeChart=null, corrResolutionChart=null;
 
 async function toggleClientMode() {
   clientModeActive=!clientModeActive;
   const btn=document.getElementById("clientModeBtn"),banner=document.getElementById("clientBanner"),campSel=document.getElementById("campaignFilter");
-  if(clientModeActive){previousCampaignValue=campSel.value;campSel.value=CLIENT_CAMPAIGN_KEY;if(campSel.value!==CLIENT_CAMPAIGN_KEY){const opt=document.createElement("option");opt.value=CLIENT_CAMPAIGN_KEY;opt.textContent=CLIENT_CAMPAIGN_KEY;opt.id="_clientTempOption";campSel.appendChild(opt);campSel.value=CLIENT_CAMPAIGN_KEY;}document.body.classList.add("client-mode");banner.classList.add("active");btn.textContent="🔒 Vista Interna";btn.style.background="rgba(14,165,233,.35)";btn.style.borderColor="rgba(14,165,233,.6)";await loadDashboard();switchMainTab("cliente");}
-  else{const tempOpt=document.getElementById("_clientTempOption");if(tempOpt)tempOpt.remove();campSel.value=previousCampaignValue;document.body.classList.remove("client-mode");banner.classList.remove("active");btn.textContent="👁 Vista Cliente";btn.style.background="rgba(255,255,255,.12)";btn.style.borderColor="rgba(255,255,255,.3)";await loadDashboard();switchMainTab("resumen");}
+  if(clientModeActive){previousCampaignValue=campSel.value;campSel.value=CLIENT_CAMPAIGN_KEY;if(campSel.value!==CLIENT_CAMPAIGN_KEY){const opt=document.createElement("option");opt.value=CLIENT_CAMPAIGN_KEY;opt.textContent=CLIENT_CAMPAIGN_KEY;opt.id="_clientTempOption";campSel.appendChild(opt);campSel.value=CLIENT_CAMPAIGN_KEY;}document.body.classList.add("client-mode");banner.classList.add("active");btn.textContent="🔒 Vista Interna";btn.style.background="rgba(14,165,233,.35)";btn.style.borderColor="rgba(14,165,233,.6)";await loadDashboard();}
+  else{const tempOpt=document.getElementById("_clientTempOption");if(tempOpt)tempOpt.remove();campSel.value=previousCampaignValue;document.body.classList.remove("client-mode");banner.classList.remove("active");btn.textContent="👁 Vista Cliente";btn.style.background="rgba(255,255,255,.12)";btn.style.borderColor="rgba(255,255,255,.3)";await loadDashboard();}
 }
 
-async function buildClientView() {
-  const filters=getFilters();
-  const aplazoData=allEvalData.filter(r=>(r.evaluator_name||"").toLowerCase().includes(CLIENT_DOMAIN));
-  const evolveData=allEvalData.filter(r=>(r.evaluator_name||"").toLowerCase().includes(EVOLVE_DOMAIN));
-  const allData=allEvalData;
-  function avgScore(arr){if(!arr.length)return 0;return arr.reduce((s,r)=>s+Number(r.score_final||0),0)/arr.length;}
-  const globalAvg=avgScore(allData),aplazoAvg=avgScore(aplazoData),evolveAvg=avgScore(evolveData),diff=aplazoAvg-evolveAvg;
-  document.getElementById("cKpiGlobal").textContent=globalAvg.toFixed(2)+"%";document.getElementById("cKpiAplazo").textContent=aplazoAvg.toFixed(2)+"%";document.getElementById("cKpiAplazoSub").textContent=`${aplazoData.length} evaluaciones`;document.getElementById("cKpiEvolve").textContent=evolveAvg.toFixed(2)+"%";document.getElementById("cKpiEvolveSub").textContent=`${evolveData.length} evaluaciones`;
-  const diffEl=document.getElementById("cKpiDiff");diffEl.textContent=(diff>=0?"+":"")+diff.toFixed(2)+"%";diffEl.style.color=diff>=0?"#22c55e":"#ef4444";
-  function groupByWeek(arr){const out={};arr.forEach(row=>{const d=row.created_date_cdmx;if(!d)return;const dt=new Date(d+"T12:00:00");const dow=dt.getDay();const diff=dow===0?-6:1-dow;dt.setDate(dt.getDate()+diff);const w=dt.toISOString().split("T")[0];if(!out[w])out[w]={scores:[],count:0};out[w].scores.push(Number(row.score_final||0));out[w].count++;});return out;}
-  const aplazoWeeks=groupByWeek(aplazoData),evolveWeeks=groupByWeek(evolveData),allWeeks=[...new Set([...Object.keys(aplazoWeeks),...Object.keys(evolveWeeks)])].sort();
-  const aplazoScores=allWeeks.map(w=>{const g=aplazoWeeks[w];return g?g.scores.reduce((s,v)=>s+v,0)/g.scores.length:null;}),evolveScores=allWeeks.map(w=>{const g=evolveWeeks[w];return g?g.scores.reduce((s,v)=>s+v,0)/g.scores.length:null;}),aplazoCounts=allWeeks.map(w=>aplazoWeeks[w]?.count||null),evolveCounts=allWeeks.map(w=>evolveWeeks[w]?.count||null);
-  if(clientWeeklyChart)clientWeeklyChart.destroy();
-  clientWeeklyChart=new Chart(document.getElementById("clientWeeklyChart"),{type:"bar",data:{labels:allWeeks,datasets:[{type:"bar",label:"Aplazo - Score",data:aplazoScores,backgroundColor:"rgba(14,165,233,.8)",borderRadius:6,yAxisID:"yScore"},{type:"bar",label:"Evolve CX - Score",data:evolveScores,backgroundColor:"rgba(20,184,166,.8)",borderRadius:6,yAxisID:"yScore"},{type:"line",label:"Aplazo - # Evals",data:aplazoCounts,borderColor:"#ec4899",backgroundColor:"transparent",borderWidth:2.5,pointRadius:5,pointBackgroundColor:"#ec4899",tension:0.3,yAxisID:"yCount",datalabels:{display:true,align:"top",anchor:"end",color:"#ec4899",font:{weight:"bold",size:11},formatter:v=>v!==null?v:""}},{type:"line",label:"Evolve CX - # Evals",data:evolveCounts,borderColor:"#f97316",backgroundColor:"transparent",borderWidth:2.5,pointRadius:5,pointBackgroundColor:"#f97316",tension:0.3,yAxisID:"yCount",datalabels:{display:true,align:"top",anchor:"end",color:"#f97316",font:{weight:"bold",size:11},formatter:v=>v!==null?v:""}}]},options:{responsive:true,interaction:{mode:"index",intersect:false},plugins:{legend:{display:true},datalabels:{display:ctx=>ctx.dataset.type==="bar"&&ctx.raw!==null,anchor:"center",align:"center",color:"white",font:{weight:"bold",size:11},formatter:v=>v!==null?v.toFixed(2)+"%":""},tooltip:{callbacks:{label:ctx=>{if(ctx.dataset.yAxisID==="yCount")return` ${ctx.dataset.label}: ${ctx.raw} evals`;return` ${ctx.dataset.label}: ${ctx.raw!==null?ctx.raw.toFixed(2)+"%":"—"}`;}}}},scales:{yScore:{type:"linear",position:"left",min:0,max:100,title:{display:true,text:"Score %"},grid:{drawOnChartArea:true}},yCount:{type:"linear",position:"right",beginAtZero:true,title:{display:true,text:"# Evaluaciones"},grid:{drawOnChartArea:false}}}},plugins:[ChartDataLabels]});
-  await buildClientRubricTable(filters,aplazoData,evolveData);
-  await buildClientPareto(filters);
-  buildClientAgentTable(allData);
+async function loadCorrecciones() {
+  try {
+    const SB_URL = SUPABASE_URL;
+    const H = { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` };
+
+    // Fetch corrections and disputes in parallel
+    const [corrRes, dispRes] = await Promise.all([
+      fetch(`${SB_URL}/rest/v1/qa_evaluation_corrections?select=*&order=requested_at.desc`, { headers: H }),
+      fetch(`${SB_URL}/rest/v1/qa_evaluation_disputes?select=*&order=dispute_created_at.desc`, { headers: H })
+    ]);
+
+    const corrections = corrRes.ok ? await corrRes.json() : [];
+    const disputes    = dispRes.ok ? await dispRes.json() : [];
+
+    renderCorrKPIs(corrections, disputes);
+    renderCorrInsight(corrections, disputes);
+    renderCorrLeaderboard(corrections, disputes);
+    renderCorrTypeChart(corrections);
+    renderCorrWeeklyChart(corrections, disputes);
+    renderCorrResolutionChart(corrections, disputes);
+    renderCorrRecentTables(corrections, disputes);
+  } catch(e) {
+    console.error("Error loading correcciones:", e);
+    document.getElementById("corr-insight").textContent = "Error al cargar datos de correcciones.";
+  }
 }
 
-async function buildClientRubricTable(filters,aplazoEvals,evolveEvals) {
-  const el=document.getElementById("clientRubricTable");el.innerHTML='<div class="muted">Cargando rubros...</div>';
-  let q=supabaseClient.from("qa_v_evaluation_responses_detail").select("evaluator_name,rubric_item,field_key,calculated_score,weight,is_bonus");
-  if(filters.startDate)q=q.gte("created_at",filters.startDate+"T00:00:00");if(filters.endDate)q=q.lte("created_at",filters.endDate+"T23:59:59");if(filters.campaign)q=q.eq("campaign_key",filters.campaign);if(filters.lob)q=q.eq("lob_key",filters.lob);if(filters.queue)q=q.eq("queue_key",filters.queue);
-  const raw=await fetchAllRows(q);const data=(raw||[]).filter(r=>!r.is_bonus);
-  const byRubric={aplazo:{},evolve:{}};
-  data.forEach(row=>{const ev=(row.evaluator_name||"").toLowerCase();const rub=row.rubric_item||row.field_key||"Sin rubro";const sc=Number(row.calculated_score||0);const mx=Number(row.weight||0);const grp=ev.includes(CLIENT_DOMAIN)?"aplazo":ev.includes(EVOLVE_DOMAIN)?"evolve":null;if(!grp)return;if(!byRubric[grp][rub])byRubric[grp][rub]={sum:0,count:0,maxW:mx};byRubric[grp][rub].sum+=sc;byRubric[grp][rub].count+=1;if(mx>byRubric[grp][rub].maxW)byRubric[grp][rub].maxW=mx;});
-  const rubrics=[...new Set([...Object.keys(byRubric.aplazo),...Object.keys(byRubric.evolve)])].sort();
-  if(!rubrics.length){el.innerHTML='<div class="muted">Sin datos de rubros para este periodo.</div>';return;}
-  function pct(grp,rub){const d=byRubric[grp][rub];if(!d||!d.count||!d.maxW)return null;return(d.sum/d.count)/d.maxW*100;}
-  function cell(p){if(p===null)return`<td style="text-align:center;color:#94a3b8;">—</td>`;const bg=p>=90?"#dcfce7":p>=70?"#fef9c3":"#fee2e2";const cl=p>=90?"#166534":p>=70?"#854d0e":"#991b1b";return`<td style="text-align:center;background:${bg};color:${cl};font-weight:800;border-radius:6px;">${p.toFixed(2)}%</td>`;}
-  function diffCell(a,b){if(a===null||b===null)return`<td style="text-align:center;color:#94a3b8;">—</td>`;const d=a-b;const cls=d>0.5?"vs-up":d<-0.5?"vs-down":"vs-flat";return`<td style="text-align:center;"><span class="vs-badge ${cls}">${d>=0?"+":""}${d.toFixed(2)}%</span></td>`;}
-  const rows=rubrics.map(r=>{const pa=pct("aplazo",r),pe=pct("evolve",r);return`<tr><td><strong>${r}</strong></td>${cell(pa)}${cell(pe)}${diffCell(pa,pe)}</tr>`;}).join("");
-  el.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr><th style="min-width:200px;">Rubro</th><th style="text-align:center;min-width:110px;">Aplazo</th><th style="text-align:center;min-width:110px;">Evolve CX</th><th style="text-align:center;min-width:100px;">Diferencia</th></tr></thead><tbody>${rows}</tbody></table>`;
+function renderCorrKPIs(corrections, disputes) {
+  document.getElementById("corr-kpi-total").textContent    = corrections.length;
+  document.getElementById("corr-kpi-pending").textContent  = corrections.filter(c=>c.status==="Pendiente").length;
+  document.getElementById("corr-kpi-approved").textContent = corrections.filter(c=>c.status==="Aprobada").length;
+  document.getElementById("corr-kpi-rejected").textContent = corrections.filter(c=>c.status==="Rechazada").length;
+  document.getElementById("disp-kpi-total").textContent    = disputes.length;
+  document.getElementById("disp-kpi-pending").textContent  = disputes.filter(d=>(d.dispute_status||"").includes("Pendiente")).length;
+  document.getElementById("disp-kpi-approved").textContent = disputes.filter(d=>(d.dispute_status||"").includes("Aprobada")).length;
 }
 
-async function buildClientPareto(filters) {
-  let q=supabaseClient.from("qa_v_evaluation_responses_detail").select("rubric_item,field_key,evaluator_name").eq("failed_item",true);
-  if(filters.startDate)q=q.gte("created_at",filters.startDate+"T00:00:00");if(filters.endDate)q=q.lte("created_at",filters.endDate+"T23:59:59");if(filters.campaign)q=q.eq("campaign_key",filters.campaign);if(filters.lob)q=q.eq("lob_key",filters.lob);if(filters.queue)q=q.eq("queue_key",filters.queue);
-  const raw=await fetchAllRows(q);const grouped={};(raw||[]).forEach(r=>{const k=r.rubric_item||r.field_key||"Desconocido";grouped[k]=(grouped[k]||0)+1;});
-  const total=Object.values(grouped).reduce((s,c)=>s+c,0);const items=Object.entries(grouped).map(([l,c])=>({l,c})).sort((a,b)=>b.c-a.c).slice(0,10);
-  let cum=0;const cumPct=items.map(i=>{cum+=i.c;return total?(cum/total*100):0;});
-  if(clientParetoAplazoChart){clientParetoAplazoChart.destroy();clientParetoAplazoChart=null;}
-  clientParetoAplazoChart=new Chart(document.getElementById("clientParetoUnified"),{type:"bar",data:{labels:items.map(i=>i.l.length>32?i.l.slice(0,32)+"…":i.l),datasets:[{type:"bar",label:"Fallas",data:items.map(i=>i.c),yAxisID:"y",backgroundColor:"rgba(14,165,233,.75)",borderRadius:6},{type:"line",label:"% acumulado",data:cumPct,yAxisID:"y1",borderColor:"#ef4444",borderWidth:2.5,pointRadius:4,tension:0.25,backgroundColor:"transparent"}]},options:{responsive:true,interaction:{mode:"index",intersect:false},plugins:{legend:{display:true},datalabels:{display:ctx=>ctx.dataset.type==="line",align:"top",anchor:"end",color:"#0f172a",font:{weight:"bold",size:10},formatter:v=>v.toFixed(0)+"%"},tooltip:{callbacks:{label:ctx=>{if(ctx.dataset.label==="% acumulado")return`% acumulado: ${ctx.raw.toFixed(2)}%`;const pct=total?((items[ctx.dataIndex].c/total)*100).toFixed(2):"0";return`Fallas: ${items[ctx.dataIndex].c} (${pct}%)`;}}}},scales:{y:{beginAtZero:true,position:"left",title:{display:true,text:"Fallas"},ticks:{precision:0}},y1:{beginAtZero:true,max:100,position:"right",grid:{drawOnChartArea:false},title:{display:true,text:"% acumulado"},ticks:{callback:v=>v+"%"}}}},plugins:[ChartDataLabels]});
+function renderCorrInsight(corrections, disputes) {
+  const el = document.getElementById("corr-insight");
+  const totalC = corrections.length, totalD = disputes.length;
+  const pendingC = corrections.filter(c=>c.status==="Pendiente").length;
+  const pendingD = disputes.filter(d=>(d.dispute_status||"").includes("Pendiente")).length;
+
+  // Most error-prone evaluator
+  const grouped = {};
+  corrections.forEach(c => {
+    const ev = c.evaluator_name || c.requested_by || "Desconocido";
+    grouped[ev] = (grouped[ev]||0)+1;
+  });
+  const topEv = Object.entries(grouped).sort((a,b)=>b[1]-a[1])[0];
+
+  // Most common type
+  const typeCount = {};
+  corrections.forEach(c=>{ const t=c.correction_type||"Sin tipo"; typeCount[t]=(typeCount[t]||0)+1; });
+  const topType = Object.entries(typeCount).sort((a,b)=>b[1]-a[1])[0];
+
+  el.innerHTML = `Se han registrado <strong>${totalC}</strong> correcciones y <strong>${totalD}</strong> disputas en total.
+    Hay <strong>${pendingC + pendingD}</strong> pendientes de resolución.
+    ${topEv ? `El evaluador con más solicitudes en su contra es <strong>${topEv[0]}</strong> (${topEv[1]} solicitudes).` : ""}
+    ${topType ? `El tipo de corrección más frecuente es <strong>${topType[0]}</strong> (${topType[1]} casos).` : ""}`;
 }
 
-function buildClientAgentTable(data) {
-  const grouped={};
-  data.forEach(row=>{const key=row.agent_identifier||row.agent_name||"Unknown";if(!grouped[key])grouped[key]={name:row.agent_name||key,campaign:row.campaign_key||"",lob:row.lob_key||"",queue:row.queue_key||"",evaluator:row.evaluator_name||"",scores:[],criticals:0};grouped[key].scores.push(Number(row.score_final||0));if(row.critical_error_triggered)grouped[key].criticals++;});
-  const rows=Object.values(grouped).map(a=>({...a,avg:a.scores.reduce((s,v)=>s+v,0)/a.scores.length})).sort((a,b)=>b.avg-a.avg);
-  document.getElementById("clientAgentTable").innerHTML=rows.map(r=>`<tr><td><strong>${r.name}</strong></td><td>${r.campaign}</td><td>${r.lob}</td><td>${r.queue}</td><td style="text-align:center;">${r.scores.length}</td><td style="color:${scoreColor(r.avg)};font-weight:700;">${r.avg.toFixed(2)}%</td><td style="text-align:center;">${r.criticals>0?`<span class="badge badge-red">${r.criticals}</span>`:`<span class="badge badge-green">0</span>`}</td><td style="font-size:11px;color:#64748b;">${r.evaluator}</td></tr>`).join("");
+function renderCorrLeaderboard(corrections, disputes) {
+  const el = document.getElementById("corr-leaderboard");
+  const grouped = {};
+
+  corrections.forEach(c => {
+    const ev = c.evaluator_name || c.requested_by || "Desconocido";
+    if (!grouped[ev]) grouped[ev] = { corrections:0, disputes:0 };
+    grouped[ev].corrections++;
+  });
+  disputes.forEach(d => {
+    const ev = d.evaluator_name || "Desconocido";
+    if (!grouped[ev]) grouped[ev] = { corrections:0, disputes:0 };
+    grouped[ev].disputes++;
+  });
+
+  const items = Object.entries(grouped)
+    .map(([name, v]) => ({ name, total: v.corrections + v.disputes, corrections: v.corrections, disputes: v.disputes }))
+    .sort((a,b) => b.total - a.total)
+    .slice(0, 8);
+
+  const max = items.length ? Math.max(...items.map(i=>i.total)) : 1;
+
+  if (!items.length) { el.innerHTML = `<div class="muted">Sin datos aún.</div>`; return; }
+
+  el.innerHTML = items.map((item, i) => `
+    <div class="corr-leader-row">
+      <span class="corr-leader-rank">#${i+1}</span>
+      <span class="corr-leader-name">${escHtml(item.name)}</span>
+      <div class="corr-leader-track">
+        <div class="corr-leader-fill" style="width:${(item.total/max)*100}%"></div>
+      </div>
+      ${item.corrections > 0 ? `<span class="corr-leader-badge">✏️ ${item.corrections}</span>` : ""}
+      ${item.disputes > 0    ? `<span class="corr-leader-badge" style="background:#dbeafe;color:#1d4ed8;">🥊 ${item.disputes}</span>` : ""}
+      <span class="corr-leader-count">${item.total}</span>
+    </div>`).join("");
+}
+
+function renderCorrTypeChart(corrections) {
+  const grouped = {};
+  corrections.forEach(c => { const t=c.correction_type||"Sin tipo"; grouped[t]=(grouped[t]||0)+1; });
+  const labels = Object.keys(grouped), values = Object.values(grouped);
+  if (corrTypeChart) { corrTypeChart.destroy(); corrTypeChart=null; }
+  const canvas = document.getElementById("corr-type-chart");
+  if (!canvas || !labels.length) return;
+  corrTypeChart = new Chart(canvas, {
+    type:"doughnut",
+    data:{ labels, datasets:[{ data:values, backgroundColor:["#f59e0b","#62d3f5","#ef4444","#22c55e","#8b5cf6"], borderWidth:3, borderColor:"#fff" }] },
+    options:{ responsive:true, plugins:{ legend:{display:true,position:"bottom",labels:{font:{size:11,weight:"700"},padding:12}}, datalabels:{ color:"#fff", font:{weight:"bold",size:12}, formatter:(v,ctx)=>{ const t=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); return t?`${((v/t)*100).toFixed(0)}%`:""; } } } },
+    plugins:[ChartDataLabels]
+  });
+}
+
+function renderCorrWeeklyChart(corrections, disputes) {
+  function getWeekMonday(dateStr) {
+    if (!dateStr) return null;
+    const d = new Date(dateStr.includes("T") ? dateStr : dateStr+"T12:00:00");
+    const dow = d.getDay();
+    d.setDate(d.getDate() + (dow===0?-6:1-dow));
+    return d.toISOString().split("T")[0];
+  }
+
+  const corrByWeek = {}, dispByWeek = {};
+  corrections.forEach(c => { const w=getWeekMonday(c.requested_at); if(w){ corrByWeek[w]=(corrByWeek[w]||0)+1; } });
+  disputes.forEach(d => { const w=getWeekMonday(d.dispute_created_at); if(w){ dispByWeek[w]=(dispByWeek[w]||0)+1; } });
+
+  const allWeeks = [...new Set([...Object.keys(corrByWeek),...Object.keys(dispByWeek)])].sort().slice(-12);
+  const corrData = allWeeks.map(w=>corrByWeek[w]||0);
+  const dispData = allWeeks.map(w=>dispByWeek[w]||0);
+
+  if (corrWeeklyChart) { corrWeeklyChart.destroy(); corrWeeklyChart=null; }
+  const canvas = document.getElementById("corr-weekly-chart");
+  if (!canvas) return;
+
+  corrWeeklyChart = new Chart(canvas, {
+    type:"bar",
+    data:{ labels:allWeeks, datasets:[
+      { label:"Correcciones", data:corrData, backgroundColor:"rgba(245,158,11,.75)", borderRadius:6 },
+      { label:"Disputas",     data:dispData, backgroundColor:"rgba(96,165,250,.75)",  borderRadius:6 }
+    ]},
+    options:{ responsive:true, interaction:{mode:"index",intersect:false},
+      plugins:{ legend:{display:true}, datalabels:{anchor:"end",align:"top",color:"#0f172a",font:{weight:"bold",size:10},formatter:v=>v||""} },
+      scales:{ y:{beginAtZero:true,ticks:{precision:0},title:{display:true,text:"Solicitudes"}}, x:{title:{display:true,text:"Semana"}} }
+    },
+    plugins:[ChartDataLabels]
+  });
+}
+
+function renderCorrResolutionChart(corrections, disputes) {
+  // Group avg resolution time in days by evaluator (top 8)
+  const grouped = {};
+  [...corrections, ...disputes].forEach(item => {
+    const ev = item.evaluator_name || item.requested_by || "Desconocido";
+    const created = item.requested_at || item.dispute_created_at;
+    const resolved = item.resolved_at;
+    if (!created || !resolved) return;
+    const days = (new Date(resolved) - new Date(created)) / 86400000;
+    if (days < 0) return;
+    if (!grouped[ev]) grouped[ev] = { total:0, count:0 };
+    grouped[ev].total += days;
+    grouped[ev].count++;
+  });
+
+  const items = Object.entries(grouped)
+    .map(([name, v]) => ({ name, avg: v.total/v.count }))
+    .sort((a,b) => b.avg - a.avg)
+    .slice(0, 8);
+
+  if (corrResolutionChart) { corrResolutionChart.destroy(); corrResolutionChart=null; }
+  const canvas = document.getElementById("corr-resolution-chart");
+  if (!canvas || !items.length) {
+    if (canvas) canvas.parentElement.innerHTML = `<h3>⏱️ Tiempo promedio de resolución (días)</h3><div class="muted" style="padding:20px 0;">Sin datos de resolución aún.</div>`;
+    return;
+  }
+
+  corrResolutionChart = new Chart(canvas, {
+    type:"bar",
+    data:{ labels:items.map(i=>i.name.length>20?i.name.slice(0,20)+"…":i.name), datasets:[{
+      label:"Días promedio",
+      data:items.map(i=>parseFloat(i.avg.toFixed(1))),
+      backgroundColor:items.map(i=>i.avg<=1?"#4ade80":i.avg<=3?"#fbbf24":"#ef4444"),
+      borderRadius:8
+    }]},
+    options:{ responsive:true, plugins:{ legend:{display:false}, datalabels:{anchor:"end",align:"top",color:"#0f172a",font:{weight:"bold",size:11},formatter:v=>v+"d"} }, scales:{ y:{beginAtZero:true,title:{display:true,text:"Días"}}, x:{ticks:{font:{size:10}}} } },
+    plugins:[ChartDataLabels]
+  });
+}
+
+function renderCorrRecentTables(corrections, disputes) {
+  const statusPill = (s, type="corr") => {
+    const map = { "Pendiente":"badge-yellow","Aprobada":"badge-green","Rechazada":"badge-red","En Revisión":"badge-blue" };
+    const cls = map[s] || "badge-gray";
+    return `<span class="badge ${cls}">${s||"Pendiente"}</span>`;
+  };
+
+  // Recent corrections
+  const corrTbody = document.getElementById("corr-recent-tbody");
+  const recentCorr = [...corrections].sort((a,b)=>(b.requested_at||"").localeCompare(a.requested_at||"")).slice(0,10);
+  corrTbody.innerHTML = recentCorr.length
+    ? recentCorr.map(c => {
+        const date = c.requested_at ? new Date(c.requested_at).toLocaleDateString("es-MX") : "—";
+        const ev   = (c.evaluator_name||c.requested_by||"—").split("@")[0];
+        const agent = (c.original_agent_name||"—").split(" ").slice(0,2).join(" ");
+        const type  = (c.correction_type||"—").replace("Corrección de score","Score").replace("Cambio de agente","Agente").replace("Eliminar evaluación","Eliminar");
+        return `<tr>
+          <td style="font-size:11px;color:#64748b;">${date}</td>
+          <td style="font-weight:700;font-size:12px;">${escHtml(ev)}</td>
+          <td style="font-size:12px;">${escHtml(agent)}</td>
+          <td><span class="badge badge-blue" style="font-size:10px;">${escHtml(type)}</span></td>
+          <td>${statusPill(c.status)}</td>
+        </tr>`;
+      }).join("")
+    : `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px;">Sin correcciones.</td></tr>`;
+
+  // Recent disputes
+  const dispTbody = document.getElementById("disp-recent-tbody");
+  const recentDisp = [...disputes].sort((a,b)=>(b.dispute_created_at||"").localeCompare(a.dispute_created_at||"")).slice(0,10);
+  dispTbody.innerHTML = recentDisp.length
+    ? recentDisp.map(d => {
+        const date   = d.dispute_created_at ? new Date(d.dispute_created_at).toLocaleDateString("es-MX") : "—";
+        const agent  = (d.agent_name||"—").split(" ").slice(0,2).join(" ");
+        const reason = (d.dispute_reason||"—").slice(0,45) + ((d.dispute_reason||"").length>45?"…":"");
+        return `<tr>
+          <td style="font-size:11px;color:#64748b;">${date}</td>
+          <td style="font-weight:700;font-size:12px;">${escHtml(agent)}</td>
+          <td style="font-size:11px;color:#64748b;" title="${escHtml(d.dispute_reason||"")}">${escHtml(reason)}</td>
+          <td>${statusPill(d.dispute_status)}</td>
+        </tr>`;
+      }).join("")
+    : `<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:20px;">Sin disputas.</td></tr>`;
+}
+
+function escHtml(str) {
+  return String(str??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 /* ═══════════════════════════════════════════════
@@ -1300,6 +1556,8 @@ function switchMainTab(tabId) {
   document.querySelectorAll(".tab-section").forEach(sec=>sec.classList.toggle("active",sec.id==="tab-"+tabId));
   activeMainTab=tabId;
   setTimeout(()=>window.dispatchEvent(new Event("resize")),50);
+  // Load correcciones data on first visit
+  if (tabId === "correcciones") loadCorrecciones();
 }
 
 /* ═══════════════════════════════════════════════
