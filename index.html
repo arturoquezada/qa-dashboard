@@ -442,15 +442,28 @@
   <div class="tab-section" id="tab-correcciones">
     <div class="section-title">Dashboard de correcciones y disputas por evaluador</div>
 
-    <!-- KPI CARDS -->
-    <div class="cards" style="grid-template-columns:repeat(7,1fr);">
-      <div class="card"><div class="muted">Correcciones</div><div class="metric" id="corr-kpi-total">—</div></div>
-      <div class="card warn"><div class="muted">Pendientes</div><div class="metric" id="corr-kpi-pending">—</div></div>
-      <div class="card success"><div class="muted">Aprobadas</div><div class="metric" id="corr-kpi-approved">—</div></div>
-      <div class="card danger"><div class="muted">Rechazadas</div><div class="metric" id="corr-kpi-rejected">—</div></div>
-      <div class="card"><div class="muted">Disputas</div><div class="metric" id="disp-kpi-total">—</div></div>
-      <div class="card warn"><div class="muted">Disp. Pend.</div><div class="metric" id="disp-kpi-pending">—</div></div>
-      <div class="card success"><div class="muted">Disp. Aprobadas</div><div class="metric" id="disp-kpi-approved">—</div></div>
+    <!-- KPI CARDS — dos grupos separados visualmente -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px;">
+      <!-- Correcciones -->
+      <div style="background:white;border-radius:20px;padding:18px 20px;box-shadow:0 4px 20px rgba(15,23,42,.07);border-top:4px solid #f59e0b;">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#f59e0b;margin-bottom:14px;">✏️ Correcciones</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+          <div><div class="muted">Total</div><div class="metric" id="corr-kpi-total">—</div></div>
+          <div><div class="muted">Pendientes</div><div class="metric" style="color:#f59e0b;" id="corr-kpi-pending">—</div></div>
+          <div><div class="muted">Aprobadas</div><div class="metric" style="color:#22c55e;" id="corr-kpi-approved">—</div></div>
+          <div><div class="muted">% / Evals</div><div class="metric" style="font-size:20px;" id="corr-kpi-rate">—</div></div>
+        </div>
+      </div>
+      <!-- Disputas -->
+      <div style="background:white;border-radius:20px;padding:18px 20px;box-shadow:0 4px 20px rgba(15,23,42,.07);border-top:4px solid #6366f1;">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#6366f1;margin-bottom:14px;">🥊 Disputas</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+          <div><div class="muted">Total</div><div class="metric" id="disp-kpi-total">—</div></div>
+          <div><div class="muted">Pendientes</div><div class="metric" style="color:#f59e0b;" id="disp-kpi-pending">—</div></div>
+          <div><div class="muted">Aprobadas</div><div class="metric" style="color:#ef4444;" id="disp-kpi-approved">—</div></div>
+          <div><div class="muted">% Aprobadas</div><div class="metric" style="font-size:20px;" id="disp-kpi-rate">—</div></div>
+        </div>
+      </div>
     </div>
 
     <!-- INSIGHT -->
@@ -458,33 +471,38 @@
       <span class="loading-spinner"></span> Cargando análisis…
     </div>
 
-    <div class="charts-2">
-      <!-- LEADERBOARD -->
+    <!-- DUAL LEADERBOARDS -->
+    <div class="charts-2" style="margin-bottom:22px;">
+      <!-- Leaderboard Correcciones -->
       <div class="chart-card">
-        <h3>🎯 Evaluadores con más solicitudes en su contra</h3>
-        <div id="corr-leaderboard" style="margin-top:4px;">
-          <div class="muted"><span class="loading-spinner"></span> Cargando…</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h3 style="margin:0;">✏️ Correcciones por evaluador</h3>
+          <span style="font-size:11px;color:#94a3b8;font-weight:700;">Correcciones / Evals del periodo</span>
         </div>
+        <div id="corr-leader-corrections"></div>
       </div>
 
+      <!-- Leaderboard Disputas -->
+      <div class="chart-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h3 style="margin:0;">🥊 Disputas aprobadas por evaluador</h3>
+          <span style="font-size:11px;color:#94a3b8;font-weight:700;">Solo disputas que el evaluador perdió</span>
+        </div>
+        <div id="corr-leader-disputes"></div>
+      </div>
+    </div>
+
+    <div class="charts-2">
       <!-- TYPE BREAKDOWN -->
       <div class="chart-card">
         <h3>📊 Tipos de corrección solicitados</h3>
         <canvas id="corr-type-chart" height="200"></canvas>
       </div>
-    </div>
 
-    <div class="charts-2">
       <!-- WEEKLY TREND -->
       <div class="chart-card">
         <h3>📈 Tendencia semanal — Correcciones y Disputas</h3>
-        <canvas id="corr-weekly-chart" height="180"></canvas>
-      </div>
-
-      <!-- AVG RESOLUTION TIME -->
-      <div class="chart-card">
-        <h3>⏱️ Tiempo promedio de resolución (días)</h3>
-        <canvas id="corr-resolution-chart" height="180"></canvas>
+        <canvas id="corr-weekly-chart" height="200"></canvas>
       </div>
     </div>
 
@@ -505,7 +523,7 @@
         <h3>🥊 Disputas recientes</h3>
         <table>
           <thead><tr>
-            <th>Fecha</th><th>Agente</th><th>Razón</th><th>Estatus</th>
+            <th>Fecha</th><th>Evaluador</th><th>Agente</th><th>Razón</th><th>Estatus</th>
           </tr></thead>
           <tbody id="disp-recent-tbody"></tbody>
         </table>
@@ -1428,21 +1446,35 @@ async function loadCorrecciones() {
     const SB_URL = SUPABASE_URL;
     const H = { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` };
 
-    // Fetch corrections and disputes in parallel
+    // Get date filters from dashboard
+    const filters = getFilters();
+    const startDate = filters.startDate;
+    const endDate   = filters.endDate;
+    const evaluator = filters.evaluator;
+
+    // Build filter params
+    let corrParams = `select=*&order=requested_at.desc`;
+    let dispParams = `select=*&order=dispute_created_at.desc`;
+    if (startDate) { corrParams += `&requested_at=gte.${startDate}T00:00:00`; dispParams += `&dispute_created_at=gte.${startDate}T00:00:00`; }
+    if (endDate)   { corrParams += `&requested_at=lte.${endDate}T23:59:59`;   dispParams += `&dispute_created_at=lte.${endDate}T23:59:59`; }
+    if (evaluator) { corrParams += `&evaluator_name=eq.${encodeURIComponent(evaluator)}`; dispParams += `&evaluator_name=eq.${encodeURIComponent(evaluator)}`; }
+
     const [corrRes, dispRes] = await Promise.all([
-      fetch(`${SB_URL}/rest/v1/qa_evaluation_corrections?select=*&order=requested_at.desc`, { headers: H }),
-      fetch(`${SB_URL}/rest/v1/qa_evaluation_disputes?select=*&order=dispute_created_at.desc`, { headers: H })
+      fetch(`${SB_URL}/rest/v1/qa_evaluation_corrections?${corrParams}`, { headers: H }),
+      fetch(`${SB_URL}/rest/v1/qa_evaluation_disputes?${dispParams}`, { headers: H })
     ]);
 
     const corrections = corrRes.ok ? await corrRes.json() : [];
     const disputes    = dispRes.ok ? await dispRes.json() : [];
 
-    renderCorrKPIs(corrections, disputes);
-    renderCorrInsight(corrections, disputes);
-    renderCorrLeaderboard(corrections, disputes);
+    // Total evals in period for rate calculation
+    const totalEvals = allEvalData.length;
+
+    renderCorrKPIs(corrections, disputes, totalEvals);
+    renderCorrInsight(corrections, disputes, totalEvals);
+    renderCorrLeaderboards(corrections, disputes, totalEvals);
     renderCorrTypeChart(corrections);
     renderCorrWeeklyChart(corrections, disputes);
-    renderCorrResolutionChart(corrections, disputes);
     renderCorrRecentTables(corrections, disputes);
   } catch(e) {
     console.error("Error loading correcciones:", e);
@@ -1450,76 +1482,158 @@ async function loadCorrecciones() {
   }
 }
 
-function renderCorrKPIs(corrections, disputes) {
-  document.getElementById("corr-kpi-total").textContent    = corrections.length;
-  document.getElementById("corr-kpi-pending").textContent  = corrections.filter(c=>c.status==="Pendiente").length;
-  document.getElementById("corr-kpi-approved").textContent = corrections.filter(c=>c.status==="Aprobada").length;
-  document.getElementById("corr-kpi-rejected").textContent = corrections.filter(c=>c.status==="Rechazada").length;
-  document.getElementById("disp-kpi-total").textContent    = disputes.length;
-  document.getElementById("disp-kpi-pending").textContent  = disputes.filter(d=>(d.dispute_status||"").includes("Pendiente")).length;
-  document.getElementById("disp-kpi-approved").textContent = disputes.filter(d=>(d.dispute_status||"").includes("Aprobada")).length;
+function renderCorrKPIs(corrections, disputes, totalEvals) {
+  const corrTotal    = corrections.length;
+  const corrPending  = corrections.filter(c => c.status === "Pendiente").length;
+  const corrApproved = corrections.filter(c => c.status === "Aprobada").length;
+  const corrRate     = totalEvals > 0 ? (corrTotal / totalEvals) * 100 : null;
+
+  const dispTotal    = disputes.length;
+  const dispPending  = disputes.filter(d => (d.dispute_status||"").includes("Pendiente")).length;
+  const dispApproved = disputes.filter(d => (d.dispute_status||"").includes("Aprobada")).length;
+  const dispRate     = dispTotal > 0 ? (dispApproved / dispTotal) * 100 : null;
+
+  document.getElementById("corr-kpi-total").textContent    = corrTotal;
+  document.getElementById("corr-kpi-pending").textContent  = corrPending;
+  document.getElementById("corr-kpi-approved").textContent = corrApproved;
+  document.getElementById("corr-kpi-rate").textContent     = corrRate !== null ? corrRate.toFixed(1) + "%" : "—";
+
+  document.getElementById("disp-kpi-total").textContent    = dispTotal;
+  document.getElementById("disp-kpi-pending").textContent  = dispPending;
+  document.getElementById("disp-kpi-approved").textContent = dispApproved;
+  document.getElementById("disp-kpi-rate").textContent     = dispRate !== null ? dispRate.toFixed(1) + "%" : "—";
+
+  // Color the rate cards
+  const corrRateEl = document.getElementById("corr-kpi-rate");
+  corrRateEl.style.color = corrRate === null ? "#94a3b8" : corrRate <= 5 ? "#22c55e" : corrRate <= 15 ? "#f59e0b" : "#ef4444";
+
+  const dispRateEl = document.getElementById("disp-kpi-rate");
+  dispRateEl.style.color = dispRate === null ? "#94a3b8" : dispRate <= 10 ? "#22c55e" : dispRate <= 25 ? "#f59e0b" : "#ef4444";
 }
 
-function renderCorrInsight(corrections, disputes) {
+function renderCorrInsight(corrections, disputes, totalEvals) {
   const el = document.getElementById("corr-insight");
-  const totalC = corrections.length, totalD = disputes.length;
-  const pendingC = corrections.filter(c=>c.status==="Pendiente").length;
-  const pendingD = disputes.filter(d=>(d.dispute_status||"").includes("Pendiente")).length;
+  const corrTotal    = corrections.length;
+  const dispApproved = disputes.filter(d => (d.dispute_status||"").includes("Aprobada")).length;
+  const corrRate     = totalEvals > 0 ? ((corrTotal / totalEvals) * 100).toFixed(1) : null;
+  const dispRate     = disputes.length > 0 ? ((dispApproved / disputes.length) * 100).toFixed(1) : null;
 
-  // Most error-prone evaluator
-  const grouped = {};
+  // Top evaluator by corrections
+  const corrByEv = {};
   corrections.forEach(c => {
     const ev = c.evaluator_name || c.requested_by || "Desconocido";
-    grouped[ev] = (grouped[ev]||0)+1;
+    corrByEv[ev] = (corrByEv[ev]||0)+1;
   });
-  const topEv = Object.entries(grouped).sort((a,b)=>b[1]-a[1])[0];
+  const topCorr = Object.entries(corrByEv).sort((a,b)=>b[1]-a[1])[0];
 
-  // Most common type
-  const typeCount = {};
-  corrections.forEach(c=>{ const t=c.correction_type||"Sin tipo"; typeCount[t]=(typeCount[t]||0)+1; });
-  const topType = Object.entries(typeCount).sort((a,b)=>b[1]-a[1])[0];
+  // Top evaluator by approved disputes
+  const dispByEv = {};
+  disputes.filter(d=>(d.dispute_status||"").includes("Aprobada")).forEach(d => {
+    const ev = d.evaluator_name || "Desconocido";
+    dispByEv[ev] = (dispByEv[ev]||0)+1;
+  });
+  const topDisp = Object.entries(dispByEv).sort((a,b)=>b[1]-a[1])[0];
 
-  el.innerHTML = `Se han registrado <strong>${totalC}</strong> correcciones y <strong>${totalD}</strong> disputas en total.
-    Hay <strong>${pendingC + pendingD}</strong> pendientes de resolución.
-    ${topEv ? `El evaluador con más solicitudes en su contra es <strong>${topEv[0]}</strong> (${topEv[1]} solicitudes).` : ""}
-    ${topType ? `El tipo de corrección más frecuente es <strong>${topType[0]}</strong> (${topType[1]} casos).` : ""}`;
+  el.innerHTML = `
+    En el periodo: <strong>${corrTotal}</strong> correcciones solicitadas
+    ${corrRate !== null ? `(<strong>${corrRate}%</strong> de las ${totalEvals} evaluaciones)` : ""}.
+    <strong>${dispApproved}</strong> disputas aprobadas
+    ${dispRate !== null ? `(<strong>${dispRate}%</strong> de ${disputes.length} disputas)` : ""}.
+    ${topCorr ? `Evaluador con más correcciones: <strong>${topCorr[0]}</strong> (${topCorr[1]}).` : ""}
+    ${topDisp ? `Evaluador con más disputas perdidas: <strong>${topDisp[0]}</strong> (${topDisp[1]}).` : ""}`;
 }
 
-function renderCorrLeaderboard(corrections, disputes) {
-  const el = document.getElementById("corr-leaderboard");
-  const grouped = {};
-
+function renderCorrLeaderboards(corrections, disputes, totalEvals) {
+  // ── Leaderboard correcciones ──
+  const corrByEv = {};
   corrections.forEach(c => {
     const ev = c.evaluator_name || c.requested_by || "Desconocido";
-    if (!grouped[ev]) grouped[ev] = { corrections:0, disputes:0 };
-    grouped[ev].corrections++;
-  });
-  disputes.forEach(d => {
-    const ev = d.evaluator_name || "Desconocido";
-    if (!grouped[ev]) grouped[ev] = { corrections:0, disputes:0 };
-    grouped[ev].disputes++;
+    if (!corrByEv[ev]) corrByEv[ev] = { total:0, approved:0, pending:0 };
+    corrByEv[ev].total++;
+    if (c.status === "Aprobada")  corrByEv[ev].approved++;
+    if (c.status === "Pendiente") corrByEv[ev].pending++;
   });
 
-  const items = Object.entries(grouped)
-    .map(([name, v]) => ({ name, total: v.corrections + v.disputes, corrections: v.corrections, disputes: v.disputes }))
+  // Get evals per evaluator from allEvalData for the rate
+  const evalsByEv = {};
+  allEvalData.forEach(row => {
+    const ev = row.evaluator_name || "Sin evaluador";
+    evalsByEv[ev] = (evalsByEv[ev]||0)+1;
+  });
+
+  const corrItems = Object.entries(corrByEv)
+    .map(([name, v]) => ({
+      name,
+      total:    v.total,
+      approved: v.approved,
+      pending:  v.pending,
+      evEvals:  evalsByEv[name] || 0,
+      rate:     evalsByEv[name] ? (v.total / evalsByEv[name]) * 100 : null
+    }))
     .sort((a,b) => b.total - a.total)
     .slice(0, 8);
 
-  const max = items.length ? Math.max(...items.map(i=>i.total)) : 1;
+  const maxCorr = corrItems.length ? Math.max(...corrItems.map(i=>i.total)) : 1;
 
-  if (!items.length) { el.innerHTML = `<div class="muted">Sin datos aún.</div>`; return; }
+  const corrEl = document.getElementById("corr-leader-corrections");
+  corrEl.innerHTML = corrItems.length ? corrItems.map((item, i) => {
+    const rateColor = item.rate === null ? "#94a3b8" : item.rate <= 5 ? "#16a34a" : item.rate <= 15 ? "#d97706" : "#dc2626";
+    const rateBg    = item.rate === null ? "#f1f5f9" : item.rate <= 5 ? "#dcfce7" : item.rate <= 15 ? "#fef9c3" : "#fee2e2";
+    return `
+      <div class="corr-leader-row">
+        <span class="corr-leader-rank">#${i+1}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(item.name)}</div>
+          <div style="font-size:10px;color:#94a3b8;margin-top:1px;">${item.evEvals} evals en periodo</div>
+        </div>
+        <div class="corr-leader-track">
+          <div style="height:100%;width:${(item.total/maxCorr)*100}%;background:linear-gradient(90deg,#f59e0b,#ef4444);border-radius:999px;"></div>
+        </div>
+        ${item.rate !== null ? `<span style="background:${rateBg};color:${rateColor};border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800;white-space:nowrap;">${item.rate.toFixed(1)}%</span>` : ""}
+        <span class="corr-leader-count">${item.total}</span>
+      </div>`;
+  }).join("") : `<div class="muted" style="padding:12px 0;">Sin correcciones en el periodo.</div>`;
 
-  el.innerHTML = items.map((item, i) => `
-    <div class="corr-leader-row">
-      <span class="corr-leader-rank">#${i+1}</span>
-      <span class="corr-leader-name">${escHtml(item.name)}</span>
-      <div class="corr-leader-track">
-        <div class="corr-leader-fill" style="width:${(item.total/max)*100}%"></div>
-      </div>
-      ${item.corrections > 0 ? `<span class="corr-leader-badge">✏️ ${item.corrections}</span>` : ""}
-      ${item.disputes > 0    ? `<span class="corr-leader-badge" style="background:#dbeafe;color:#1d4ed8;">🥊 ${item.disputes}</span>` : ""}
-      <span class="corr-leader-count">${item.total}</span>
-    </div>`).join("");
+  // ── Leaderboard disputas aprobadas ──
+  const dispByEv = {};
+  disputes.forEach(d => {
+    const ev = d.evaluator_name || "Desconocido";
+    if (!dispByEv[ev]) dispByEv[ev] = { total:0, approved:0 };
+    dispByEv[ev].total++;
+    if ((d.dispute_status||"").includes("Aprobada")) dispByEv[ev].approved++;
+  });
+
+  const dispItems = Object.entries(dispByEv)
+    .filter(([,v]) => v.approved > 0)
+    .map(([name, v]) => ({
+      name,
+      approved: v.approved,
+      total:    v.total,
+      rate:     v.total > 0 ? (v.approved / v.total) * 100 : 0
+    }))
+    .sort((a,b) => b.approved - a.approved)
+    .slice(0, 8);
+
+  const maxDisp = dispItems.length ? Math.max(...dispItems.map(i=>i.approved)) : 1;
+
+  const dispEl = document.getElementById("corr-leader-disputes");
+  dispEl.innerHTML = dispItems.length ? dispItems.map((item, i) => {
+    const rateColor = item.rate <= 10 ? "#16a34a" : item.rate <= 25 ? "#d97706" : "#dc2626";
+    const rateBg    = item.rate <= 10 ? "#dcfce7" : item.rate <= 25 ? "#fef9c3" : "#fee2e2";
+    return `
+      <div class="corr-leader-row">
+        <span class="corr-leader-rank">#${i+1}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(item.name)}</div>
+          <div style="font-size:10px;color:#94a3b8;margin-top:1px;">${item.total} disputas totales</div>
+        </div>
+        <div class="corr-leader-track">
+          <div style="height:100%;width:${(item.approved/maxDisp)*100}%;background:linear-gradient(90deg,#6366f1,#ef4444);border-radius:999px;"></div>
+        </div>
+        <span style="background:${rateBg};color:${rateColor};border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800;white-space:nowrap;">${item.rate.toFixed(1)}% perdidas</span>
+        <span style="background:#fee2e2;color:#991b1b;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800;">${item.approved}</span>
+      </div>`;
+  }).join("") : `<div class="muted" style="padding:12px 0;">Sin disputas aprobadas en el periodo.</div>`;
 }
 
 function renderCorrTypeChart(corrections) {
@@ -1545,24 +1659,18 @@ function renderCorrWeeklyChart(corrections, disputes) {
     d.setDate(d.getDate() + (dow===0?-6:1-dow));
     return d.toISOString().split("T")[0];
   }
-
   const corrByWeek = {}, dispByWeek = {};
   corrections.forEach(c => { const w=getWeekMonday(c.requested_at); if(w){ corrByWeek[w]=(corrByWeek[w]||0)+1; } });
   disputes.forEach(d => { const w=getWeekMonday(d.dispute_created_at); if(w){ dispByWeek[w]=(dispByWeek[w]||0)+1; } });
-
   const allWeeks = [...new Set([...Object.keys(corrByWeek),...Object.keys(dispByWeek)])].sort().slice(-12);
-  const corrData = allWeeks.map(w=>corrByWeek[w]||0);
-  const dispData = allWeeks.map(w=>dispByWeek[w]||0);
-
   if (corrWeeklyChart) { corrWeeklyChart.destroy(); corrWeeklyChart=null; }
   const canvas = document.getElementById("corr-weekly-chart");
   if (!canvas) return;
-
   corrWeeklyChart = new Chart(canvas, {
     type:"bar",
     data:{ labels:allWeeks, datasets:[
-      { label:"Correcciones", data:corrData, backgroundColor:"rgba(245,158,11,.75)", borderRadius:6 },
-      { label:"Disputas",     data:dispData, backgroundColor:"rgba(96,165,250,.75)",  borderRadius:6 }
+      { label:"Correcciones", data:allWeeks.map(w=>corrByWeek[w]||0), backgroundColor:"rgba(245,158,11,.75)", borderRadius:6 },
+      { label:"Disputas",     data:allWeeks.map(w=>dispByWeek[w]||0), backgroundColor:"rgba(99,102,241,.75)",  borderRadius:6 }
     ]},
     options:{ responsive:true, interaction:{mode:"index",intersect:false},
       plugins:{ legend:{display:true}, datalabels:{anchor:"end",align:"top",color:"#0f172a",font:{weight:"bold",size:10},formatter:v=>v||""} },
@@ -1572,60 +1680,18 @@ function renderCorrWeeklyChart(corrections, disputes) {
   });
 }
 
-function renderCorrResolutionChart(corrections, disputes) {
-  // Group avg resolution time in days by evaluator (top 8)
-  const grouped = {};
-  [...corrections, ...disputes].forEach(item => {
-    const ev = item.evaluator_name || item.requested_by || "Desconocido";
-    const created = item.requested_at || item.dispute_created_at;
-    const resolved = item.resolved_at;
-    if (!created || !resolved) return;
-    const days = (new Date(resolved) - new Date(created)) / 86400000;
-    if (days < 0) return;
-    if (!grouped[ev]) grouped[ev] = { total:0, count:0 };
-    grouped[ev].total += days;
-    grouped[ev].count++;
-  });
-
-  const items = Object.entries(grouped)
-    .map(([name, v]) => ({ name, avg: v.total/v.count }))
-    .sort((a,b) => b.avg - a.avg)
-    .slice(0, 8);
-
-  if (corrResolutionChart) { corrResolutionChart.destroy(); corrResolutionChart=null; }
-  const canvas = document.getElementById("corr-resolution-chart");
-  if (!canvas || !items.length) {
-    if (canvas) canvas.parentElement.innerHTML = `<h3>⏱️ Tiempo promedio de resolución (días)</h3><div class="muted" style="padding:20px 0;">Sin datos de resolución aún.</div>`;
-    return;
-  }
-
-  corrResolutionChart = new Chart(canvas, {
-    type:"bar",
-    data:{ labels:items.map(i=>i.name.length>20?i.name.slice(0,20)+"…":i.name), datasets:[{
-      label:"Días promedio",
-      data:items.map(i=>parseFloat(i.avg.toFixed(1))),
-      backgroundColor:items.map(i=>i.avg<=1?"#4ade80":i.avg<=3?"#fbbf24":"#ef4444"),
-      borderRadius:8
-    }]},
-    options:{ responsive:true, plugins:{ legend:{display:false}, datalabels:{anchor:"end",align:"top",color:"#0f172a",font:{weight:"bold",size:11},formatter:v=>v+"d"} }, scales:{ y:{beginAtZero:true,title:{display:true,text:"Días"}}, x:{ticks:{font:{size:10}}} } },
-    plugins:[ChartDataLabels]
-  });
-}
-
 function renderCorrRecentTables(corrections, disputes) {
-  const statusPill = (s, type="corr") => {
+  const pill = s => {
     const map = { "Pendiente":"badge-yellow","Aprobada":"badge-green","Rechazada":"badge-red","En Revisión":"badge-blue" };
-    const cls = map[s] || "badge-gray";
-    return `<span class="badge ${cls}">${s||"Pendiente"}</span>`;
+    return `<span class="badge ${map[s]||"badge-gray"}">${s||"Pendiente"}</span>`;
   };
 
   // Recent corrections
-  const corrTbody = document.getElementById("corr-recent-tbody");
   const recentCorr = [...corrections].sort((a,b)=>(b.requested_at||"").localeCompare(a.requested_at||"")).slice(0,10);
-  corrTbody.innerHTML = recentCorr.length
+  document.getElementById("corr-recent-tbody").innerHTML = recentCorr.length
     ? recentCorr.map(c => {
-        const date = c.requested_at ? new Date(c.requested_at).toLocaleDateString("es-MX") : "—";
-        const ev   = (c.evaluator_name||c.requested_by||"—").split("@")[0];
+        const date  = c.requested_at ? new Date(c.requested_at).toLocaleDateString("es-MX") : "—";
+        const ev    = (c.evaluator_name||c.requested_by||"—").split("@")[0];
         const agent = (c.original_agent_name||"—").split(" ").slice(0,2).join(" ");
         const type  = (c.correction_type||"—").replace("Corrección de score","Score").replace("Cambio de agente","Agente").replace("Eliminar evaluación","Eliminar");
         return `<tr>
@@ -1633,27 +1699,28 @@ function renderCorrRecentTables(corrections, disputes) {
           <td style="font-weight:700;font-size:12px;">${escHtml(ev)}</td>
           <td style="font-size:12px;">${escHtml(agent)}</td>
           <td><span class="badge badge-blue" style="font-size:10px;">${escHtml(type)}</span></td>
-          <td>${statusPill(c.status)}</td>
+          <td>${pill(c.status)}</td>
         </tr>`;
       }).join("")
-    : `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px;">Sin correcciones.</td></tr>`;
+    : `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px;">Sin correcciones en el periodo.</td></tr>`;
 
   // Recent disputes
-  const dispTbody = document.getElementById("disp-recent-tbody");
   const recentDisp = [...disputes].sort((a,b)=>(b.dispute_created_at||"").localeCompare(a.dispute_created_at||"")).slice(0,10);
-  dispTbody.innerHTML = recentDisp.length
+  document.getElementById("disp-recent-tbody").innerHTML = recentDisp.length
     ? recentDisp.map(d => {
         const date   = d.dispute_created_at ? new Date(d.dispute_created_at).toLocaleDateString("es-MX") : "—";
+        const ev     = (d.evaluator_name||"—").split("@")[0];
         const agent  = (d.agent_name||"—").split(" ").slice(0,2).join(" ");
-        const reason = (d.dispute_reason||"—").slice(0,45) + ((d.dispute_reason||"").length>45?"…":"");
+        const reason = (d.dispute_reason||"—").slice(0,40) + ((d.dispute_reason||"").length>40?"…":"");
         return `<tr>
           <td style="font-size:11px;color:#64748b;">${date}</td>
-          <td style="font-weight:700;font-size:12px;">${escHtml(agent)}</td>
+          <td style="font-weight:700;font-size:12px;">${escHtml(ev)}</td>
+          <td style="font-size:12px;">${escHtml(agent)}</td>
           <td style="font-size:11px;color:#64748b;" title="${escHtml(d.dispute_reason||"")}">${escHtml(reason)}</td>
-          <td>${statusPill(d.dispute_status)}</td>
+          <td>${pill(d.dispute_status)}</td>
         </tr>`;
       }).join("")
-    : `<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:20px;">Sin disputas.</td></tr>`;
+    : `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px;">Sin disputas en el periodo.</td></tr>`;
 }
 
 function escHtml(str) {
