@@ -453,6 +453,33 @@
     /* ── PORTAL OVERRIDES ── */
     /* Remove client-mode and internal-only logic — not needed here */
     .client-only, .internal-only { display: block !important; }
+
+    /* ── CORRECTION PANEL ── */
+    .correction-panel { margin-top: 24px; border-top: 2px dashed #e2e8f0; padding-top: 20px; }
+    .correction-panel-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .correction-panel-title { font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#f59e0b; }
+    .btn-request-correction { width:auto; padding:10px 20px; border-radius:12px; background:linear-gradient(135deg,#f59e0b,#fbbf24); color:#0f172a; font-weight:800; font-size:13px; border:none; cursor:pointer; transition:all .2s; box-shadow:0 4px 12px rgba(245,158,11,.3); }
+    .btn-request-correction:hover { opacity:.9; transform:translateY(-1px); }
+    .correction-form { display:none; }
+    .correction-form.open { display:block; }
+    .corr-field { margin-bottom:14px; }
+    .corr-label { font-size:11px; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:.5px; display:block; margin-bottom:6px; }
+    .corr-input, .corr-select, .corr-textarea { width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid #e2e8f0; font-size:13px; background:#f8fafc; color:#0f172a; font-family:inherit; }
+    .corr-input:focus, .corr-select:focus, .corr-textarea:focus { outline:none; border-color:#f59e0b; background:#fff; }
+    .corr-textarea { resize:vertical; min-height:80px; }
+    .corr-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .corr-section-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:#94a3b8; margin:18px 0 10px; padding-bottom:6px; border-bottom:1px solid #f1f5f9; }
+    .rubric-edit-row { display:grid; grid-template-columns:1fr 80px; gap:8px; align-items:center; margin-bottom:8px; }
+    .rubric-edit-label { font-size:12px; color:#475569; font-weight:600; }
+    .rubric-edit-input { padding:7px 10px; border-radius:8px; border:1.5px solid #e2e8f0; font-size:12px; background:#f8fafc; color:#0f172a; text-align:center; font-family:inherit; }
+    .rubric-edit-input:focus { outline:none; border-color:#f59e0b; }
+    .corr-actions { display:flex; gap:10px; margin-top:18px; }
+    .btn-submit-correction { flex:1; padding:12px; border-radius:12px; background:linear-gradient(135deg,#f59e0b,#fbbf24); color:#0f172a; font-weight:800; font-size:14px; border:none; cursor:pointer; transition:all .2s; }
+    .btn-submit-correction:hover { opacity:.9; }
+    .btn-submit-correction:disabled { opacity:.4; cursor:not-allowed; }
+    .btn-cancel-correction { padding:12px 20px; border-radius:12px; background:#f1f5f9; color:#475569; font-weight:700; font-size:13px; border:1.5px solid #e2e8f0; cursor:pointer; }
+    .btn-cancel-correction:hover { background:#e2e8f0; }
+    .correction-success { display:none; background:#dcfce7; border:1px solid #86efac; border-radius:14px; padding:16px 20px; color:#166534; font-weight:700; font-size:14px; text-align:center; margin-top:16px; }
   </style>
 </head>
 <body>
@@ -1090,8 +1117,14 @@ function renderEvals(){
 }
 
 /* ── EVAL MODAL ── */
+let currentEvalRow = null;
+let currentRubricData = [];
+
 async function openEvalModal(key){
   const row=evalMap[key]; if(!row)return;
+  currentEvalRow = row;
+  currentRubricData = [];
+
   const overlay=document.getElementById('evalModalOverlay');
   const body=document.getElementById('evalModalBody');
   document.getElementById('evalModalTitle').textContent=row.agent_name||'Detalle';
@@ -1116,10 +1149,10 @@ async function openEvalModal(key){
   try{
     const evalId=row.evaluation_id||row.id;
     if(evalId){
-      const {data:rd}=await sb.from('qa_v_evaluation_responses_detail').select('rubric_item,field_key,calculated_score,weight,failed_item,is_bonus').eq('evaluation_id',evalId);
-      const rData=(rd||[]).filter(r=>!r.is_bonus);
-      if(rData.length){
-        const rubricRows=rData.map(r=>{
+      const {data:rd}=await sb.from('qa_v_evaluation_responses_detail').select('rubric_item,field_key,calculated_score,weight,failed_item,is_bonus,rubric_item_id').eq('evaluation_id',evalId);
+      currentRubricData=(rd||[]).filter(r=>!r.is_bonus);
+      if(currentRubricData.length){
+        const rubricRows=currentRubricData.map(r=>{
           const rub=r.rubric_item||r.field_key||'Sin rubro';
           const sc2=Number(r.calculated_score||0),mx=Number(r.weight||0),pct=mx>0?(sc2/mx)*100:0;
           const bg=pct>=90?'#dcfce7':pct>=70?'#fef9c3':'#fee2e2',cl=pct>=90?'#166534':pct>=70?'#854d0e':'#991b1b';
@@ -1129,7 +1162,168 @@ async function openEvalModal(key){
       }
     }
   }catch(e){}
-  body.innerHTML=kpis+feedback+commitment+rubricHtml;
+
+  const corrPanel = `
+    <div class="correction-panel">
+      <div class="correction-panel-header">
+        <div class="correction-panel-title">✏️ Solicitar corrección</div>
+        <button class="btn-request-correction" onclick="toggleCorrForm()">✏️ Solicitar corrección</button>
+      </div>
+      <div class="correction-form" id="corrForm">
+        <div class="corr-field">
+          <label class="corr-label">Tipo de corrección</label>
+          <select class="corr-select" id="corrType" onchange="onCorrTypeChange()">
+            <option value="">Selecciona una opción</option>
+            <option value="Cambio de agente">Cambio de agente (nombre / ID)</option>
+            <option value="Corrección de score">Corrección de score y rubros</option>
+            <option value="Eliminar evaluación">Eliminar evaluación</option>
+          </select>
+        </div>
+
+        <div id="corrSectionAgente" style="display:none;">
+          <div class="corr-section-title">Datos del agente correcto</div>
+          <div class="corr-grid-2">
+            <div class="corr-field">
+              <label class="corr-label">Nombre correcto</label>
+              <input type="text" class="corr-input" id="corrNewAgentName" placeholder="Nombre completo">
+            </div>
+            <div class="corr-field">
+              <label class="corr-label">ID correcto</label>
+              <input type="text" class="corr-input" id="corrNewAgentId" placeholder="Ej. CX00712">
+            </div>
+          </div>
+        </div>
+
+        <div id="corrSectionScore" style="display:none;">
+          <div class="corr-section-title">Nuevo score y rubros</div>
+          <div class="corr-field">
+            <label class="corr-label">Nuevo score final (0–100)</label>
+            <input type="number" class="corr-input" id="corrNewScore" min="0" max="100" step="0.01" placeholder="Ej. 87.5" style="max-width:160px;">
+          </div>
+          <div id="corrRubricRows"></div>
+        </div>
+
+        <div class="corr-field" style="margin-top:16px;">
+          <label class="corr-label">Razón de la corrección <span style="color:#ef4444;">*</span></label>
+          <textarea class="corr-textarea" id="corrReason" placeholder="Describe por qué se necesita esta corrección…"></textarea>
+        </div>
+
+        <div class="corr-actions">
+          <button class="btn-cancel-correction" onclick="toggleCorrForm()">Cancelar</button>
+          <button class="btn-submit-correction" id="btnSubmitCorr" onclick="submitCorrAplazo()">
+            Enviar solicitud
+          </button>
+        </div>
+
+        <div class="correction-success" id="corrSuccess">
+          ✅ Solicitud enviada correctamente. El manager la revisará pronto.
+        </div>
+      </div>
+    </div>`;
+
+  body.innerHTML=kpis+feedback+commitment+rubricHtml+corrPanel;
+}
+
+function toggleCorrForm() {
+  const form = document.getElementById('corrForm');
+  const btn  = document.querySelector('.btn-request-correction');
+  const succ = document.getElementById('corrSuccess');
+  if (!form) return;
+  const open = form.classList.contains('open');
+  form.classList.toggle('open', !open);
+  if (btn) btn.textContent = open ? '✏️ Solicitar corrección' : '✕ Cerrar';
+  if (succ) succ.style.display = 'none';
+}
+
+function onCorrTypeChange() {
+  const type = document.getElementById('corrType')?.value;
+  const sA = document.getElementById('corrSectionAgente');
+  const sS = document.getElementById('corrSectionScore');
+  if (sA) sA.style.display = type === 'Cambio de agente' ? 'block' : 'none';
+  if (sS) sS.style.display = type === 'Corrección de score' ? 'block' : 'none';
+
+  if (type === 'Corrección de score') {
+    const container = document.getElementById('corrRubricRows');
+    if (!container) return;
+    if (currentRubricData.length > 0) {
+      container.innerHTML = currentRubricData.map((r, i) => {
+        const rub = r.rubric_item || r.field_key || `Rubro ${i+1}`;
+        const sc  = Number(r.calculated_score || 0);
+        return `
+          <div class="rubric-edit-row">
+            <div class="rubric-edit-label">${rub}</div>
+            <input type="number" class="rubric-edit-input" id="corrRub_${i}"
+              value="${sc}" min="0" max="${r.weight||10}" step="0.01"
+              placeholder="0–${r.weight||10}">
+          </div>`;
+      }).join('');
+    } else {
+      container.innerHTML = '<p style="font-size:12px;color:#94a3b8;">No hay rubros disponibles.</p>';
+    }
+  }
+}
+
+async function submitCorrAplazo() {
+  const btn    = document.getElementById('btnSubmitCorr');
+  const type   = document.getElementById('corrType')?.value;
+  const reason = document.getElementById('corrReason')?.value?.trim();
+
+  if (!type)   { alert('Selecciona el tipo de corrección.'); return; }
+  if (!reason) { alert('La razón de corrección es obligatoria.'); return; }
+
+  const row = currentEvalRow;
+  if (!row) return;
+
+  const reqBy = row.evaluator_name || 'Sin evaluador';
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  let newRubricResponses = null;
+  if (type === 'Corrección de score' && currentRubricData.length > 0) {
+    newRubricResponses = currentRubricData.map((r, i) => ({
+      rubric_item_id : r.rubric_item_id || null,
+      rubric_item    : r.rubric_item || r.field_key || `Rubro ${i+1}`,
+      original_score : Number(r.calculated_score || 0),
+      new_score      : Number(document.getElementById(`corrRub_${i}`)?.value || 0),
+      weight         : Number(r.weight || 0)
+    }));
+  }
+
+  const payload = {
+    evaluation_id            : row.evaluation_id || row.id || null,
+    correction_type          : type,
+    status                   : 'Pendiente',
+    requested_by             : reqBy,
+    requested_at             : new Date().toISOString(),
+    original_agent_name      : row.agent_name || null,
+    original_agent_identifier: row.agent_identifier || null,
+    original_score_raw       : Number(row.score_raw || 0),
+    original_score_final     : Number(row.score_final || 0),
+    original_evaluator_name  : row.evaluator_name || null,
+    interaction_link         : row.interaction_link || null,
+    new_agent_name           : type === 'Cambio de agente' ? (document.getElementById('corrNewAgentName')?.value?.trim() || null) : null,
+    new_agent_identifier     : type === 'Cambio de agente' ? (document.getElementById('corrNewAgentId')?.value?.trim() || null) : null,
+    new_score_raw            : type === 'Corrección de score' ? (parseFloat(document.getElementById('corrNewScore')?.value) || null) : null,
+    new_score_final          : type === 'Corrección de score' ? (parseFloat(document.getElementById('corrNewScore')?.value) || null) : null,
+    new_rubric_responses     : newRubricResponses,
+    correction_reason        : reason,
+    corrected_by             : reqBy,
+    evaluator_name           : row.evaluator_name || null
+  };
+
+  try {
+    const { error } = await sb.from('qa_evaluation_corrections').insert([payload]);
+    if (error) throw error;
+    const succ = document.getElementById('corrSuccess');
+    if (succ) succ.style.display = 'block';
+    btn.textContent = '✅ Enviado';
+    succ?.scrollIntoView({ behavior:'smooth', block:'center' });
+  } catch(e) {
+    console.error('Correction error:', e);
+    alert('Error al enviar: ' + (e.message || e));
+    btn.disabled = false;
+    btn.textContent = 'Enviar solicitud';
+  }
 }
 
 /* ── AGENT HISTORY ── */
