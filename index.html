@@ -94,11 +94,17 @@
     .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #e2e8f0; border-top-color: #62d3f5; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── EVAL MODAL ── */
+    /* ── DUAL MODAL SIDE BY SIDE ── */
     .eval-modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; background: rgba(15,23,42,.55); z-index: 99999; align-items: flex-start; justify-content: center; padding: 40px 20px 20px; overflow-y: auto; }
     .eval-modal-overlay.active { display: flex; }
-    .eval-modal { background: white; border-radius: 24px; width: 100%; max-width: 680px; max-height: 88vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(15,23,42,.25); animation: modalIn .2s ease; }
+    .eval-modal { background: white; border-radius: 24px; width: 100%; max-width: 680px; max-height: 88vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(15,23,42,.25); animation: modalIn .2s ease; transition: all .3s ease; }
     @keyframes modalIn { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+    /* When eval detail is open alongside agent history */
+    #agentHistoryOverlay.with-eval { justify-content: flex-start; gap: 12px; padding: 24px 12px; }
+    #agentHistoryOverlay.with-eval #agentHistoryModal { max-width: 52%; min-width: 480px; flex-shrink: 0; }
+    #agentHistoryOverlay.with-eval #evalDetailPanel { display: flex; flex-direction: column; max-width: 46%; min-width: 400px; flex-shrink: 0; max-height: 88vh; overflow-y: auto; background: white; border-radius: 24px; box-shadow: 0 24px 60px rgba(15,23,42,.25); animation: modalIn .2s ease; }
+    #evalDetailPanel { display: none; }
     .eval-modal-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 24px 24px 0; gap: 12px; }
     .eval-modal-header h2 { margin:0; font-size:18px; color:#0f172a; }
     .eval-modal-close { background: #f1f5f9; border: none; border-radius: 999px; width: 32px; height: 32px; font-size: 16px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #64748b; }
@@ -292,7 +298,7 @@
     .main-tab.active.tab-analisis  { background: linear-gradient(135deg,#0ea5e9,#38bdf8); color:#0f172a; }
     .main-tab.active.tab-riesgos   { background: linear-gradient(135deg,#ef4444,#fb7185); color:white; }
     .main-tab.active.tab-agentes   { background: linear-gradient(135deg,#8b5cf6,#a78bfa); color:white; }
-    .main-tab.active.tab-correcciones { background: linear-gradient(135deg,#f59e0b,#fbbf24); color:#0f172a; }
+    .main-tab.active.tab-fallas    { background: linear-gradient(135deg,#ef4444,#fb7185); color:white; }
 
     /* ── CORRECCIONES TAB ── */
     .corr-leader-row { display:flex; align-items:center; gap:10px; padding:10px 14px; background:#f8fafc; border:1px solid #f1f5f9; border-radius:14px; margin-bottom:6px; }
@@ -333,7 +339,20 @@
       <div><label>Campaña</label><select id="campaignFilter"><option value="">Todas</option></select></div>
       <div><label>LOB</label><select id="lobFilter"><option value="">Todos</option></select></div>
       <div><label>Queue</label><select id="queueFilter"><option value="">Todas</option></select></div>
-      <div><label>Agente</label><select id="agentFilter"><option value="">Todos</option></select></div>
+      <div style="position:relative;">
+        <label>Agente</label>
+        <div id="agentMultiBtn" onclick="toggleAgentDropdown()" style="width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #e2e8f0;font-size:13px;background:#f8fafc;color:#0f172a;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span id="agentMultiLabel">Todos</span>
+          <span style="color:#94a3b8;font-size:10px;">▼</span>
+        </div>
+        <div id="agentMultiDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.15);z-index:200;max-height:220px;overflow-y:auto;margin-top:2px;">
+          <div style="padding:8px 10px;border-bottom:1px solid #f1f5f9;display:flex;gap:8px;">
+            <input type="text" id="agentMultiSearch" placeholder="Buscar agente…" onclick="event.stopPropagation()" oninput="filterAgentCheckboxes()" style="flex:1;padding:5px 8px;border-radius:7px;border:1px solid #e2e8f0;font-size:8px;background:#f8fafc;margin-bottom:0;">
+            <button onclick="clearAgentSelection();event.stopPropagation()" style="width:auto;padding:4px 8px;font-size:11px;border-radius:7px;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;">Limpiar</button>
+          </div>
+          <div id="agentCheckboxList" style="padding:4px 0;"></div>
+        </div>
+      </div>
       <div><label>Evaluador</label><select id="evaluatorFilter"><option value="">Todos</option></select></div>
       <div><label>&nbsp;</label><button id="actualizarBtn">🔄 Actualizar</button></div>
     </div>
@@ -531,6 +550,48 @@
     </div>
   </div>
 
+  <!-- TAB: FALLAS DEL EQUIPO -->
+  <div class="tab-section" id="tab-fallas">
+    <div class="section-title">Análisis de fallas del equipo por rubro</div>
+
+    <div class="insight" id="fallas-insight">
+      <span class="loading-spinner"></span> Cargando análisis…
+    </div>
+
+    <div class="charts-2" style="margin-bottom:22px;">
+      <div class="chart-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 style="margin:0;">🔥 % del equipo que falló cada rubro</h3>
+          <span style="font-size:11px;color:#94a3b8;font-weight:700;">Periodo seleccionado</span>
+        </div>
+        <canvas id="fallasTeamChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 style="margin:0;">📈 Esta semana vs semana anterior</h3>
+          <span style="font-size:11px;color:#94a3b8;font-weight:700;">Cambio en fallas por rubro</span>
+        </div>
+        <canvas id="fallasDeltaChart"></canvas>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <h3>📋 Detalle de fallas por rubro</h3>
+      <table>
+        <thead><tr>
+          <th>Rubro</th>
+          <th style="text-align:center;">Agentes que fallaron</th>
+          <th style="text-align:center;">Total fallas</th>
+          <th style="text-align:center;">Total evals</th>
+          <th style="text-align:center;">% del equipo</th>
+          <th style="text-align:center;">Semana ant.</th>
+          <th style="text-align:center;">Tendencia</th>
+        </tr></thead>
+        <tbody id="fallasTable"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div><!-- /app -->
 
 <!-- AGENT HISTORY MODAL -->
@@ -541,6 +602,14 @@
       <button class="eval-modal-close" id="agentHistoryClose">✕</button>
     </div>
     <div class="eval-modal-body" id="agentHistoryBody"></div>
+  </div>
+  <!-- Eval detail panel (side by side) -->
+  <div id="evalDetailPanel">
+    <div class="eval-modal-header" style="padding:20px 20px 0;">
+      <h2 id="evalDetailTitle" style="font-size:16px;">Detalle de evaluación</h2>
+      <button class="eval-modal-close" onclick="closeEvalDetailPanel()">✕</button>
+    </div>
+    <div class="eval-modal-body" id="evalDetailBody"></div>
   </div>
 </div>
 
@@ -592,7 +661,8 @@ function getFilters() {
     campaign  : document.getElementById("campaignFilter").value,
     lob       : document.getElementById("lobFilter").value,
     queue     : document.getElementById("queueFilter").value,
-    agent     : document.getElementById("agentFilter").value,
+    agents    : getSelectedAgentIds(), // array, empty = all
+    agent     : getSelectedAgentIds().length === 1 ? getSelectedAgentIds()[0] : "", // legacy single
     evaluator : document.getElementById("evaluatorFilter").value
   };
 }
@@ -603,7 +673,10 @@ function applyBaseFilters(query, filters) {
   if (filters.campaign)  query = query.eq("campaign_key", filters.campaign);
   if (filters.lob)       query = query.eq("lob_key", filters.lob);
   if (filters.queue)     query = query.eq("queue_key", filters.queue);
-  if (filters.agent)     query = query.eq("agent_identifier", filters.agent);
+  if (filters.agents && filters.agents.length > 0) {
+    if (filters.agents.length === 1) query = query.eq("agent_identifier", filters.agents[0]);
+    else query = query.in("agent_identifier", filters.agents);
+  }
   if (filters.evaluator) query = query.eq("evaluator_name", filters.evaluator);
   return query;
 }
@@ -651,17 +724,13 @@ function fillSelect(id, values) {
 }
 
 function fillAgentSelect(id, agentsMap) {
-  const select = document.getElementById(id);
-  if (!select) return;
-  const current = select.value;
-  select.innerHTML = '<option value="">Todos</option>';
-  Object.entries(agentsMap).sort((a,b) => String(a[1]).localeCompare(String(b[1]),"es",{sensitivity:"base"}))
-    .forEach(([agentId, agentName]) => { const o = document.createElement("option"); o.value = agentId; o.textContent = `${agentName} (${agentId})`; select.appendChild(o); });
-  select.value = current;
+  // Build checkbox list instead of select
+  buildAgentCheckboxes(agentsMap);
+  updateAgentMultiLabel();
 }
 
 function getCurrentFilterValues() {
-  return { campaign: document.getElementById("campaignFilter")?.value||"", lob: document.getElementById("lobFilter")?.value||"", queue: document.getElementById("queueFilter")?.value||"", agent: document.getElementById("agentFilter")?.value||"", evaluator: document.getElementById("evaluatorFilter")?.value||"" };
+  return { campaign: document.getElementById("campaignFilter")?.value||"", lob: document.getElementById("lobFilter")?.value||"", queue: document.getElementById("queueFilter")?.value||"", agents: getSelectedAgentIds(), evaluator: document.getElementById("evaluatorFilter")?.value||"" };
 }
 
 function filterOptionsExcluding(excludeKey) {
@@ -670,7 +739,7 @@ function filterOptionsExcluding(excludeKey) {
     if (excludeKey !== "campaign"  && sel.campaign  && row.campaign_key    !== sel.campaign)  return false;
     if (excludeKey !== "lob"       && sel.lob       && row.lob_key         !== sel.lob)       return false;
     if (excludeKey !== "queue"     && sel.queue     && row.queue_key       !== sel.queue)     return false;
-    if (excludeKey !== "agent"     && sel.agent     && row.agent_identifier !== sel.agent)    return false;
+    if (excludeKey !== "agent"     && sel.agents.length > 0 && !sel.agents.includes(row.agent_identifier)) return false;
     if (excludeKey !== "evaluator" && sel.evaluator && row.evaluator_name  !== sel.evaluator) return false;
     return true;
   });
@@ -687,7 +756,6 @@ function refreshAllFilterOptions() {
   restoreSelectValue("campaignFilter", sel.campaign);
   restoreSelectValue("lobFilter",      sel.lob);
   restoreSelectValue("queueFilter",    sel.queue);
-  restoreSelectValue("agentFilter",    sel.agent);
   restoreSelectValue("evaluatorFilter",sel.evaluator);
 }
 
@@ -1094,20 +1162,35 @@ async function loadRubricTable(filters) {
   if(allEvalData.length===0){wrapper.innerHTML=`<div class="muted" style="padding:16px;">No hay evaluaciones para este periodo.</div>`;return;}
   const agentEvalCount={},agentScoreSum={},agentNames={},validAgentKeys=new Set();
   allEvalData.forEach(row=>{const key=row.agent_identifier||row.agent_name||"Unknown";agentEvalCount[key]=(agentEvalCount[key]||0)+1;agentScoreSum[key]=(agentScoreSum[key]||0)+Number(row.score_final||0);if(!agentNames[key])agentNames[key]=row.agent_name||key;validAgentKeys.add(key);});
-  let q=supabaseClient.from("qa_v_evaluation_responses_detail").select("agent_identifier,agent_name,rubric_item,field_key,calculated_score,weight,is_bonus");
+  let q=supabaseClient.from("qa_v_evaluation_responses_detail").select("agent_identifier,agent_name,rubric_item,field_key,calculated_score,weight,is_bonus,failed_item");
   if(filters.startDate)q=q.gte("created_at",filters.startDate+"T00:00:00");if(filters.endDate)q=q.lte("created_at",filters.endDate+"T23:59:59");if(filters.campaign)q=q.eq("campaign_key",filters.campaign);if(filters.lob)q=q.eq("lob_key",filters.lob);if(filters.queue)q=q.eq("queue_key",filters.queue);if(filters.agent)q=q.eq("agent_identifier",filters.agent);if(filters.evaluator)q=q.eq("evaluator_name",filters.evaluator);
   const rawData=await fetchAllRows(q);
   if(!rawData||rawData.length===0){wrapper.innerHTML=`<div class="muted" style="padding:16px;">No hay datos de rubros para este periodo.</div>`;return;}
   const data=rawData.filter(row=>{const key=row.agent_identifier||row.agent_name||"Unknown";return validAgentKeys.has(key)&&!row.is_bonus;});
   if(data.length===0){wrapper.innerHTML=`<div class="muted" style="padding:16px;">No hay datos de rubros para los agentes en este filtro.</div>`;return;}
   const rubricSet=new Set(),agentMap={};
-  data.forEach(row=>{const key=row.agent_identifier||row.agent_name||"Unknown";const rub=row.rubric_item||row.field_key||"Sin rubro";const sc=Number(row.calculated_score||0);const mx=Number(row.weight||0);rubricSet.add(rub);if(!agentMap[key])agentMap[key]={rubrics:{}};if(!agentMap[key].rubrics[rub])agentMap[key].rubrics[rub]={sum:0,count:0,maxWeight:mx};agentMap[key].rubrics[rub].sum+=sc;agentMap[key].rubrics[rub].count+=1;if(mx>agentMap[key].rubrics[rub].maxWeight)agentMap[key].rubrics[rub].maxWeight=mx;});
+  data.forEach(row=>{
+    const key=row.agent_identifier||row.agent_name||"Unknown";
+    const rub=row.rubric_item||row.field_key||"Sin rubro";
+    rubricSet.add(rub);
+    if(!agentMap[key])agentMap[key]={rubrics:{}};
+    if(!agentMap[key].rubrics[rub])agentMap[key].rubrics[rub]={ok:0,count:0};
+    agentMap[key].rubrics[rub].count+=1;
+    if(!row.failed_item) agentMap[key].rubrics[rub].ok+=1;
+  });
   const rubrics=[...rubricSet].sort();
-  function rubricCellClass(avg,maxWeight){if(maxWeight<=0)return"rubric-cell-gray";const pct=(avg/maxWeight)*100;if(pct>=90)return"rubric-cell-green";if(pct>=70)return"rubric-cell-yellow";return"rubric-cell-red";}
   const agents=[...validAgentKeys].map(key=>({key,agent_name:agentNames[key]||key,evals:agentEvalCount[key]||0,avgScore:agentEvalCount[key]?(agentScoreSum[key]/agentEvalCount[key]):0,rubrics:agentMap[key]?.rubrics||{}})).sort((a,b)=>b.avgScore-a.avgScore);
-  const thRubrics=rubrics.map(r=>`<th title="${r}" style="min-width:90px;">${r.length>22?r.slice(0,22)+"…":r}</th>`).join("");
+  const thRubrics=rubrics.map(r=>`<th title="${r}" style="min-width:80px;text-align:center;">${r.length>22?r.slice(0,22)+"…":r}</th>`).join("");
   const thead=`<thead><tr><th style="min-width:160px;">Agente</th><th style="text-align:center;min-width:60px;"># Evals</th><th style="text-align:center;min-width:80px;">Score</th>${thRubrics}</tr></thead>`;
-  const tbody=agents.map(a=>{const cells=rubrics.map(r=>{const d=a.rubrics[r];if(!d||d.count===0)return`<td class="rubric-cell-gray">—</td>`;const avg=d.sum/d.count;const cls=rubricCellClass(avg,d.maxWeight);return`<td class="${cls}" title="${r}: ${avg.toFixed(2)} / ${d.maxWeight}">${avg.toFixed(2)}</td>`;}).join("");return`<tr><td><span onclick="openAgentHistory('${a.key.replace(/'/g,"\\'")}','${a.agent_name.replace(/'/g,"\\'")}' )" style="cursor:pointer;color:#0284c7;font-weight:700;text-decoration:underline;" title="Ver historial de ${a.agent_name}">${a.agent_name}</span></td><td style="text-align:center;">${a.evals}</td><td style="text-align:center;color:${scoreColor(a.avgScore)};font-weight:700;">${a.avgScore.toFixed(2)}%</td>${cells}</tr>`;}).join("");
+  const tbody=agents.map(a=>{
+    const cells=rubrics.map(r=>{
+      const d=a.rubrics[r];
+      if(!d||d.count===0)return`<td class="rubric-cell-gray" style="text-align:center;">—</td>`;
+      const color = d.ok === d.count ? "#0f172a" : "#991b1b";
+      return`<td style="text-align:center;font-weight:700;font-size:13px;color:${color};" title="${r}: ${d.ok} buenas de ${d.count}">${d.ok}/${d.count}</td>`;
+    }).join("");
+    return`<tr><td><span onclick="openAgentHistory('${a.key.replace(/'/g,"\\'")}','${a.agent_name.replace(/'/g,"\\'")}' )" style="cursor:pointer;color:#0284c7;font-weight:700;text-decoration:underline;" title="Ver historial de ${a.agent_name}">${a.agent_name}</span></td><td style="text-align:center;">${a.evals}</td><td style="text-align:center;color:${scoreColor(a.avgScore)};font-weight:700;">${a.avgScore.toFixed(2)}%</td>${cells}</tr>`;
+  }).join("");
   wrapper.innerHTML=`<div style="overflow-x:auto;"><table class="rubric-table">${thead}<tbody>${tbody}</tbody></table></div>`;
 }
 
@@ -1393,6 +1476,98 @@ function closeEvalModal() {
   currentRubricData = [];
 }
 
+/* ── EVAL SIDE PANEL (opens alongside agent history) ── */
+async function openEvalSidePanel(key) {
+  const row = evalRowMap[key];
+  if (!row) return;
+  currentEvalForCorrection = row;
+  currentRubricData = [];
+
+  const panel = document.getElementById("evalDetailPanel");
+  const body  = document.getElementById("evalDetailBody");
+  const title = document.getElementById("evalDetailTitle");
+
+  title.textContent = row.agent_name || "Detalle";
+  body.innerHTML = `<div class="muted" style="padding:20px;text-align:center;"><span class="loading-spinner"></span> Cargando...</div>`;
+
+  // Switch agent history overlay to side-by-side mode
+  document.getElementById("agentHistoryOverlay").classList.add("with-eval");
+  panel.style.display = "flex";
+  panel.style.flexDirection = "column";
+
+  const sc = Number(row.score_final || 0);
+  const kpis = `
+    <div class="eval-modal-kpis">
+      <div class="eval-modal-kpi"><div class="label">Fecha</div><div class="value" style="font-size:14px;">${row.created_date_cdmx||"–"}</div></div>
+      <div class="eval-modal-kpi"><div class="label">Score</div><div class="value" style="color:${scoreColor(sc)}">${sc}%</div></div>
+      <div class="eval-modal-kpi"><div class="label">Error Crítico</div><div class="value" style="font-size:14px;">${row.critical_error_triggered?'<span class="badge badge-red">Sí</span>':'<span class="badge badge-green">No</span>'}</div></div>
+    </div>`;
+
+  const interactionLink = row.interaction_link
+    ? `<a href="${row.interaction_link}" target="_blank" rel="noopener" class="eval-feedback-link">🔗 Ver interacción</a>`
+    : `<span style="font-size:12px;color:#94a3b8;">Sin interaction link</span>`;
+
+  const feedback = `<div class="eval-modal-section"><h4>💬 Feedback</h4><p>${row.feedback||"Sin feedback."}</p><div style="margin-top:8px;">${interactionLink}</div></div>`;
+  const commitment = `<div class="eval-modal-section"><h4>📋 Compromiso</h4><p>${row.agent_commitment||"Sin compromiso."}</p></div>`;
+
+  let rubricSection = "";
+  try {
+    const evalId = row.evaluation_id || row.id;
+    if (evalId) {
+      const { data: rData, error } = await supabaseClient
+        .from("qa_v_evaluation_responses_detail")
+        .select("rubric_item,field_key,calculated_score,weight,failed_item,is_bonus,rubric_item_id")
+        .eq("evaluation_id", evalId);
+      if (!error && rData) {
+        currentRubricData = rData.filter(r => !r.is_bonus);
+        if (currentRubricData.length > 0) {
+          const rubricRows = currentRubricData.map(r => {
+            const rub = r.rubric_item || r.field_key || "Sin rubro";
+            const sc2 = Number(r.calculated_score || 0);
+            const mx  = Number(r.weight || 0);
+            const pct = mx > 0 ? (sc2/mx)*100 : 0;
+            const bg  = pct>=90?"#dcfce7":pct>=70?"#fef9c3":"#fee2e2";
+            const cl  = pct>=90?"#166534":pct>=70?"#854d0e":"#991b1b";
+            const fail= r.failed_item?'<span class="badge badge-red">Falla</span>':'<span class="badge badge-green">OK</span>';
+            return `<tr><td>${rub}</td><td style="text-align:center;">${fail}</td><td style="text-align:center;background:${bg};color:${cl};font-weight:700;border-radius:6px;">${pct.toFixed(1)}%</td><td style="text-align:center;color:#94a3b8;">${sc2}/${mx}</td></tr>`;
+          }).join("");
+          rubricSection = `<div class="eval-modal-section"><h4>📐 Rubros</h4><table class="eval-modal-rubrics"><thead><tr><th>Rubro</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Score</th><th style="text-align:center;">Pts</th></tr></thead><tbody>${rubricRows}</tbody></table></div>`;
+        }
+      }
+    }
+  } catch(e) {}
+
+  const correctionPanel = buildCorrectionPanel(row);
+  body.innerHTML = kpis + feedback + commitment + rubricSection + correctionPanel;
+}
+
+function closeEvalDetailPanel() {
+  document.getElementById("evalDetailPanel").style.display = "none";
+  document.getElementById("agentHistoryOverlay").classList.remove("with-eval");
+  currentEvalForCorrection = null;
+  currentRubricData = [];
+}
+
+/* ── RUBRO FILTER ── */
+function filterEvalsByRubric(rubric) {
+  const failMap = window._agentEvalFailMap || {};
+  const badge = document.getElementById("evalFilterBadge");
+  if (badge) { badge.style.display = "inline"; badge.textContent = `✕ Filtro: ${rubric.length>30?rubric.slice(0,30)+"…":rubric}`; }
+
+  const rows = document.querySelectorAll("#evalLogTbody .agent-eval-row");
+  rows.forEach(row => {
+    const evalId = row.dataset.evalId;
+    const hasFail = evalId && failMap[evalId] && failMap[evalId].has(rubric);
+    row.style.display = hasFail ? "" : "none";
+  });
+}
+
+function clearEvalFilter() {
+  const badge = document.getElementById("evalFilterBadge");
+  if (badge) badge.style.display = "none";
+  document.querySelectorAll("#evalLogTbody .agent-eval-row").forEach(row => { row.style.display = ""; });
+}
+
 /* ═══════════════════════════════════════════════
    AGENT HISTORY MODAL
 ═══════════════════════════════════════════════ */
@@ -1414,9 +1589,73 @@ async function openAgentHistory(agentId, agentName) {
   const chartHtml=`<div class="eval-modal-section"><h4>📈 Tendencia semanal</h4><canvas id="${chartId}" height="100"></canvas></div>`;
   const{data:rubricData}=await supabaseClient.from("qa_v_evaluation_responses_detail").select("rubric_item,field_key,calculated_score,weight,failed_item,is_bonus").eq("agent_identifier",agentId).gte("created_at",dateFrom+"T00:00:00").lte("created_at",dateTo+"T23:59:59");
   let rubricSection="";
-  if(rubricData&&rubricData.length>0){const nonBonus=rubricData.filter(r=>!r.is_bonus);const rubMap={};nonBonus.forEach(r=>{const rub=r.rubric_item||r.field_key||"Sin rubro";const sc=Number(r.calculated_score||0);const mx=Number(r.weight||0);if(!rubMap[rub])rubMap[rub]={sum:0,count:0,maxW:mx,fails:0};rubMap[rub].sum+=sc;rubMap[rub].count++;if(r.failed_item)rubMap[rub].fails++;if(mx>rubMap[rub].maxW)rubMap[rub].maxW=mx;});const rubRows=Object.entries(rubMap).map(([rub,v])=>({rub,pct:v.maxW>0?(v.sum/v.count)/v.maxW*100:0,fails:v.fails,count:v.count})).sort((a,b)=>a.pct-b.pct).map(r=>{const bg=r.pct>=90?"#dcfce7":r.pct>=70?"#fef9c3":"#fee2e2";const cl=r.pct>=90?"#166534":r.pct>=70?"#854d0e":"#991b1b";return`<tr><td><strong>${r.rub}</strong></td><td style="text-align:center;">${r.count}</td><td style="text-align:center;color:#ef4444;font-weight:700;">${r.fails}</td><td style="text-align:center;background:${bg};color:${cl};font-weight:800;border-radius:6px;">${r.pct.toFixed(2)}%</td></tr>`;}).join("");rubricSection=`<div class="eval-modal-section"><h4>📐 Score promedio por rubro (3 meses)</h4><table class="eval-modal-rubrics"><thead><tr><th>Rubro</th><th style="text-align:center;">Evals</th><th style="text-align:center;">Fallas</th><th style="text-align:center;">Score %</th></tr></thead><tbody>${rubRows}</tbody></table></div>`;}
-  const evalLog=[...evals].reverse().map((r,i)=>{const sc=Number(r.score_final||0);const key=`agentEval_${i}`;evalRowMap[key]=r;return`<tr style="cursor:pointer;" onclick="openEvalModal('${key}')" title="Ver detalle"><td>${r.created_date_cdmx||""}</td><td style="color:${scoreColor(sc)};font-weight:700;">${sc}%</td><td>${r.critical_error_triggered?'<span class="badge badge-red">Sí</span>':'<span class="badge badge-green">No</span>'}</td><td style="font-size:12px;color:#64748b;">${r.evaluator_name||"–"}</td><td style="color:#475569;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.feedback?(r.feedback.length>60?r.feedback.slice(0,60)+"...":r.feedback):"Sin feedback"}</td></tr>`;}).join("");
-  const evalLogSection=`<div class="eval-modal-section"><h4>📝 Historial de evaluaciones <span style="color:#94a3b8;font-weight:400;">(click para ver detalle)</span></h4><table class="eval-modal-rubrics"><thead><tr><th>Fecha</th><th>Score</th><th>EC</th><th>Evaluador</th><th>Feedback</th></tr></thead><tbody>${evalLog}</tbody></table></div>`;
+  if(rubricData&&rubricData.length>0){
+    const nonBonus=rubricData.filter(r=>!r.is_bonus);
+    const rubMap={};
+    // Also build a map of evaluation_id → failed rubrics for filtering
+    const evalFailMap = {}; // evaluation_id → Set of rubric names that failed
+    nonBonus.forEach(r=>{
+      const rub=r.rubric_item||r.field_key||"Sin rubro";
+      const sc=Number(r.calculated_score||0);
+      const mx=Number(r.weight||0);
+      if(!rubMap[rub])rubMap[rub]={sum:0,count:0,maxW:mx,fails:0};
+      rubMap[rub].sum+=sc;
+      rubMap[rub].count++;
+      if(r.failed_item){
+        rubMap[rub].fails++;
+        if(r.evaluation_id){
+          if(!evalFailMap[r.evaluation_id]) evalFailMap[r.evaluation_id]=new Set();
+          evalFailMap[r.evaluation_id].add(rub);
+        }
+      }
+      if(mx>rubMap[rub].maxW)rubMap[rub].maxW=mx;
+    });
+
+    // Store evalFailMap globally for filter use
+    window._agentEvalFailMap = evalFailMap;
+
+    const rubRows=Object.entries(rubMap).map(([rub,v])=>{
+      const avgPts = v.count > 0 ? (v.sum/v.count) : 0;
+      const pct    = v.maxW > 0 ? (avgPts/v.maxW)*100 : 0;
+      const failColor = v.fails > 0 ? "#991b1b" : "#16a34a";
+      const bg  = pct>=90?"#dcfce7":pct>=70?"#fef9c3":"#fee2e2";
+      const cl  = pct>=90?"#166534":pct>=70?"#854d0e":"#991b1b";
+      const failCell = v.fails > 0
+        ? `<td style="text-align:center;"><span style="color:#991b1b;font-weight:800;cursor:pointer;text-decoration:underline;" onclick="filterEvalsByRubric('${rub.replace(/'/g,"\\'")}')" title="Ver evaluaciones con falla en este rubro">${v.fails}</span></td>`
+        : `<td style="text-align:center;color:#16a34a;font-weight:700;">0</td>`;
+      return`<tr>
+        <td><strong>${rub}</strong></td>
+        <td style="text-align:center;">${v.count}</td>
+        ${failCell}
+        <td style="text-align:center;">${avgPts.toFixed(2)}</td>
+        <td style="text-align:center;color:#64748b;">${v.maxW}</td>
+        <td style="text-align:center;background:${bg};color:${cl};font-weight:800;border-radius:6px;">${pct.toFixed(2)}%</td>
+      </tr>`;
+    }).join("");
+    rubricSection=`<div class="eval-modal-section"><h4>📐 Score promedio por rubro (3 meses) <span style="font-size:11px;color:#94a3b8;font-weight:400;">— click en fallas para filtrar evaluaciones</span></h4><table class="eval-modal-rubrics"><thead><tr><th>Rubro</th><th style="text-align:center;">Evals</th><th style="text-align:center;">Fallas</th><th style="text-align:center;">Pts obtenidos</th><th style="text-align:center;">Pts máx</th><th style="text-align:center;">Score %</th></tr></thead><tbody>${rubRows}</tbody></table></div>`;
+  }
+  const evalLog=[...evals].reverse().map((r,i)=>{
+    const sc=Number(r.score_final||0);
+    const key=`agentEval_${i}`;
+    evalRowMap[key]=r;
+    return`<tr style="cursor:pointer;" class="agent-eval-row" data-eval-id="${r.evaluation_id||r.id||''}" onclick="openEvalSidePanel('${key}')" title="Ver detalle">
+      <td>${r.created_date_cdmx||""}</td>
+      <td style="color:${scoreColor(sc)};font-weight:700;">${sc}%</td>
+      <td>${r.critical_error_triggered?'<span class="badge badge-red">Sí</span>':'<span class="badge badge-green">No</span>'}</td>
+      <td style="font-size:12px;color:#64748b;">${r.evaluator_name||"–"}</td>
+      <td style="color:#475569;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.feedback?(r.feedback.length>60?r.feedback.slice(0,60)+"...":r.feedback):"Sin feedback"}</td>
+    </tr>`;
+  }).join("");
+  const evalLogSection=`<div class="eval-modal-section" id="evalLogSection">
+    <h4>📝 Historial de evaluaciones
+      <span style="color:#94a3b8;font-weight:400;">(click para ver detalle)</span>
+      <span id="evalFilterBadge" style="display:none;margin-left:8px;background:#fee2e2;color:#991b1b;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;cursor:pointer;" onclick="clearEvalFilter()">✕ Quitar filtro</span>
+    </h4>
+    <table class="eval-modal-rubrics">
+      <thead><tr><th>Fecha</th><th>Score</th><th>EC</th><th>Evaluador</th><th>Feedback</th></tr></thead>
+      <tbody id="evalLogTbody">${evalLog}</tbody>
+    </table>
+  </div>`;
   body.innerHTML=kpis+chartHtml+rubricSection+evalLogSection;
   if(agentHistoryChart){agentHistoryChart.destroy();agentHistoryChart=null;}
   agentHistoryChart=new Chart(document.getElementById(chartId),{type:"line",data:{labels:weeks,datasets:[{type:"bar",label:"# Evals",data:weekCounts,backgroundColor:"rgba(56,189,248,.3)",borderRadius:6,yAxisID:"yCount"},{type:"line",label:"Score",data:weekScores,borderColor:"#0284c7",backgroundColor:"rgba(2,132,199,.1)",borderWidth:3,pointRadius:5,tension:0.3,fill:true,yAxisID:"yScore"},{type:"bar",label:"Errores Críticos",data:weekCrits,backgroundColor:"rgba(239,68,68,.6)",borderRadius:4,yAxisID:"yCount"}]},options:{responsive:true,interaction:{mode:"index",intersect:false},plugins:{legend:{display:true},datalabels:{display:ctx=>ctx.dataset.label==="Score",align:"top",anchor:"end",color:"#0284c7",font:{weight:"bold",size:11},formatter:v=>v?v.toFixed(1)+"%":""}},scales:{yScore:{type:"linear",position:"left",min:0,max:100,title:{display:true,text:"Score %"}},yCount:{type:"linear",position:"right",beginAtZero:true,grid:{drawOnChartArea:false},title:{display:true,text:"# Evals"}}}},plugins:[ChartDataLabels]});
@@ -1426,8 +1665,247 @@ async function openAgentHistory(agentId, agentName) {
    CLIENT MODE
 ═══════════════════════════════════════════════ */
 /* ═══════════════════════════════════════════════
-   CORRECCIONES TAB
+   MULTI-SELECT AGENT FILTER
 ═══════════════════════════════════════════════ */
+let selectedAgents = new Set(); // Set of agent_identifier values
+
+function toggleAgentDropdown() {
+  const dd = document.getElementById("agentMultiDropdown");
+  dd.style.display = dd.style.display === "none" ? "block" : "none";
+}
+
+// Close dropdown when clicking outside
+document.addEventListener("click", e => {
+  const btn = document.getElementById("agentMultiBtn");
+  const dd  = document.getElementById("agentMultiDropdown");
+  if (btn && dd && !btn.contains(e.target) && !dd.contains(e.target)) {
+    dd.style.display = "none";
+  }
+});
+
+function buildAgentCheckboxes(agentsMap) {
+  const container = document.getElementById("agentCheckboxList");
+  if (!container) return;
+  const entries = Object.entries(agentsMap).sort((a,b) => String(a[1]).localeCompare(String(b[1]),"es",{sensitivity:"base"}));
+  container.innerHTML = entries.map(([id, name]) => `
+    <label style="display:flex;align-items:center;gap:8px;padding:5px 12px;cursor:pointer;font-size:11px;color:#0f172a;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''" class="agent-checkbox-item" data-name="${name.toLowerCase()}">
+      <input type="checkbox" value="${id}" onchange="onAgentCheckboxChange(this)" ${selectedAgents.has(id)?"checked":""} style="width:13px;height:13px;accent-color:#62d3f5;cursor:pointer;">
+      <span>${name} <span style="color:#94a3b8;font-size:10px;">(${id})</span></span>
+    </label>`).join("");
+}
+
+function onAgentCheckboxChange(checkbox) {
+  if (checkbox.checked) selectedAgents.add(checkbox.value);
+  else selectedAgents.delete(checkbox.value);
+  updateAgentMultiLabel();
+}
+
+function updateAgentMultiLabel() {
+  const label = document.getElementById("agentMultiLabel");
+  if (!label) return;
+  if (selectedAgents.size === 0) label.textContent = "Todos";
+  else if (selectedAgents.size === 1) {
+    const name = document.querySelector(`#agentCheckboxList input[value="${[...selectedAgents][0]}"]`)?.closest("label")?.querySelector("span > span:first-child")?.textContent || [...selectedAgents][0];
+    label.textContent = name || "1 agente";
+  } else label.textContent = `${selectedAgents.size} agentes`;
+}
+
+function clearAgentSelection() {
+  selectedAgents.clear();
+  document.querySelectorAll("#agentCheckboxList input[type=checkbox]").forEach(cb => cb.checked = false);
+  updateAgentMultiLabel();
+}
+
+function filterAgentCheckboxes() {
+  const q = (document.getElementById("agentMultiSearch")?.value || "").toLowerCase();
+  document.querySelectorAll(".agent-checkbox-item").forEach(item => {
+    item.style.display = item.dataset.name.includes(q) ? "" : "none";
+  });
+}
+
+function getSelectedAgentIds() {
+  return selectedAgents.size > 0 ? [...selectedAgents] : [];
+}
+
+/* ═══════════════════════════════════════════════
+   FALLAS DEL EQUIPO TAB
+═══════════════════════════════════════════════ */
+let fallasTeamChart = null, fallasDeltaChart = null;
+
+async function loadFallas() {
+  const filters = getFilters();
+  document.getElementById("fallas-insight").innerHTML = `<span class="loading-spinner"></span> Cargando análisis de fallas…`;
+
+  try {
+    // Current period
+    let q = supabaseClient.from("qa_v_evaluation_responses_detail")
+      .select("agent_identifier,agent_name,rubric_item,field_key,failed_item,is_bonus,evaluation_id");
+    if (filters.startDate) q = q.gte("created_at", filters.startDate + "T00:00:00");
+    if (filters.endDate)   q = q.lte("created_at", filters.endDate + "T23:59:59");
+    if (filters.campaign)  q = q.eq("campaign_key", filters.campaign);
+    if (filters.lob)       q = q.eq("lob_key", filters.lob);
+    if (filters.queue)     q = q.eq("queue_key", filters.queue);
+    if (filters.evaluator) q = q.eq("evaluator_name", filters.evaluator);
+    const agentIds = getSelectedAgentIds();
+    if (agentIds.length > 0) q = q.in("agent_identifier", agentIds);
+
+    const rawData = await fetchAllRows(q);
+    const data = (rawData || []).filter(r => !r.is_bonus);
+
+    // Previous week for comparison
+    const now = new Date();
+    const thisMonday = new Date(now); thisMonday.setDate(now.getDate() - (now.getDay()===0?6:now.getDay()-1)); thisMonday.setHours(0,0,0,0);
+    const lastMonday = new Date(thisMonday); lastMonday.setDate(thisMonday.getDate()-7);
+    const lastSunday = new Date(thisMonday); lastSunday.setDate(thisMonday.getDate()-1);
+
+    let qPrev = supabaseClient.from("qa_v_evaluation_responses_detail")
+      .select("rubric_item,field_key,failed_item,is_bonus")
+      .gte("created_at", lastMonday.toISOString().split("T")[0] + "T00:00:00")
+      .lte("created_at", lastSunday.toISOString().split("T")[0] + "T23:59:59");
+    if (filters.campaign)  qPrev = qPrev.eq("campaign_key", filters.campaign);
+    if (filters.lob)       qPrev = qPrev.eq("lob_key", filters.lob);
+    if (filters.queue)     qPrev = qPrev.eq("queue_key", filters.queue);
+    if (filters.evaluator) qPrev = qPrev.eq("evaluator_name", filters.evaluator);
+    if (agentIds.length > 0) qPrev = qPrev.in("agent_identifier", agentIds);
+    const prevRaw = await fetchAllRows(qPrev);
+    const prevData = (prevRaw || []).filter(r => !r.is_bonus);
+
+    // Build rubric stats for current period
+    const totalAgents = new Set(data.map(r => r.agent_identifier).filter(Boolean)).size;
+    const rubricMap = {};
+    data.forEach(r => {
+      const rub = r.rubric_item || r.field_key || "Sin rubro";
+      if (!rubricMap[rub]) rubricMap[rub] = { total:0, fails:0, agents:new Set(), failAgents:new Set() };
+      rubricMap[rub].total++;
+      if (r.agent_identifier) rubricMap[rub].agents.add(r.agent_identifier);
+      if (r.failed_item) {
+        rubricMap[rub].fails++;
+        if (r.agent_identifier) rubricMap[rub].failAgents.add(r.agent_identifier);
+      }
+    });
+
+    // Build prev week rubric fail counts
+    const prevRubricFails = {};
+    prevData.forEach(r => {
+      if (!r.failed_item) return;
+      const rub = r.rubric_item || r.field_key || "Sin rubro";
+      prevRubricFails[rub] = (prevRubricFails[rub]||0)+1;
+    });
+
+    // Sort by fail % descending
+    const items = Object.entries(rubricMap)
+      .map(([rub, v]) => ({
+        rub,
+        fails:      v.fails,
+        total:      v.total,
+        agents:     v.agents.size,
+        failAgents: v.failAgents.size,
+        pct:        v.agents.size > 0 ? (v.failAgents.size / (totalAgents||1)) * 100 : 0,
+        prevFails:  prevRubricFails[rub] || 0
+      }))
+      .sort((a,b) => b.pct - a.pct);
+
+    if (!items.length) {
+      document.getElementById("fallas-insight").textContent = "No hay datos de rubros para los filtros seleccionados.";
+      document.getElementById("fallasTable").innerHTML = `<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:24px;">Sin datos.</td></tr>`;
+      return;
+    }
+
+    // Insight
+    const top = items[0];
+    const worst = items.filter(i => i.pct > 50);
+    document.getElementById("fallas-insight").innerHTML = `
+      El rubro con más fallas es <strong>${top.rub}</strong> — falló en <strong>${top.failAgents}</strong> de ${totalAgents} agentes (${top.pct.toFixed(1)}% del equipo).
+      ${worst.length > 1 ? `<strong>${worst.length} rubros</strong> tienen fallas en más del 50% del equipo y requieren atención.` : ""}`;
+
+    // Bar chart — % del equipo
+    if (fallasTeamChart) { fallasTeamChart.destroy(); fallasTeamChart = null; }
+    const topItems = items.slice(0, 12);
+    const teamCanvas = document.getElementById("fallasTeamChart");
+    teamCanvas.style.height = Math.max(300, topItems.length * 36) + "px";
+    fallasTeamChart = new Chart(teamCanvas, {
+      type: "bar",
+      data: {
+        labels: topItems.map(i => i.rub),
+        datasets: [{
+          label: "% del equipo con falla",
+          data:  topItems.map(i => parseFloat(i.pct.toFixed(1))),
+          backgroundColor: topItems.map(i => i.pct>=50?"#ef4444":i.pct>=25?"#f59e0b":"#62d3f5"),
+          borderRadius: 6
+        }]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          datalabels: { anchor:"end", align:"right", color:"#0f172a", font:{weight:"bold",size:11}, formatter: v => v+"%" }
+        },
+        scales: {
+          x: { beginAtZero:true, max:100, ticks:{ callback: v=>v+"%" }, title:{display:true,text:"% agentes con falla"} },
+          y: { ticks:{ font:{size:12}, autoSkip:false } }
+        },
+        layout: { padding: { right: 40 } }
+      },
+      plugins: [ChartDataLabels]
+    });
+
+    if (fallasDeltaChart) { fallasDeltaChart.destroy(); fallasDeltaChart = null; }
+    const deltaItems = items.filter(i => i.prevFails > 0 || i.fails > 0).slice(0, 10);
+    const deltaCanvas = document.getElementById("fallasDeltaChart");
+    deltaCanvas.style.height = Math.max(280, deltaItems.length * 36) + "px";
+    fallasDeltaChart = new Chart(deltaCanvas, {
+      type: "bar",
+      data: {
+        labels: deltaItems.map(i => i.rub),
+        datasets: [
+          { label:"Periodo actual",   data:deltaItems.map(i=>i.fails),     backgroundColor:"rgba(239,68,68,.75)", borderRadius:4 },
+          { label:"Semana anterior",  data:deltaItems.map(i=>i.prevFails), backgroundColor:"rgba(148,163,184,.5)", borderRadius:4 }
+        ]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display:true, position:"bottom" },
+          datalabels: { display:false }
+        },
+        scales: {
+          x: { beginAtZero:true, ticks:{precision:0}, title:{display:true,text:"Número de fallas"} },
+          y: { ticks:{ font:{size:12}, autoSkip:false } }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+
+    // Table
+    document.getElementById("fallasTable").innerHTML = items.map(item => {
+      const delta = item.fails - item.prevFails;
+      const trend = delta > 0
+        ? `<span style="color:#ef4444;font-weight:800;">▲ +${delta}</span>`
+        : delta < 0
+        ? `<span style="color:#22c55e;font-weight:800;">▼ ${delta}</span>`
+        : `<span style="color:#94a3b8;">→</span>`;
+      const pctBg    = item.pct >= 50 ? "#fee2e2" : item.pct >= 25 ? "#fef9c3" : "#dcfce7";
+      const pctColor = item.pct >= 50 ? "#991b1b" : item.pct >= 25 ? "#854d0e" : "#166534";
+      return `<tr>
+        <td><strong>${item.rub}</strong></td>
+        <td style="text-align:center;">${item.failAgents} / ${totalAgents}</td>
+        <td style="text-align:center;color:#ef4444;font-weight:700;">${item.fails}</td>
+        <td style="text-align:center;color:#64748b;">${item.total}</td>
+        <td style="text-align:center;"><span style="background:${pctBg};color:${pctColor};font-weight:800;border-radius:8px;padding:3px 9px;font-size:12px;">${item.pct.toFixed(1)}%</span></td>
+        <td style="text-align:center;color:#64748b;">${item.prevFails}</td>
+        <td style="text-align:center;">${trend}</td>
+      </tr>`;
+    }).join("");
+
+  } catch(e) {
+    console.error("Error loading fallas:", e);
+    document.getElementById("fallas-insight").textContent = "Error al cargar datos de fallas.";
+  }
+}
 const CLIENT_DOMAIN="@aplazo.mx", EVOLVE_DOMAIN="@evolvecx.io";
 let clientModeActive=false;
 const CLIENT_CAMPAIGN_KEY="aplazo";
@@ -1738,6 +2216,7 @@ function switchMainTab(tabId) {
   setTimeout(()=>window.dispatchEvent(new Event("resize")),50);
   // Load correcciones data on first visit
   if (tabId === "correcciones") loadCorrecciones();
+  if (tabId === "fallas") loadFallas();
 }
 
 /* ═══════════════════════════════════════════════
@@ -1753,14 +2232,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.querySelectorAll(".main-tab").forEach(btn=>btn.addEventListener("click",()=>switchMainTab(btn.dataset.tab)));
   document.querySelectorAll("#groupTabs .tab").forEach(tab=>tab.addEventListener("click",()=>{document.querySelectorAll("#groupTabs .tab").forEach(t=>t.classList.remove("active"));tab.classList.add("active");groupTabsGroup=tab.dataset.group;loadGroupTable();}));
 
-  document.getElementById("actualizarBtn")?.addEventListener("click",()=>loadDashboard());
+  document.getElementById("actualizarBtn")?.addEventListener("click",()=>{
+    loadDashboard();
+    if (activeMainTab === "fallas") loadFallas();
+    if (activeMainTab === "correcciones") loadCorrecciones();
+  });
   document.getElementById("clientModeBtn")?.addEventListener("click",()=>toggleClientMode());
   document.getElementById("clientExitBtn")?.addEventListener("click",()=>toggleClientMode());
   document.getElementById("paretoToggleBtn")?.addEventListener("click",()=>toggleParetoView());
   document.getElementById("evalModalClose")?.addEventListener("click",()=>closeEvalModal());
   document.getElementById("evalModalOverlay")?.addEventListener("click",e=>{if(e.target.id==="evalModalOverlay")closeEvalModal();});
-  document.getElementById("agentHistoryClose")?.addEventListener("click",()=>document.getElementById("agentHistoryOverlay").classList.remove("active"));
-  document.getElementById("agentHistoryOverlay")?.addEventListener("click",e=>{if(e.target.id==="agentHistoryOverlay")document.getElementById("agentHistoryOverlay").classList.remove("active");});
+  document.getElementById("agentHistoryClose")?.addEventListener("click",()=>{ closeEvalDetailPanel(); document.getElementById("agentHistoryOverlay").classList.remove("active"); });
+  document.getElementById("agentHistoryOverlay")?.addEventListener("click",e=>{if(e.target.id==="agentHistoryOverlay"){ closeEvalDetailPanel(); document.getElementById("agentHistoryOverlay").classList.remove("active"); }});
 
   await loadFilterOptions();
   await loadDashboard();
