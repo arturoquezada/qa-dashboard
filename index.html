@@ -1931,6 +1931,159 @@ const CLIENT_CAMPAIGN_KEY="aplazo";
 let previousCampaignValue="";
 let corrWeeklyChart=null, corrTypeChart=null, corrResolutionChart=null;
 
+async function buildClientView() {
+  const data = allEvalData;
+  if (!data.length) return;
+
+  const aplazoData = data.filter(r => (r.evaluator_name||"").includes(CLIENT_DOMAIN));
+  const evolveData = data.filter(r => (r.evaluator_name||"").includes(EVOLVE_DOMAIN));
+
+  function avg(arr) { return arr.length ? arr.reduce((s,x)=>s+Number(x.score_final||0),0)/arr.length : 0; }
+  function crit(arr) { return arr.length ? (arr.filter(x=>x.critical_error_triggered).length/arr.length)*100 : 0; }
+
+  const aplazoAvg = avg(aplazoData), evolveAvg = avg(evolveData), globalAvg = avg(data);
+  const aplazoCrit = crit(aplazoData), evolveCrit = crit(evolveData), globalCrit = crit(data);
+  const aplazoAgents = new Set(aplazoData.map(x=>x.agent_identifier||x.agent_name).filter(Boolean)).size;
+  const evolveAgents = new Set(evolveData.map(x=>x.agent_identifier||x.agent_name).filter(Boolean)).size;
+
+  let clientContainer = document.getElementById("clientViewContainer");
+  if (!clientContainer) {
+    clientContainer = document.createElement("div");
+    clientContainer.id = "clientViewContainer";
+    clientContainer.className = "client-only tab-section active";
+    document.querySelector(".app").insertBefore(clientContainer, document.querySelector(".main-tabs-wrap"));
+  }
+
+  function weeklyGroup(arr) {
+    const byWeek = {};
+    arr.forEach(r => {
+      if (!r.created_date_cdmx) return;
+      const dt = new Date(r.created_date_cdmx+"T12:00:00");
+      const dow = dt.getDay();
+      dt.setDate(dt.getDate()+(dow===0?-6:1-dow));
+      const w = dt.toISOString().split("T")[0];
+      if (!byWeek[w]) byWeek[w] = { scores:[], criticals:0, evals:0 };
+      byWeek[w].scores.push(Number(r.score_final||0));
+      if (r.critical_error_triggered) byWeek[w].criticals++;
+      byWeek[w].evals++;
+    });
+    return byWeek;
+  }
+  const aplazoWeeks = weeklyGroup(aplazoData);
+  const evolveWeeks = weeklyGroup(evolveData);
+  const allWeeks = [...new Set([...Object.keys(aplazoWeeks),...Object.keys(evolveWeeks)])].sort();
+
+  // Pareto — only @aplazo.mx evals
+  const aplazoEvalIds = aplazoData.map(r => r.evaluation_id || r.id).filter(Boolean);
+  let paretoRows = [];
+  if (aplazoEvalIds.length > 0) {
+    const { data: rd } = await supabaseClient
+      .from("qa_v_evaluation_responses_detail")
+      .select("rubric_item,field_key,failed_item,is_bonus")
+      .in("evaluation_id", aplazoEvalIds.slice(0,1000))
+      .eq("failed_item", true);
+    paretoRows = (rd || []).filter(r => !r.is_bonus);
+  }
+  const paretoMap = {};
+  paretoRows.forEach(r => { const k = r.rubric_item||r.field_key||"Sin rubro"; paretoMap[k]=(paretoMap[k]||0)+1; });
+  const paretoTotal = Object.values(paretoMap).reduce((a,b)=>a+b,0);
+  const paretoItems = Object.entries(paretoMap).map(([l,c])=>({label:l,count:c})).sort((a,b)=>b.count-a.count).slice(0,10);
+  let cumPct = 0;
+  const paretoCumPct = paretoItems.map(i => { cumPct += i.count; return paretoTotal ? Number(((cumPct/paretoTotal)*100).toFixed(2)) : 0; });
+
+  clientContainer.innerHTML = `
+    <div class="section-title">Vista Cliente — Aplazo</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;">
+      <div class="client-kpi-card blue">
+        <div class="client-kpi-label">Score Aplazo (@aplazo.mx)</div>
+        <div class="client-kpi-value" style="color:${scoreColor(aplazoAvg)}">${aplazoAvg.toFixed(2)}%</div>
+        <div class="client-kpi-sub">${aplazoData.length} evaluaciones · ${aplazoAgents} agentes</div>
+      </div>
+      <div class="client-kpi-card teal">
+        <div class="client-kpi-label">Score EvolveCX (@evolvecx.io)</div>
+        <div class="client-kpi-value" style="color:${scoreColor(evolveAvg)}">${evolveAvg.toFixed(2)}%</div>
+        <div class="client-kpi-sub">${evolveData.length} evaluaciones · ${evolveAgents} agentes</div>
+      </div>
+      <div class="client-kpi-card red">
+        <div class="client-kpi-label">Critical Error Rate Global</div>
+        <div class="client-kpi-value" style="color:#ef4444">${globalCrit.toFixed(2)}%</div>
+        <div class="client-kpi-sub">${data.length} evaluaciones totales</div>
+      </div>
+      <div class="client-kpi-card green">
+        <div class="client-kpi-label">Score Promedio Global</div>
+        <div class="client-kpi-value" style="color:${scoreColor(globalAvg)}">${globalAvg.toFixed(2)}%</div>
+        <div class="client-kpi-sub">${data.length} evaluaciones totales</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px;">
+      <div class="client-kpi-card blue">
+        <div class="client-kpi-label">Critical Error Rate — Aplazo</div>
+        <div class="client-kpi-value" style="color:#ef4444">${aplazoCrit.toFixed(2)}%</div>
+        <div class="client-kpi-sub">${aplazoData.filter(x=>x.critical_error_triggered).length} errores en ${aplazoData.length} evals</div>
+      </div>
+      <div class="client-kpi-card teal">
+        <div class="client-kpi-label">Critical Error Rate — EvolveCX</div>
+        <div class="client-kpi-value" style="color:#ef4444">${evolveCrit.toFixed(2)}%</div>
+        <div class="client-kpi-sub">${evolveData.filter(x=>x.critical_error_triggered).length} errores en ${evolveData.length} evals</div>
+      </div>
+      <div class="client-kpi-card red">
+        <div class="client-kpi-label">Critical Error Rate — Global</div>
+        <div class="client-kpi-value" style="color:#ef4444">${globalCrit.toFixed(2)}%</div>
+        <div class="client-kpi-sub">${data.filter(x=>x.critical_error_triggered).length} errores en ${data.length} evals</div>
+      </div>
+    </div>
+    <div class="chart-card" style="margin-bottom:22px;">
+      <h3>📊 Comparativa semanal — Score, Errores Críticos y Evaluaciones</h3>
+      <canvas id="clientComboChart" height="120"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>🔴 Pareto de fallas — evaluadores @aplazo.mx</h3>
+      <canvas id="clientParetoChart" height="100"></canvas>
+    </div>`;
+
+  if (window._clientComboChart) { window._clientComboChart.destroy(); }
+  window._clientComboChart = new Chart(document.getElementById("clientComboChart"), {
+    type: "bar",
+    data: {
+      labels: allWeeks,
+      datasets: [
+        { type:"bar",  label:"Score @aplazo.mx",           data:allWeeks.map(w=>aplazoWeeks[w]?parseFloat((aplazoWeeks[w].scores.reduce((a,b)=>a+b,0)/aplazoWeeks[w].scores.length).toFixed(2)):null), backgroundColor:"rgba(14,165,233,.75)",  borderRadius:6, yAxisID:"yScore" },
+        { type:"bar",  label:"Score @evolvecx.io",         data:allWeeks.map(w=>evolveWeeks[w]?parseFloat((evolveWeeks[w].scores.reduce((a,b)=>a+b,0)/evolveWeeks[w].scores.length).toFixed(2)):null), backgroundColor:"rgba(34,197,94,.75)",   borderRadius:6, yAxisID:"yScore" },
+        { type:"bar",  label:"Errores Críticos @aplazo.mx",  data:allWeeks.map(w=>aplazoWeeks[w]?aplazoWeeks[w].criticals:null), backgroundColor:"rgba(239,68,68,.65)",   borderRadius:4, yAxisID:"yCount" },
+        { type:"bar",  label:"Errores Críticos @evolvecx.io",data:allWeeks.map(w=>evolveWeeks[w]?evolveWeeks[w].criticals:null), backgroundColor:"rgba(239,68,68,.25)",   borderRadius:4, yAxisID:"yCount" },
+        { type:"line", label:"# Evals (total)",            data:allWeeks.map(w=>(aplazoWeeks[w]?.evals||0)+(evolveWeeks[w]?.evals||0)), borderColor:"#f59e0b", backgroundColor:"transparent", borderWidth:2.5, pointRadius:4, tension:0.3, yAxisID:"yCount" }
+      ]
+    },
+    options: {
+      responsive:true, interaction:{mode:"index",intersect:false},
+      plugins:{ legend:{display:true,position:"top"}, datalabels:{display:false} },
+      scales:{
+        yScore:{ type:"linear", position:"left",  min:0, max:100, title:{display:true,text:"Score %"},    ticks:{callback:v=>v+"%"} },
+        yCount:{ type:"linear", position:"right", beginAtZero:true, grid:{drawOnChartArea:false}, title:{display:true,text:"Cantidad"} }
+      }
+    },
+    plugins:[ChartDataLabels]
+  });
+
+  if (window._clientParetoChart) { window._clientParetoChart.destroy(); }
+  if (paretoItems.length > 0) {
+    window._clientParetoChart = new Chart(document.getElementById("clientParetoChart"), {
+      type:"bar",
+      data:{ labels:paretoItems.map(i=>i.label.length>32?i.label.slice(0,32)+"...":i.label), datasets:[
+        { type:"bar",  label:"Fallas",      data:paretoItems.map(i=>i.count), yAxisID:"y",  borderWidth:1, backgroundColor:"rgba(14,165,233,.7)", borderRadius:6 },
+        { type:"line", label:"% acumulado", data:paretoCumPct,                yAxisID:"y1", borderWidth:3, tension:0.25, pointRadius:4, borderColor:"#ef4444", backgroundColor:"transparent" }
+      ]},
+      options:{
+        responsive:true, interaction:{mode:"index",intersect:false},
+        plugins:{ legend:{display:true}, datalabels:{display:ctx=>ctx.dataset.label==="% acumulado",align:"top",anchor:"end",color:"#0f172a",font:{weight:"bold",size:10},formatter:v=>Number(v).toFixed(0)+"%"}, tooltip:{callbacks:{label:ctx=>{ if(ctx.dataset.label==="% acumulado")return`% acumulado: ${Number(ctx.raw).toFixed(2)}%`; const item=paretoItems[ctx.dataIndex]; const pct=paretoTotal?((item.count/paretoTotal)*100).toFixed(2):"0.00"; return`Fallas: ${item.count} (${pct}%)`; }}} },
+        scales:{ y:{beginAtZero:true,position:"left",title:{display:true,text:"Fallas"},ticks:{precision:0}}, y1:{beginAtZero:true,max:100,position:"right",grid:{drawOnChartArea:false},title:{display:true,text:"% acumulado"},ticks:{callback:v=>v+"%"}} }
+      },
+      plugins:[ChartDataLabels]
+    });
+  }
+}
+
+
 async function toggleClientMode() {
   clientModeActive=!clientModeActive;
   const btn=document.getElementById("clientModeBtn"),banner=document.getElementById("clientBanner"),campSel=document.getElementById("campaignFilter");
