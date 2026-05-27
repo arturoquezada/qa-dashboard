@@ -1604,7 +1604,7 @@ async function openAgentHistory(agentId, agentName) {
   const weeks=Object.keys(byWeek).sort(),weekScores=weeks.map(w=>{const g=byWeek[w];return g.scores.reduce((a,b)=>a+b,0)/g.scores.length;}),weekCounts=weeks.map(w=>byWeek[w].count),weekCrits=weeks.map(w=>byWeek[w].criticals);
   const chartId="agentTrendChart_"+Date.now();
   const chartHtml=`<div class="eval-modal-section"><h4>📈 Tendencia semanal</h4><canvas id="${chartId}" height="100"></canvas></div>`;
-  const{data:rubricData}=await supabaseClient.from("qa_v_evaluation_responses_detail").select("rubric_item,field_key,calculated_score,weight,failed_item,is_bonus").eq("agent_identifier",agentId).gte("created_at",dateFrom+"T00:00:00").lte("created_at",dateTo+"T23:59:59");
+  const{data:rubricData}=await supabaseClient.from("qa_v_evaluation_responses_detail").select("rubric_item,field_key,calculated_score,weight,failed_item,is_bonus,evaluation_id").eq("agent_identifier",agentId).gte("created_at",dateFrom+"T00:00:00").lte("created_at",dateTo+"T23:59:59");
   let rubricSection="";
   if(rubricData&&rubricData.length>0){
     const nonBonus=rubricData.filter(r=>!r.is_bonus);
@@ -1620,9 +1620,11 @@ async function openAgentHistory(agentId, agentName) {
       rubMap[rub].count++;
       if(r.failed_item){
         rubMap[rub].fails++;
-        if(r.evaluation_id){
-          if(!evalFailMap[r.evaluation_id]) evalFailMap[r.evaluation_id]=new Set();
-          evalFailMap[r.evaluation_id].add(rub);
+        // Use evaluation_id from responses — matches evaluation_id OR id in eval rows
+        const eid = r.evaluation_id || null;
+        if(eid){
+          if(!evalFailMap[eid]) evalFailMap[eid]=new Set();
+          evalFailMap[eid].add(rub);
         }
       }
       if(mx>rubMap[rub].maxW)rubMap[rub].maxW=mx;
