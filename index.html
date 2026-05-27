@@ -347,7 +347,7 @@
         </div>
         <div id="agentMultiDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.15);z-index:200;max-height:220px;overflow-y:auto;margin-top:2px;">
           <div style="padding:8px 10px;border-bottom:1px solid #f1f5f9;display:flex;gap:8px;">
-            <input type="text" id="agentMultiSearch" placeholder="Buscar agente…" onclick="event.stopPropagation()" oninput="filterAgentCheckboxes()" style="flex:1;padding:5px 8px;border-radius:7px;border:1px solid #e2e8f0;font-size:8px;background:#f8fafc;margin-bottom:0;">
+            <input type="text" id="agentMultiSearch" placeholder="Buscar agente…" onclick="event.stopPropagation()" oninput="filterAgentCheckboxes()" style="flex:1;padding:5px 8px;border-radius:7px;border:1px solid #e2e8f0;font-size:12px;background:#f8fafc;margin-bottom:0;">
             <button onclick="clearAgentSelection();event.stopPropagation()" style="width:auto;padding:4px 8px;font-size:11px;border-radius:7px;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;">Limpiar</button>
           </div>
           <div id="agentCheckboxList" style="padding:4px 0;"></div>
@@ -1162,8 +1162,25 @@ async function loadRubricTable(filters) {
   if(allEvalData.length===0){wrapper.innerHTML=`<div class="muted" style="padding:16px;">No hay evaluaciones para este periodo.</div>`;return;}
   const agentEvalCount={},agentScoreSum={},agentNames={},validAgentKeys=new Set();
   allEvalData.forEach(row=>{const key=row.agent_identifier||row.agent_name||"Unknown";agentEvalCount[key]=(agentEvalCount[key]||0)+1;agentScoreSum[key]=(agentScoreSum[key]||0)+Number(row.score_final||0);if(!agentNames[key])agentNames[key]=row.agent_name||key;validAgentKeys.add(key);});
-  let q=supabaseClient.from("qa_v_evaluation_responses_detail").select("agent_identifier,agent_name,rubric_item,field_key,calculated_score,weight,is_bonus,failed_item");
-  if(filters.startDate)q=q.gte("created_at",filters.startDate+"T00:00:00");if(filters.endDate)q=q.lte("created_at",filters.endDate+"T23:59:59");if(filters.campaign)q=q.eq("campaign_key",filters.campaign);if(filters.lob)q=q.eq("lob_key",filters.lob);if(filters.queue)q=q.eq("queue_key",filters.queue);if(filters.agent)q=q.eq("agent_identifier",filters.agent);if(filters.evaluator)q=q.eq("evaluator_name",filters.evaluator);
+  // Use evaluation_ids from allEvalData to filter rubrics — avoids timezone mismatch between created_date_cdmx and created_at
+  const validEvalIds = allEvalData.map(row => row.evaluation_id || row.id).filter(Boolean);
+  if (validEvalIds.length === 0) { wrapper.innerHTML=`<div class="muted" style="padding:16px;">No hay evaluaciones para este periodo.</div>`; return; }
+
+  let q = supabaseClient.from("qa_v_evaluation_responses_detail").select("agent_identifier,agent_name,rubric_item,field_key,calculated_score,weight,is_bonus,failed_item,evaluation_id");
+  // Filter by evaluation_id batches (Supabase .in() supports up to 1000)
+  if (validEvalIds.length <= 1000) {
+    q = q.in("evaluation_id", validEvalIds);
+  } else {
+    // Fallback to date filter for very large sets
+    if(filters.startDate) q=q.gte("created_at",filters.startDate+"T00:00:00");
+    if(filters.endDate)   q=q.lte("created_at",filters.endDate+"T23:59:59");
+    if(filters.campaign)  q=q.eq("campaign_key",filters.campaign);
+    if(filters.lob)       q=q.eq("lob_key",filters.lob);
+    if(filters.queue)     q=q.eq("queue_key",filters.queue);
+    if(filters.evaluator) q=q.eq("evaluator_name",filters.evaluator);
+    const agentIds = getSelectedAgentIds();
+    if (agentIds.length > 0) q = q.in("agent_identifier", agentIds);
+  }
   const rawData=await fetchAllRows(q);
   if(!rawData||rawData.length===0){wrapper.innerHTML=`<div class="muted" style="padding:16px;">No hay datos de rubros para este periodo.</div>`;return;}
   const data=rawData.filter(row=>{const key=row.agent_identifier||row.agent_name||"Unknown";return validAgentKeys.has(key)&&!row.is_bonus;});
