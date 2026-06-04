@@ -840,23 +840,23 @@ async function loadExecutiveCards(filters) {
    WEEKLY TREND CHART
 ═══════════════════════════════════════════════ */
 async function loadWeeklyTrend(filters) {
-  let q = supabaseClient.from("qa_v_agent_weekly_summary").select("*");
-  if (filters.startDate) q = q.gte("week_start", filters.startDate);
-  if (filters.endDate)   q = q.lte("week_start", filters.endDate);
-  if (filters.campaign)  q = q.eq("campaign_key", filters.campaign);
-  if (filters.lob)       q = q.eq("lob_key", filters.lob);
-  if (filters.queue)     q = q.eq("queue_key", filters.queue);
-  if (filters.agent)     q = q.eq("agent_identifier", filters.agent);
-  if (filters.evaluator) q = q.eq("evaluator_name", filters.evaluator);
-  const data = await fetchAllRows(q);
+  const data = allEvalData;
   const grouped = {};
-  data.forEach(row => { if (!grouped[row.week_start]) grouped[row.week_start] = []; grouped[row.week_start].push(Number(row.weekly_effective_score||0)); });
+  data.forEach(row => {
+    if (!row.created_date_cdmx) return;
+    const dt = new Date(row.created_date_cdmx+"T12:00:00");
+    const dow = dt.getDay();
+    dt.setDate(dt.getDate()+(dow===0?-6:1-dow));
+    const w = dt.toISOString().split("T")[0];
+    if (!grouped[w]) grouped[w] = [];
+    grouped[w].push(Number(row.score_final||0));
+  });
   const labels = Object.keys(grouped).sort();
   const values = labels.map(w => { const a=grouped[w]; return a.reduce((s,b)=>s+b,0)/a.length; });
   destroyChart(weeklyChart);
   weeklyChart = new Chart(document.getElementById("weeklyScoreChart"), {
     type: "line",
-    data: { labels, datasets: [{ label: "Weekly Effective Score", data: values, borderWidth:3, tension:0.35, pointRadius:5, pointHoverRadius:7, borderColor:"#38bdf8", backgroundColor:"rgba(56,189,248,.1)", fill:true }] },
+    data: { labels, datasets: [{ label: "Score Promedio", data: values, borderWidth:3, tension:0.35, pointRadius:5, pointHoverRadius:7, borderColor:"#38bdf8", backgroundColor:"rgba(56,189,248,.1)", fill:true }] },
     options: { responsive:true, plugins: { datalabels: { align:"top", anchor:"end", color:"#0f172a", font:{weight:"bold",size:11}, formatter: v => Number(v).toFixed(2)+"%" }, legend:{display:true} }, scales: { y:{beginAtZero:false} } },
     plugins: [ChartDataLabels]
   });
