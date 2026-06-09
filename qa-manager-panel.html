@@ -1201,9 +1201,10 @@ function openCorrModal(id) {
   // Store normalized on active correction for resolveCorrection to use
   ACTIVE_CORRECTION._typeNorm = typeNorm;
 
-  const isAgente  = typeNorm === "Cambio de agente";
-  const isScore   = typeNorm.includes("score") || typeNorm.includes("Score");
+  const isAgente   = typeNorm === "Cambio de agente";
+  const isScore    = typeNorm.includes("score") || typeNorm.includes("Score");
   const isEliminar = typeNorm.includes("Eliminar");
+  const isQueue    = typeNorm === "Cambio de queue";
 
   document.getElementById("c-modal-title").textContent = `${typeNorm} — ${c.original_agent_name||"Agente"}`;
   document.getElementById("c-modal-sub").textContent =
@@ -1296,6 +1297,23 @@ function openCorrModal(id) {
             </div>`).join("")}
         ` : ""}
       </div>`;
+  } else if (isQueue) {
+    editableSection = `
+      <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:14px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:800;color:#0284c7;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">
+          🔀 Cambio de Queue
+        </div>
+        <div class="field-grid" style="margin-bottom:12px;">
+          <div><span style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px;">Queue original</span>
+            <div class="field-val">${esc(c.original_queue_key||"—")}</div></div>
+          <div>
+            <span style="font-size:11px;color:#0f172a;font-weight:700;display:block;margin-bottom:4px;">Nuevo queue ${isPending?"(editable)":""}</span>
+            ${isPending
+              ? `<select class="m-select" id="c-new-queue"><option value="">Cargando…</option></select>`
+              : `<div class="field-val" style="color:#16a34a;font-weight:700;">${esc(c.new_queue_key||"Sin especificar")}</div>`}
+          </div>
+        </div>
+      </div>`;
   } else if (isEliminar) {
     editableSection = `
       <div style="background:#fee2e2;border:1.5px solid #fca5a5;border-radius:14px;padding:16px;margin-bottom:16px;">
@@ -1353,6 +1371,19 @@ function openCorrModal(id) {
   document.getElementById("c-btn-reject").style.display  = isPending ? "" : "none";
 
   document.getElementById("c-modal-overlay").classList.add("active");
+
+  // Load queues dynamically if queue change type
+  if (isQueue && isPending) {
+    fetch(`${SB_URL}/rest/v1/qa_queues?select=queue&order=queue`, { headers: H })
+      .then(r => r.json())
+      .then(data => {
+        const sel = document.getElementById("c-new-queue");
+        if (!sel) return;
+        sel.innerHTML = `<option value="">Selecciona un queue</option>` +
+          (data||[]).map(q => `<option value="${q.queue}" ${q.queue===c.new_queue_key?"selected":""}>${q.queue}</option>`).join("");
+      })
+      .catch(() => {});
+  }
 }
 
 function closeCorrModal() {
@@ -1367,12 +1398,14 @@ async function resolveCorrection(newStatus) {
   if (!resolvedBy) { showToast("Indica quién resuelve la corrección.", true); return; }
 
   const typeNorm = ACTIVE_CORRECTION._typeNorm || ACTIVE_CORRECTION.correction_type || "";
-  const isAgente = typeNorm === "Cambio de agente";
-  const isScore  = typeNorm.includes("score") || typeNorm.includes("Score");
+  const isAgente  = typeNorm === "Cambio de agente";
+  const isScore   = typeNorm.includes("score") || typeNorm.includes("Score");
+  const isQueue   = typeNorm === "Cambio de queue";
 
   // Pick up any editable fields the manager may have filled in
   const newAgentName  = document.getElementById("c-new-agent-name")?.value?.trim() || ACTIVE_CORRECTION.new_agent_name || null;
   const newAgentId    = document.getElementById("c-new-agent-id")?.value?.trim()   || ACTIVE_CORRECTION.new_agent_identifier || null;
+  const newQueueKey   = document.getElementById("c-new-queue")?.value || ACTIVE_CORRECTION.new_queue_key || null;
   const newScoreRaw   = document.getElementById("c-new-score-raw")?.value   ? parseFloat(document.getElementById("c-new-score-raw").value)   : ACTIVE_CORRECTION.new_score_raw;
   const newScoreFinal = document.getElementById("c-new-score-final")?.value ? parseFloat(document.getElementById("c-new-score-final").value) : ACTIVE_CORRECTION.new_score_final;
 
@@ -1419,6 +1452,9 @@ async function resolveCorrection(newStatus) {
       corrUpdate.new_agent_name       = newAgentName;
       corrUpdate.new_agent_identifier = newAgentId;
     }
+    if (isQueue) {
+      corrUpdate.new_queue_key = newQueueKey;
+    }
     if (isScore) {
       corrUpdate.new_score_raw   = newScoreRaw;
       corrUpdate.new_score_final = newScoreFinal;
@@ -1446,6 +1482,9 @@ async function resolveCorrection(newStatus) {
       if (isAgente) {
         if (newAgentName) evalUpdate.agent_name       = newAgentName;
         if (newAgentId)   evalUpdate.agent_identifier = newAgentId;
+      }
+      if (isQueue && newQueueKey) {
+        evalUpdate.queue_key = newQueueKey;
       }
       if (isScore) {
         if (newScoreRaw   != null) evalUpdate.score_raw   = newScoreRaw;
