@@ -1325,6 +1325,7 @@ function buildCorrectionPanel(row) {
             <option value="">Selecciona una opción</option>
             <option value="Cambio de agente">Cambio de agente (nombre / ID)</option>
             <option value="Corrección de score">Corrección de score y rubros</option>
+            <option value="Cambio de queue">Cambio de queue</option>
             <option value="Eliminar evaluación">Eliminar evaluación</option>
           </select>
         </div>
@@ -1341,6 +1342,17 @@ function buildCorrectionPanel(row) {
               <label class="corr-label">ID correcto del agente</label>
               <input type="text" class="corr-input" id="corrNewAgentId" placeholder="Ej. CX00712">
             </div>
+          </div>
+        </div>
+
+        <!-- Cambio de queue -->
+        <div id="corrSectionQueue" style="display:none;">
+          <div class="corr-section-title">Nuevo queue</div>
+          <div class="corr-field">
+            <label class="corr-label">Queue correcto</label>
+            <select class="corr-select" id="corrNewQueue">
+              <option value="">Cargando queues…</option>
+            </select>
           </div>
         </div>
 
@@ -1393,8 +1405,20 @@ function onCorrTypeChange() {
   const type = document.getElementById("corrType")?.value;
   const sAgent = document.getElementById("corrSectionAgente");
   const sScore = document.getElementById("corrSectionScore");
-  if (sAgent) sAgent.style.display = type === "Cambio de agente" ? "block" : "none";
+  const sQueue = document.getElementById("corrSectionQueue");
+  if (sAgent) sAgent.style.display = type === "Cambio de agente"    ? "block" : "none";
   if (sScore) sScore.style.display = type === "Corrección de score" ? "block" : "none";
+  if (sQueue) sQueue.style.display = type === "Cambio de queue"     ? "block" : "none";
+
+  if (type === "Cambio de queue") {
+    const sel = document.getElementById("corrNewQueue");
+    if (sel && sel.options.length <= 1) {
+      supabaseClient.from("qa_queues").select("queue").order("queue").then(({ data }) => {
+        sel.innerHTML = `<option value="">Selecciona un queue</option>` +
+          (data||[]).map(q => `<option value="${q.queue}">${q.queue}</option>`).join("");
+      });
+    }
+  }
 
   // Build rubric edit rows if score correction
   if (type === "Corrección de score") {
@@ -1461,6 +1485,7 @@ async function submitCorrection() {
     interaction_link         : row.interaction_link || null,
     new_agent_name           : type === "Cambio de agente" ? (document.getElementById("corrNewAgentName")?.value?.trim() || null) : null,
     new_agent_identifier     : type === "Cambio de agente" ? (document.getElementById("corrNewAgentId")?.value?.trim() || null) : null,
+    new_queue_key            : type === "Cambio de queue"  ? (document.getElementById("corrNewQueue")?.value || null) : null,
     new_score_raw            : type === "Corrección de score" ? (parseFloat(document.getElementById("corrNewScore")?.value) || null) : null,
     new_score_final          : type === "Corrección de score" ? (parseFloat(document.getElementById("corrNewScore")?.value) || null) : null,
     new_rubric_responses     : newRubricResponses,
