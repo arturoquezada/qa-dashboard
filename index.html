@@ -1270,7 +1270,7 @@ async function openEvalModal(key) {
     if (evalId) {
       const { data: rData, error } = await supabaseClient
         .from("qa_v_evaluation_responses_detail")
-        .select("rubric_item,field_key,calculated_score,weight,failed_item,is_bonus,rubric_item_id,selected_option_id")
+        .select("rubric_item,field_key,calculated_score,weight,failed_item,is_bonus,rubric_item_id")
         .eq("evaluation_id", evalId);
       if (!error && rData) {
         currentRubricData = rData.filter(r => !r.is_bonus);
