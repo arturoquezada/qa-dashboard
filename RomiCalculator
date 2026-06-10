@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Romi — Capacidad de Contratación</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-900: #042C53;
+    --blue-800: #0C447C;
+    --blue-600: #185FA5;
+    --blue-400: #378ADD;
+    --blue-100: #B5D4F4;
+    --blue-50:  #E6F1FB;
+    --green-800: #27500A;
+    --green-600: #3B6D11;
+    --green-200: #C0DD97;
+    --green-50:  #EAF3DE;
+    --amber-800: #633806;
+    --amber-600: #854F0B;
+    --amber-200: #FAC775;
+    --amber-50:  #FAEEDA;
+    --red-800:   #791F1F;
+    --red-600:   #A32D2D;
+    --red-50:    #FCEBEB;
+    --gray-900:  #2C2C2A;
+    --gray-600:  #5F5E5A;
+    --gray-200:  #B4B2A9;
+    --gray-100:  #D3D1C7;
+    --gray-50:   #F1EFE8;
+    --white:     #FFFFFF;
+    --bg:        #F7F8FA;
+    --surface:   #FFFFFF;
+    --border:    rgba(0,0,0,0.08);
+    --text:      #1A1A18;
+    --text-muted:#5F5E5A;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--blue-900);
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .logo-mark {
+    width: 36px; height: 36px;
+    background: var(--blue-400);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.5px;
+  }
+  .header-title { font-size: 16px; font-weight: 600; color: #fff; }
+  .header-sub   { font-size: 12px; color: var(--blue-100); margin-top: 1px; }
+  .header-right { margin-left: auto; font-size: 12px; color: var(--blue-100); }
+
+  /* ── Layout ── */
+  .main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; align-items: start; }
+
+  /* ── Panel ── */
+  .panel {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+  }
+  .panel-title {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--text-muted);
+    margin-bottom: 1.25rem;
+  }
+
+  /* ── Sliders ── */
+  .slider-group { display: flex; flex-direction: column; gap: 1.25rem; }
+  .slider-item {}
+  .slider-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .slider-label { font-size: 14px; color: var(--text); }
+  .slider-badge {
+    font-size: 18px; font-weight: 600; color: var(--blue-600);
+    min-width: 2.5rem; text-align: right;
+  }
+  .slider-desc { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%; height: 4px;
+    background: var(--gray-100);
+    border-radius: 2px; outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    background: var(--blue-600);
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    transition: background 0.15s;
+  }
+  input[type=range]:hover::-webkit-slider-thumb { background: var(--blue-800); }
+
+  /* ── Metrics strip ── */
+  .metrics-strip {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .metric {
+    background: var(--blue-50);
+    border-radius: var(--radius-md);
+    padding: 0.9rem 1rem;
+  }
+  .metric-val { font-size: 26px; font-weight: 600; color: var(--blue-800); line-height: 1; }
+  .metric-label { font-size: 12px; color: var(--blue-600); margin-top: 4px; }
+  .metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── Table ── */
+  .table-wrap {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--gray-50); }
+  th {
+    padding: 10px 14px; text-align: left;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--text-muted);
+    border-bottom: 0.5px solid var(--border);
+  }
+  td { padding: 10px 14px; border-bottom: 0.5px solid var(--border); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--gray-50); }
+  td.num { font-variant-numeric: tabular-nums; font-weight: 500; }
+  td.vac { font-size: 16px; font-weight: 600; color: var(--blue-800); }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block; padding: 3px 9px;
+    border-radius: var(--radius-sm);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+  }
+  .badge-ok    { background: var(--green-50);  color: var(--green-800); }
+  .badge-warn  { background: var(--amber-50);  color: var(--amber-800); }
+  .badge-tight { background: var(--red-50);    color: var(--red-800); }
+
+  /* ── Insights ── */
+  .insights { display: flex; flex-direction: column; gap: 8px; }
+  .insight {
+    border-left: 3px solid;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 10px 14px;
+    font-size: 13px; line-height: 1.55;
+  }
+  .insight.green { background: var(--green-50);  border-color: var(--green-600);  color: var(--green-800); }
+  .insight.amber { background: var(--amber-50);  border-color: var(--amber-600);  color: var(--amber-800); }
+  .insight.blue  { background: var(--blue-50);   border-color: var(--blue-600);   color: var(--blue-800); }
+  .insight strong { font-weight: 600; }
+
+  /* ── Chart ── */
+  .chart-wrap {
+    position: relative; width: 100%; height: 200px; margin-bottom: 1.25rem;
+  }
+
+  /* ── Divider ── */
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.25rem 0; }
+
+  /* ── Footnote ── */
+  .footnote { font-size: 11px; color: var(--text-muted); margin-top: 0.5rem; }
+
+  @media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; }
+    .metrics-strip { grid-template-columns: repeat(2, 1fr); }
+    header { padding: 1rem 1.25rem; }
+    .main { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">R</div>
+  <div>
+    <div class="header-title">Romi — Capacidad de Contratación</div>
+    <div class="header-sub">EvolveCX · Modelo de throughput para TA</div>
+  </div>
+  <div class="header-right">v1.0 · 2025</div>
+</header>
+
+<div class="main">
+  <div class="grid">
+
+    <!-- Controls -->
+    <div class="panel">
+      <div class="panel-title">Parámetros</div>
+      <div class="slider-group">
+
+        <div class="slider-item">
+          <div class="slider-header">
+            <span class="slider-label">Entrevistas por día</span>
+            <span class="slider-badge" id="v-day">4</span>
+          </div>
+          <input type="range" id="sl-day" min="1" max="20" step="1" value="4">
+          <div class="slider-desc">Máximo realista sin saturarte</div>
+        </div>
+
+        <div class="slider-item">
+          <div class="slider-header">
+            <span class="slider-label">Días de entrevistas / semana</span>
+            <span class="slider-badge" id="v-week">4</span>
+          </div>
+          <input type="range" id="sl-week" min="1" max="5" step="1" value="4">
+          <div class="slider-desc">Días donde puedes hacer entrevistas</div>
+        </div>
+
+        <div class="slider-item">
+          <div class="slider-header">
+            <span class="slider-label">Candidatos por contratación</span>
+            <span class="slider-badge" id="v-ratio">3</span>
+          </div>
+          <input type="range" id="sl-ratio" min="1" max="10" step="1" value="3">
+          <div class="slider-desc">Cuántos entrevistas para contratar 1 (ratio)</div>
+        </div>
+
+        <div class="slider-item">
+          <div class="slider-header">
+            <span class="slider-label">Días de proceso post-entrevista</span>
+            <span class="slider-badge" id="v-post">1</span>
+          </div>
+          <input type="range" id="sl-post" min="0" max="5" step="1" value="1">
+          <div class="slider-desc">Oferta → aceptación → fecha de inicio</div>
+        </div>
+
+      </div>
+
+      <hr class="divider">
+      <div class="panel-title">Lecturas</div>
+      <div class="insights" id="insights"></div>
+    </div>
+
+    <!-- Right column -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+      <!-- Metrics -->
+      <div class="metrics-strip" id="metrics"></div>
+
+      <!-- Chart -->
+      <div class="panel" style="padding-bottom:1.25rem;">
+        <div class="panel-title" style="margin-bottom:0.75rem;">Días para cubrir N vacantes</div>
+        <div class="chart-wrap">
+          <canvas id="myChart" role="img" aria-label="Días hábiles necesarios para cubrir entre 1 y 20 vacantes"></canvas>
+        </div>
+        <div class="footnote">Incluye días de entrevistas + proceso post-entrevista</div>
+      </div>
+
+      <!-- Table -->
+      <div class="panel" style="padding:0;">
+        <div style="padding:1.25rem 1.5rem 0.75rem;border-bottom:0.5px solid var(--border);">
+          <div class="panel-title" style="margin:0;">Capacidad por número de vacantes</div>
+        </div>
+        <div class="table-wrap" style="border:none;border-radius:0;margin:0;">
+          <table>
+            <thead>
+              <tr>
+                <th>Vacantes</th>
+                <th>Entrevistas necesarias</th>
+                <th>Días de entrevista</th>
+                <th>Semanas</th>
+                <th>Días totales</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  let chart;
+
+  function bind(slId, valId) {
+    const sl = $(slId), vl = $(valId);
+    sl.addEventListener('input', () => { vl.textContent = sl.value; render(); });
+  }
+
+  function render() {
+    const perDay  = +$('sl-day').value;
+    const daysWk  = +$('sl-week').value;
+    const ratio   = +$('sl-ratio').value;
+    const post    = +$('sl-post').value;
+
+    const perWeek    = perDay * daysWk;
+    const hirePerWk  = Math.floor(perWeek / ratio);
+    const diasPara1  = Math.ceil(ratio / perDay) + post;
+    const maxMes     = Math.floor(hirePerWk * 4);
+
+    // Metrics
+    $('metrics').innerHTML = [
+      { val: perWeek,    label: 'Entrevistas / semana', sub: `${perDay}/día × ${daysWk} días` },
+      { val: hirePerWk,  label: 'Contrataciones / semana', sub: `ratio 1:${ratio}` },
+      { val: diasPara1,  label: 'Días para contratar 1', sub: 'entrevistas + proceso' },
+      { val: maxMes,     label: 'Máx. contrataciones / mes', sub: '~4 semanas' },
+    ].map(m => `
+      <div class="metric">
+        <div class="metric-val">${m.val}</div>
+        <div class="metric-label">${m.label}</div>
+        <div class="metric-sub">${m.sub}</div>
+      </div>
+    `).join('');
+
+    // Table + chart data
+    const vacList = [1,2,3,5,8,10,15,20];
+    const chartLabels = [];
+    const chartData   = [];
+
+    $('tbody').innerHTML = vacList.map(v => {
+      const entrevistas   = v * ratio;
+      const diasEntrevista = Math.ceil(entrevistas / perDay);
+      const semanas        = (diasEntrevista / daysWk).toFixed(1);
+      const total          = diasEntrevista + post;
+      let badge, label;
+      if (diasEntrevista <= 5)       { badge = 'badge-ok';    label = 'Cómodo'; }
+      else if (diasEntrevista <= 10) { badge = 'badge-warn';  label = 'Manejable'; }
+      else                           { badge = 'badge-tight'; label = 'Ajustado'; }
+
+      chartLabels.push(v + (v === 1 ? ' vacante' : ' vacantes'));
+      chartData.push(total);
+
+      return `<tr>
+        <td class="vac">${v}</td>
+        <td class="num">${entrevistas}</td>
+        <td class="num">${diasEntrevista}</td>
+        <td class="num">${semanas}</td>
+        <td class="num">${total}</td>
+        <td><span class="badge ${badge}">${label}</span></td>
+      </tr>`;
+    }).join('');
+
+    // Insights
+    const ratioMenos1 = Math.max(1, ratio - 1);
+    const capMejorado = Math.floor(Math.floor((perDay * daysWk) / ratioMenos1) * 4);
+    $('insights').innerHTML = `
+      <div class="insight green">Con <strong>${perDay} entrevistas/día</strong> y ratio <strong>1:${ratio}</strong>, contratas una persona en <strong>${diasPara1} día${diasPara1 > 1 ? 's' : ''}</strong>. La segunda vacante solo agrega ${Math.ceil(ratio / perDay)} día${Math.ceil(ratio / perDay) > 1 ? 's' : ''} más.</div>
+      <div class="insight amber">Tu tope mensual es <strong>${maxMes} contrataciones</strong>. Si te piden más, necesitas más días o bajar el ratio.</div>
+      ${ratio > 1 ? `<div class="insight blue">Bajar el ratio de 1:${ratio} a 1:${ratioMenos1} (mejor filtro pre-entrevista con Romi) subiría tu capacidad a <strong>${capMejorado} contrataciones/mes</strong>.</div>` : ''}
+    `;
+
+    // Chart
+    if (chart) chart.destroy();
+    chart = new Chart($('myChart'), {
+      type: 'bar',
+      data: {
+        labels: chartLabels,
+        datasets: [{
+          label: 'Días totales',
+          data: chartData,
+          backgroundColor: chartData.map(d => {
+            const dias = d - post;
+            if (dias <= 5)  return '#B5D4F4';
+            if (dias <= 10) return '#FAC775';
+            return '#F7C1C1';
+          }),
+          borderColor: chartData.map(d => {
+            const dias = d - post;
+            if (dias <= 5)  return '#185FA5';
+            if (dias <= 10) return '#854F0B';
+            return '#A32D2D';
+          }),
+          borderWidth: 1.5,
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ` ${ctx.raw} días hábiles`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 11 }, color: '#5F5E5A', autoSkip: false }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            ticks: {
+              font: { size: 11 }, color: '#5F5E5A',
+              callback: v => v + 'd'
+            }
+          }
+        }
+      }
+    });
+  }
+
+  bind('sl-day',   'v-day');
+  bind('sl-week',  'v-week');
+  bind('sl-ratio', 'v-ratio');
+  bind('sl-post',  'v-post');
+  render();
+</script>
+</body>
+</html>
