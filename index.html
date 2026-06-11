@@ -1001,7 +1001,7 @@ function loadGroupTable() {
     if (createdAt && feedbackAt) {
       grouped[g].fotTotal++;
       const diffHrs = (new Date(feedbackAt) - new Date(createdAt)) / 3600000;
-      if (diffHrs >= 0 && diffHrs <= 48) grouped[g].fotOnTime++;
+      if (diffHrs >= -1 && diffHrs <= 48) grouped[g].fotOnTime++;
     }
 
     // Commitment rate
@@ -1085,7 +1085,7 @@ function loadEvaluatorTable() {
     if (createdAt && feedbackAt) {
       grouped[ev].feedbackTotal++;
       const diffHrs = (new Date(feedbackAt) - new Date(createdAt)) / 3600000;
-      if (diffHrs >= 0 && diffHrs <= 48) grouped[ev].feedbackOnTime++;
+      if (diffHrs >= -1 && diffHrs <= 48) grouped[ev].feedbackOnTime++;
     }
 
     // Commitment rate: agent_commitment not null
@@ -1413,9 +1413,13 @@ function onCorrTypeChange() {
   if (type === "Cambio de queue") {
     const sel = document.getElementById("corrNewQueue");
     if (sel && sel.options.length <= 1) {
-      supabaseClient.from("qa_queues").select("queue").order("queue").then(({ data }) => {
+      // Filter by campaign of the current evaluation
+      const campana = currentEvalForCorrection?.campaign_key || "";
+      let q = supabaseClient.from("qa_queues").select("queue").order("queue");
+      if (campana) q = q.ilike("campana", campana);
+      q.then(({ data }) => {
         sel.innerHTML = `<option value="">Selecciona un queue</option>` +
-          (data||[]).map(q => `<option value="${q.queue}">${q.queue}</option>`).join("");
+          (data||[]).map(r => `<option value="${r.queue}">${r.queue}</option>`).join("");
       });
     }
   }
