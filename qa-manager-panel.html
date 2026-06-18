@@ -1020,7 +1020,7 @@ async function saveDispute() {
     if (ACTIVE_DISPUTE.evaluation_id) {
       await fetch(
         `${SB_URL}/rest/v1/qa_evaluations?id=eq.${ACTIVE_DISPUTE.evaluation_id}`,
-        { method:"PATCH", headers: H_PATCH, body: JSON.stringify({ dispute_status: status }) }
+        { method:"PATCH", headers: H_PATCH, body: JSON.stringify({ dispute_status: null, has_dispute: false }) }
       ).catch(e => console.warn("Error sincronizando dispute_status en evaluación:", e));
     }
 
