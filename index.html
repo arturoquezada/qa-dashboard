@@ -476,7 +476,7 @@
     <div class="table-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
         <h3 style="margin:0;">📝 Detalle de evaluaciones <span style="font-size:11px;color:#94a3b8;font-weight:400;">— click en una fila para ver detalle y solicitar corrección</span></h3>
-        <button onclick="exportTableById('evaluationsTable','detalle_evaluaciones')" style="width:auto;padding:7px 14px;font-size:11px;border-radius:8px;background:#f1f5f9;color:#0f172a;border:1.5px solid #e2e8f0;font-weight:700;cursor:pointer;flex-shrink:0;">⬇️ Exportar CSV</button>
+        <button onclick="exportEvaluationsTableCSV()" style="width:auto;padding:7px 14px;font-size:11px;border-radius:8px;background:#f1f5f9;color:#0f172a;border:1.5px solid #e2e8f0;font-weight:700;cursor:pointer;flex-shrink:0;">⬇️ Exportar CSV</button>
       </div>
       <table>
         <thead><tr>
@@ -1931,6 +1931,38 @@ function exportTableById(tbodyId, filename) {
 
 function buildExportBtn(tableId, filename, label) {
   return `<button onclick="exportTableById('${tableId}','${filename}')" style="width:auto;padding:7px 14px;font-size:11px;border-radius:8px;background:#f1f5f9;color:#0f172a;border:1.5px solid #e2e8f0;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">⬇️ ${label||'Exportar CSV'}</button>`;
+}
+
+function exportEvaluationsTableCSV() {
+  const data = [...allEvalData].sort((a,b)=>(b.created_date_cdmx||"").localeCompare(a.created_date_cdmx||""));
+  const headers = ["Fecha","Agente","Feedback","Campaña","LOB","Queue","Score","Error Crítico","Evaluador","Compromiso","Interaction Link"];
+  const csvRows = [headers.map(h => `"${h}"`).join(",")];
+  data.forEach(row => {
+    const cells = [
+      row.created_date_cdmx || "",
+      row.agent_name || "",
+      row.feedback || "",
+      row.campaign_key || "",
+      row.lob_key || "",
+      row.queue_key || "",
+      row.score_final ?? "",
+      row.critical_error_triggered ? "Sí" : "No",
+      row.evaluator_name || "",
+      row.agent_commitment || "",
+      row.interaction_link || ""
+    ];
+    csvRows.push(cells.map(c => `"${String(c).replace(/"/g,'""')}"`).join(","));
+  });
+  const csvContent = csvRows.join("\r\n");
+  const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "detalle_evaluaciones.csv";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 /* ═══════════════════════════════════════════════
