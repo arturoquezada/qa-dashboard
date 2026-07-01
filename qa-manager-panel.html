@@ -451,7 +451,7 @@ td.muted-td { color: #64748b; font-size: 12px; }
     <div class="table-card">
       <table>
         <thead><tr>
-          <th>Agente</th><th>ID Agente</th><th>Razón de disputa</th>
+          <th>Agente</th><th>ID Agente</th><th>Evaluador</th><th>Razón de disputa</th>
           <th>Fecha</th><th>Estatus</th><th>Resuelto por</th><th>Acciones</th>
         </tr></thead>
         <tbody id="disputes-tbody"></tbody>
@@ -719,7 +719,7 @@ function applyDisputeFilters() {
 function renderDisputesTable() {
   const tbody = document.getElementById("disputes-tbody");
   if (!FILTERED_D.length) {
-    tbody.innerHTML = `<tr><td colspan="7" class="state-msg"><strong>Sin resultados</strong>Prueba otro filtro o búsqueda.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="state-msg"><strong>Sin resultados</strong>Prueba otro filtro o búsqueda.</td></tr>`;
     updateDisputePag(0); return;
   }
   const slice = FILTERED_D.slice(D_PAGE * PAGE_SIZE, (D_PAGE+1) * PAGE_SIZE);
@@ -727,6 +727,7 @@ function renderDisputesTable() {
     <tr onclick="openDisputeModal('${esc(d.id)}')">
       <td class="agent">${esc(d.agent_name||"—")}</td>
       <td><span class="badge badge-gray" style="font-family:monospace;font-size:11px;">${esc(d.agent_identifier||"—")}</span></td>
+      <td class="muted-td" style="font-size:12px;">${esc(d.evaluator_name||"—")}</td>
       <td class="muted-td" title="${esc(d.dispute_reason||"")}">${esc(truncate(d.dispute_reason||"—",50))}</td>
       <td class="muted-td" style="font-family:monospace;font-size:12px;">${formatDate(d.dispute_created_at)}</td>
       <td>${statusPill(d.dispute_status)}</td>
