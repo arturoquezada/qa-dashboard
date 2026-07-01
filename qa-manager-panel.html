@@ -433,6 +433,15 @@ td.muted-td { color: #64748b; font-size: 12px; }
         </svg>
         <input type="text" id="d-search" placeholder="Buscar por agente, razón, ID…" oninput="applyDisputeFilters()">
       </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <label style="font-size:11px;font-weight:700;color:#64748b;white-space:nowrap;">Desde</label>
+        <input type="date" id="d-date-from" onchange="applyDisputeFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;">
+        <label style="font-size:11px;font-weight:700;color:#64748b;white-space:nowrap;">Hasta</label>
+        <input type="date" id="d-date-to" onchange="applyDisputeFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;">
+        <select id="d-evaluator" onchange="applyDisputeFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;max-width:180px;">
+          <option value="">Todos los evaluadores</option>
+        </select>
+      </div>
       <div class="filter-group">
         <button class="filter-btn active" data-status="all" onclick="setDisputeFilter(this)">Todos</button>
         <button class="filter-btn" data-status="Pendiente" onclick="setDisputeFilter(this)">Pendientes</button>
@@ -495,6 +504,12 @@ td.muted-td { color: #64748b; font-size: 12px; }
           <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
         </svg>
         <input type="text" id="c-search" placeholder="Buscar por evaluador, agente, razón…" oninput="applyCorrFilters()">
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <label style="font-size:11px;font-weight:700;color:#64748b;white-space:nowrap;">Desde</label>
+        <input type="date" id="c-date-from" onchange="applyCorrFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;">
+        <label style="font-size:11px;font-weight:700;color:#64748b;white-space:nowrap;">Hasta</label>
+        <input type="date" id="c-date-to" onchange="applyCorrFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;">
       </div>
       <div class="filter-group">
         <button class="filter-btn active warn" data-status="all" onclick="setCorrFilter(this)">Todos</button>
@@ -678,6 +693,16 @@ async function loadDisputes() {
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     ALL_DISPUTES = await r.json();
     updateDisputeMetrics(ALL_DISPUTES);
+
+    // Populate evaluator dropdown
+    const evaluators = [...new Set(ALL_DISPUTES.map(d => d.evaluator_name).filter(Boolean))].sort();
+    const sel = document.getElementById("d-evaluator");
+    if (sel) {
+      const current = sel.value;
+      sel.innerHTML = `<option value="">Todos los evaluadores</option>` +
+        evaluators.map(e => `<option value="${e}" ${e===current?"selected":""}>${e}</option>`).join("");
+    }
+
     applyDisputeFilters();
     document.getElementById("record-count").textContent = `${ALL_DISPUTES.length} disputas`;
     updateSync();
@@ -706,11 +731,25 @@ function setDisputeFilter(btn) {
 }
 
 function applyDisputeFilters() {
-  const search = (document.getElementById("d-search")?.value || "").toLowerCase();
+  const search    = (document.getElementById("d-search")?.value || "").toLowerCase();
+  const dateFrom  = document.getElementById("d-date-from")?.value || "";
+  const dateTo    = document.getElementById("d-date-to")?.value || "";
+  const evaluator = document.getElementById("d-evaluator")?.value || "";
+
   FILTERED_D = ALL_DISPUTES.filter(d => {
     const matchStatus = D_FILTER === "all" || (d.dispute_status||"") === D_FILTER;
     const s = `${d.agent_name||""} ${d.agent_identifier||""} ${d.dispute_reason||""} ${d.id||""}`.toLowerCase();
-    return matchStatus && (!search || s.includes(search));
+    const matchSearch = !search || s.includes(search);
+    const matchEvaluator = !evaluator || (d.evaluator_name||"") === evaluator;
+
+    let matchDate = true;
+    if (dateFrom || dateTo) {
+      const dateStr = (d.dispute_created_at||"").split("T")[0];
+      if (dateFrom && dateStr < dateFrom) matchDate = false;
+      if (dateTo   && dateStr > dateTo)   matchDate = false;
+    }
+
+    return matchStatus && matchSearch && matchEvaluator && matchDate;
   });
   D_PAGE = 0;
   renderDisputesTable();
@@ -1090,11 +1129,23 @@ function setCorrFilter(btn) {
 }
 
 function applyCorrFilters() {
-  const search = (document.getElementById("c-search")?.value || "").toLowerCase();
+  const search   = (document.getElementById("c-search")?.value || "").toLowerCase();
+  const dateFrom = document.getElementById("c-date-from")?.value || "";
+  const dateTo   = document.getElementById("c-date-to")?.value || "";
+
   FILTERED_C = ALL_CORRECTIONS.filter(c => {
     const matchStatus = C_FILTER === "all" || c.status === C_FILTER;
     const s = `${c.evaluator_name||""} ${c.original_agent_name||""} ${c.requested_by||""} ${c.correction_reason||""}`.toLowerCase();
-    return matchStatus && (!search || s.includes(search));
+    const matchSearch = !search || s.includes(search);
+
+    let matchDate = true;
+    if (dateFrom || dateTo) {
+      const dateStr = (c.requested_at||"").split("T")[0];
+      if (dateFrom && dateStr < dateFrom) matchDate = false;
+      if (dateTo   && dateStr > dateTo)   matchDate = false;
+    }
+
+    return matchStatus && matchSearch && matchDate;
   });
   C_PAGE = 0;
   renderCorrectionsTable();
