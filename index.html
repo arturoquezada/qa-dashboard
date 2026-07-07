@@ -299,6 +299,7 @@
     .main-tab.active.tab-riesgos   { background: linear-gradient(135deg,#ef4444,#fb7185); color:white; }
     .main-tab.active.tab-agentes   { background: linear-gradient(135deg,#8b5cf6,#a78bfa); color:white; }
     .main-tab.active.tab-fallas    { background: linear-gradient(135deg,#ef4444,#fb7185); color:white; }
+    .main-tab.active.tab-feedback  { background: linear-gradient(135deg,#f59e0b,#fbbf24); color:#0f172a; }
 
     /* ── CORRECCIONES TAB ── */
     .corr-leader-row { display:flex; align-items:center; gap:10px; padding:10px 14px; background:#f8fafc; border:1px solid #f1f5f9; border-radius:14px; margin-bottom:6px; }
@@ -384,6 +385,7 @@
       <button class="main-tab tab-riesgos"   data-tab="riesgos">🚨 Riesgos</button>
       <button class="main-tab tab-agentes"   data-tab="agentes">👤 Agentes</button>
       <button class="main-tab tab-correcciones" data-tab="correcciones">✏️ Correcciones</button>
+      <button class="main-tab tab-feedback"  data-tab="feedback">⭐ Feedback Quality</button>
     </div>
   </div>
 
@@ -629,6 +631,58 @@
         </tr></thead>
         <tbody id="fallasTable"></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- TAB: FEEDBACK QUALITY -->
+  <div class="tab-section" id="tab-feedback">
+    <div class="section-title">Feedback Quality — Ranking por evaluador</div>
+
+    <!-- KPIs -->
+    <div class="cards" style="grid-template-columns:repeat(4,1fr);margin-bottom:22px;">
+      <div class="card">
+        <div class="muted">Encuestas completadas</div>
+        <div class="metric" id="fq-completed">—</div>
+      </div>
+      <div class="card warn">
+        <div class="muted">Omitidas</div>
+        <div class="metric" id="fq-dismissed">—</div>
+      </div>
+      <div class="card success">
+        <div class="muted">Answer Rate</div>
+        <div class="metric" id="fq-answer-rate">—</div>
+      </div>
+      <div class="card">
+        <div class="muted">FQS Promedio global</div>
+        <div class="metric" id="fq-global-fqs">—</div>
+      </div>
+    </div>
+
+    <!-- TABLA RANKING -->
+    <div class="table-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px 0;">
+        <h3 style="margin:0;font-size:15px;font-weight:700;">⭐ Ranking de calidad de feedback por evaluador</h3>
+        <button onclick="exportTableById('fq-tbody','feedback_quality_ranking')" style="width:auto;padding:7px 14px;font-size:11px;border-radius:8px;background:#f1f5f9;color:#0f172a;border:1.5px solid #e2e8f0;font-weight:700;cursor:pointer;">⬇️ Exportar CSV</button>
+      </div>
+      <div style="padding:16px 20px;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="background:#f8fafc;">
+              <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#475569;font-weight:700;border-bottom:1px solid #f1f5f9;">#</th>
+              <th style="padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#475569;font-weight:700;border-bottom:1px solid #f1f5f9;">Evaluador</th>
+              <th style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#475569;font-weight:700;border-bottom:1px solid #f1f5f9;">Encuestas</th>
+              <th style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#f59e0b;font-weight:700;border-bottom:1px solid #f1f5f9;">⭐ Score<br><span style="font-size:9px;color:#94a3b8;font-weight:400;">(50%)</span></th>
+              <th style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#0ea5e9;font-weight:700;border-bottom:1px solid #f1f5f9;">💬 What<br><span style="font-size:9px;color:#94a3b8;font-weight:400;">(25%)</span></th>
+              <th style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#8b5cf6;font-weight:700;border-bottom:1px solid #f1f5f9;">🤝 How<br><span style="font-size:9px;color:#94a3b8;font-weight:400;">(25%)</span></th>
+              <th style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#0f172a;font-weight:700;border-bottom:1px solid #f1f5f9;">FQS<br><span style="font-size:9px;color:#94a3b8;font-weight:400;">Score final</span></th>
+              <th style="padding:10px 12px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#475569;font-weight:700;border-bottom:1px solid #f1f5f9;">Answer Rate</th>
+            </tr>
+          </thead>
+          <tbody id="fq-tbody">
+            <tr><td colspan="8" style="text-align:center;padding:40px;color:#94a3b8;">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -2605,8 +2659,107 @@ function escHtml(str) {
 }
 
 /* ═══════════════════════════════════════════════
-   MAIN TAB NAVIGATION
+   FEEDBACK QUALITY
 ═══════════════════════════════════════════════ */
+async function loadFeedbackQuality() {
+  document.getElementById("fq-tbody").innerHTML =
+    `<tr><td colspan="8" style="text-align:center;padding:40px;color:#94a3b8;"><span class="loading-spinner"></span> Cargando...</td></tr>`;
+
+  // Fetch all completed surveys (dismissed don't have scores)
+  const { data: allSurveys, error } = await supabaseClient
+    .from("qa_feedback_surveys")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Feedback quality error:", error);
+    document.getElementById("fq-tbody").innerHTML =
+      `<tr><td colspan="8" style="text-align:center;padding:40px;color:#ef4444;">Error al cargar datos.</td></tr>`;
+    return;
+  }
+
+  const surveys = allSurveys || [];
+  const completed = surveys.filter(s => s.survey_status === "completed");
+  const dismissed = surveys.filter(s => s.survey_status === "dismissed");
+  const total = surveys.length;
+
+  // Global KPIs
+  document.getElementById("fq-completed").textContent = completed.length;
+  document.getElementById("fq-dismissed").textContent = dismissed.length;
+  document.getElementById("fq-answer-rate").textContent =
+    total > 0 ? ((completed.length / total) * 100).toFixed(1) + "%" : "—";
+
+  // FQS per evaluator
+  function howScore(val) {
+    if (val === "Constructivo y respetuoso") return 100;
+    if (val === "Neutro") return 50;
+    return 0;
+  }
+
+  function calcFQS(row) {
+    const score = ((row.score_utilidad / 5) * 100) * 0.50;
+    const what  = (row.feedback_completo ? 100 : 0) * 0.25;
+    const how   = howScore(row.feedback_entrega) * 0.25;
+    return score + what + how;
+  }
+
+  const grouped = {};
+  surveys.forEach(s => {
+    const ev = s.evaluator_name || "Sin evaluador";
+    if (!grouped[ev]) grouped[ev] = { completed: [], dismissed: 0 };
+    if (s.survey_status === "completed") grouped[ev].completed.push(s);
+    else grouped[ev].dismissed++;
+  });
+
+  const ranking = Object.entries(grouped).map(([ev, g]) => {
+    const n = g.completed.length;
+    const total_ev = n + g.dismissed;
+    const avgScore = n > 0 ? g.completed.reduce((s, r) => s + (r.score_utilidad / 5) * 100, 0) / n : null;
+    const avgWhat  = n > 0 ? g.completed.reduce((s, r) => s + (r.feedback_completo ? 100 : 0), 0) / n : null;
+    const avgHow   = n > 0 ? g.completed.reduce((s, r) => s + howScore(r.feedback_entrega), 0) / n : null;
+    const fqs      = n > 0 ? g.completed.reduce((s, r) => s + calcFQS(r), 0) / n : null;
+    const answerRate = total_ev > 0 ? (n / total_ev) * 100 : 0;
+    return { ev, n, total_ev, avgScore, avgWhat, avgHow, fqs, answerRate };
+  }).sort((a, b) => (b.fqs ?? -1) - (a.fqs ?? -1));
+
+  // Global FQS
+  const globalFQS = completed.length > 0
+    ? completed.reduce((s, r) => s + calcFQS(r), 0) / completed.length
+    : null;
+  document.getElementById("fq-global-fqs").textContent =
+    globalFQS !== null ? globalFQS.toFixed(1) + "%" : "—";
+
+  function fqsColor(v) {
+    if (v >= 80) return { bg: "#dcfce7", color: "#166534" };
+    if (v >= 60) return { bg: "#fef9c3", color: "#854d0e" };
+    return { bg: "#fee2e2", color: "#991b1b" };
+  }
+
+  function pill(val, suffix = "%") {
+    if (val === null) return `<span style="color:#94a3b8;font-size:11px;">Sin datos</span>`;
+    const c = fqsColor(val);
+    return `<span style="background:${c.bg};color:${c.color};font-weight:800;border-radius:8px;padding:3px 10px;font-size:12px;">${val.toFixed(1)}${suffix}</span>`;
+  }
+
+  document.getElementById("fq-tbody").innerHTML = ranking.map((r, i) => `
+    <tr style="border-bottom:1px solid #f1f5f9;">
+      <td style="padding:12px;color:#94a3b8;font-weight:800;font-size:12px;">#${i+1}</td>
+      <td style="padding:12px;font-weight:700;">${escHtml(r.ev)}</td>
+      <td style="padding:12px;text-align:center;color:#64748b;">${r.n} / ${r.total_ev}</td>
+      <td style="padding:12px;text-align:center;">${pill(r.avgScore)}</td>
+      <td style="padding:12px;text-align:center;">${pill(r.avgWhat)}</td>
+      <td style="padding:12px;text-align:center;">${pill(r.avgHow)}</td>
+      <td style="padding:12px;text-align:center;">
+        ${r.fqs !== null
+          ? `<span style="background:${fqsColor(r.fqs).bg};color:${fqsColor(r.fqs).color};font-weight:900;border-radius:10px;padding:5px 14px;font-size:14px;">${r.fqs.toFixed(1)}%</span>`
+          : `<span style="color:#94a3b8;font-size:11px;">Sin datos</span>`}
+      </td>
+      <td style="padding:12px;text-align:center;">${pill(r.answerRate)}</td>
+    </tr>`).join("") ||
+    `<tr><td colspan="8" style="text-align:center;padding:40px;color:#94a3b8;">No hay encuestas registradas aún.</td></tr>`;
+}
+
+
 let activeMainTab="resumen";
 function switchMainTab(tabId) {
   document.querySelectorAll(".main-tab").forEach(btn=>btn.classList.toggle("active",btn.dataset.tab===tabId));
@@ -2616,6 +2769,7 @@ function switchMainTab(tabId) {
   // Load correcciones data on first visit
   if (tabId === "correcciones") loadCorrecciones();
   if (tabId === "fallas") loadFallas();
+  if (tabId === "feedback") loadFeedbackQuality();
 }
 
 /* ═══════════════════════════════════════════════
