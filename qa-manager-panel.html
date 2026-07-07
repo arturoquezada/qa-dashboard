@@ -59,6 +59,10 @@ html, body {
   background: linear-gradient(135deg, #f59e0b, #fbbf24);
   color: #0f172a;
 }
+.main-tab.active.tab-feedback {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  color: white;
+}
 
 /* ── TAB SECTIONS ── */
 .tab-section { display: none; }
@@ -413,6 +417,7 @@ td.muted-td { color: #64748b; font-size: 12px; }
   <div class="main-tabs">
     <button class="main-tab active" data-tab="disputes">🥊 Disputas de Calidad</button>
     <button class="main-tab tab-corrections" data-tab="corrections">✏️ Correcciones de Evaluación</button>
+    <button class="main-tab tab-feedback" data-tab="feedback">⭐ Feedback Quality</button>
   </div>
 
   <!-- ══════════════ TAB: DISPUTES ══════════════ -->
@@ -433,15 +438,6 @@ td.muted-td { color: #64748b; font-size: 12px; }
         </svg>
         <input type="text" id="d-search" placeholder="Buscar por agente, razón, ID…" oninput="applyDisputeFilters()">
       </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-        <label style="font-size:11px;font-weight:700;color:#64748b;white-space:nowrap;">Desde</label>
-        <input type="date" id="d-date-from" onchange="applyDisputeFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;">
-        <label style="font-size:11px;font-weight:700;color:#64748b;white-space:nowrap;">Hasta</label>
-        <input type="date" id="d-date-to" onchange="applyDisputeFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;">
-        <select id="d-evaluator" onchange="applyDisputeFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;max-width:180px;">
-          <option value="">Todos los evaluadores</option>
-        </select>
-      </div>
       <div class="filter-group">
         <button class="filter-btn active" data-status="all" onclick="setDisputeFilter(this)">Todos</button>
         <button class="filter-btn" data-status="Pendiente" onclick="setDisputeFilter(this)">Pendientes</button>
@@ -460,7 +456,7 @@ td.muted-td { color: #64748b; font-size: 12px; }
     <div class="table-card">
       <table>
         <thead><tr>
-          <th>Agente</th><th>ID Agente</th><th>Evaluador</th><th>Razón de disputa</th>
+          <th>Agente</th><th>ID Agente</th><th>Razón de disputa</th>
           <th>Fecha</th><th>Estatus</th><th>Resuelto por</th><th>Acciones</th>
         </tr></thead>
         <tbody id="disputes-tbody"></tbody>
@@ -505,12 +501,6 @@ td.muted-td { color: #64748b; font-size: 12px; }
         </svg>
         <input type="text" id="c-search" placeholder="Buscar por evaluador, agente, razón…" oninput="applyCorrFilters()">
       </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-        <label style="font-size:11px;font-weight:700;color:#64748b;white-space:nowrap;">Desde</label>
-        <input type="date" id="c-date-from" onchange="applyCorrFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;">
-        <label style="font-size:11px;font-weight:700;color:#64748b;white-space:nowrap;">Hasta</label>
-        <input type="date" id="c-date-to" onchange="applyCorrFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;">
-      </div>
       <div class="filter-group">
         <button class="filter-btn active warn" data-status="all" onclick="setCorrFilter(this)">Todos</button>
         <button class="filter-btn" data-status="Pendiente" onclick="setCorrFilter(this)">Pendientes</button>
@@ -538,6 +528,78 @@ td.muted-td { color: #64748b; font-size: 12px; }
         <div class="pag-btns">
           <button class="pag-btn" id="c-prev" onclick="changeCorrPage(-1)" disabled>← Anterior</button>
           <button class="pag-btn" id="c-next" onclick="changeCorrPage(1)"  disabled>Siguiente →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ TAB: FEEDBACK QUALITY ══════════════ -->
+  <div class="tab-section" id="tab-feedback">
+    <div class="section-title">Feedback Quality — Encuestas de agentes</div>
+
+    <!-- KPIs -->
+    <div class="cards" style="grid-template-columns:repeat(4,1fr);">
+      <div class="card"><div class="muted">Completadas</div><div class="metric" id="fq-completed">—</div></div>
+      <div class="card warn"><div class="muted">Omitidas</div><div class="metric" id="fq-dismissed">—</div></div>
+      <div class="card success"><div class="muted">Answer Rate</div><div class="metric" id="fq-answer-rate">—</div></div>
+      <div class="card purple"><div class="muted">FQS Promedio</div><div class="metric" id="fq-global-fqs">—</div></div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="toolbar">
+      <div class="toolbar-search">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+        </svg>
+        <input type="text" id="fq-search" placeholder="Buscar por evaluador, agente…" oninput="applyFQFilters()">
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <label style="font-size:11px;font-weight:700;color:#64748b;white-space:nowrap;">Desde</label>
+        <input type="date" id="fq-date-from" onchange="applyFQFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;">
+        <label style="font-size:11px;font-weight:700;color:#64748b;white-space:nowrap;">Hasta</label>
+        <input type="date" id="fq-date-to" onchange="applyFQFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;">
+        <select id="fq-evaluator" onchange="applyFQFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;max-width:200px;">
+          <option value="">Todos los evaluadores</option>
+        </select>
+        <select id="fq-status" onchange="applyFQFilters()" style="padding:7px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:12px;background:#f8fafc;color:#0f172a;">
+          <option value="">Todos</option>
+          <option value="completed">Completadas</option>
+          <option value="dismissed">Omitidas</option>
+        </select>
+      </div>
+      <button class="btn-refresh" onclick="loadFeedbackQuality()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 4v6h6M23 20v-6h-6M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+        </svg>
+        Actualizar
+      </button>
+    </div>
+
+    <!-- TABLA DETALLE -->
+    <div class="table-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 16px 0;">
+        <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;">Detalle de encuestas</span>
+        <button onclick="exportFQCSV()" style="padding:7px 14px;border-radius:8px;background:#f1f5f9;color:#0f172a;border:1.5px solid #e2e8f0;font-weight:700;font-size:11px;cursor:pointer;">⬇️ Exportar CSV</button>
+      </div>
+      <table style="margin-top:8px;">
+        <thead><tr>
+          <th>Fecha</th>
+          <th>Evaluador</th>
+          <th>Agente</th>
+          <th style="text-align:center;">⭐ Score<br><span style="font-size:9px;font-weight:400;color:#94a3b8;">50%</span></th>
+          <th style="text-align:center;">💬 What<br><span style="font-size:9px;font-weight:400;color:#94a3b8;">25%</span></th>
+          <th style="text-align:center;">🤝 How<br><span style="font-size:9px;font-weight:400;color:#94a3b8;">25%</span></th>
+          <th>¿Qué faltó?</th>
+          <th style="text-align:center;">FQS</th>
+          <th style="text-align:center;">Estatus</th>
+        </tr></thead>
+        <tbody id="fq-tbody"></tbody>
+      </table>
+      <div class="pagination">
+        <span id="fq-pag-info">—</span>
+        <div class="pag-btns">
+          <button class="pag-btn" id="fq-prev" onclick="changeFQPage(-1)" disabled>← Anterior</button>
+          <button class="pag-btn" id="fq-next" onclick="changeFQPage(1)"  disabled>Siguiente →</button>
         </div>
       </div>
     </div>
@@ -636,6 +698,7 @@ function updateSync() {
 function switchTab(tabId) {
   document.querySelectorAll(".main-tab").forEach(b => b.classList.toggle("active", b.dataset.tab === tabId));
   document.querySelectorAll(".tab-section").forEach(s => s.classList.toggle("active", s.id === `tab-${tabId}`));
+  if (tabId === "feedback") loadFeedbackQuality();
 }
 
 /* ═══════════════════════════════════
@@ -693,16 +756,6 @@ async function loadDisputes() {
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     ALL_DISPUTES = await r.json();
     updateDisputeMetrics(ALL_DISPUTES);
-
-    // Populate evaluator dropdown
-    const evaluators = [...new Set(ALL_DISPUTES.map(d => d.evaluator_name).filter(Boolean))].sort();
-    const sel = document.getElementById("d-evaluator");
-    if (sel) {
-      const current = sel.value;
-      sel.innerHTML = `<option value="">Todos los evaluadores</option>` +
-        evaluators.map(e => `<option value="${e}" ${e===current?"selected":""}>${e}</option>`).join("");
-    }
-
     applyDisputeFilters();
     document.getElementById("record-count").textContent = `${ALL_DISPUTES.length} disputas`;
     updateSync();
@@ -731,25 +784,11 @@ function setDisputeFilter(btn) {
 }
 
 function applyDisputeFilters() {
-  const search    = (document.getElementById("d-search")?.value || "").toLowerCase();
-  const dateFrom  = document.getElementById("d-date-from")?.value || "";
-  const dateTo    = document.getElementById("d-date-to")?.value || "";
-  const evaluator = document.getElementById("d-evaluator")?.value || "";
-
+  const search = (document.getElementById("d-search")?.value || "").toLowerCase();
   FILTERED_D = ALL_DISPUTES.filter(d => {
     const matchStatus = D_FILTER === "all" || (d.dispute_status||"") === D_FILTER;
     const s = `${d.agent_name||""} ${d.agent_identifier||""} ${d.dispute_reason||""} ${d.id||""}`.toLowerCase();
-    const matchSearch = !search || s.includes(search);
-    const matchEvaluator = !evaluator || (d.evaluator_name||"") === evaluator;
-
-    let matchDate = true;
-    if (dateFrom || dateTo) {
-      const dateStr = (d.dispute_created_at||"").split("T")[0];
-      if (dateFrom && dateStr < dateFrom) matchDate = false;
-      if (dateTo   && dateStr > dateTo)   matchDate = false;
-    }
-
-    return matchStatus && matchSearch && matchEvaluator && matchDate;
+    return matchStatus && (!search || s.includes(search));
   });
   D_PAGE = 0;
   renderDisputesTable();
@@ -758,7 +797,7 @@ function applyDisputeFilters() {
 function renderDisputesTable() {
   const tbody = document.getElementById("disputes-tbody");
   if (!FILTERED_D.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="state-msg"><strong>Sin resultados</strong>Prueba otro filtro o búsqueda.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="state-msg"><strong>Sin resultados</strong>Prueba otro filtro o búsqueda.</td></tr>`;
     updateDisputePag(0); return;
   }
   const slice = FILTERED_D.slice(D_PAGE * PAGE_SIZE, (D_PAGE+1) * PAGE_SIZE);
@@ -766,7 +805,6 @@ function renderDisputesTable() {
     <tr onclick="openDisputeModal('${esc(d.id)}')">
       <td class="agent">${esc(d.agent_name||"—")}</td>
       <td><span class="badge badge-gray" style="font-family:monospace;font-size:11px;">${esc(d.agent_identifier||"—")}</span></td>
-      <td class="muted-td" style="font-size:12px;">${esc(d.evaluator_name||"—")}</td>
       <td class="muted-td" title="${esc(d.dispute_reason||"")}">${esc(truncate(d.dispute_reason||"—",50))}</td>
       <td class="muted-td" style="font-family:monospace;font-size:12px;">${formatDate(d.dispute_created_at)}</td>
       <td>${statusPill(d.dispute_status)}</td>
@@ -1129,23 +1167,11 @@ function setCorrFilter(btn) {
 }
 
 function applyCorrFilters() {
-  const search   = (document.getElementById("c-search")?.value || "").toLowerCase();
-  const dateFrom = document.getElementById("c-date-from")?.value || "";
-  const dateTo   = document.getElementById("c-date-to")?.value || "";
-
+  const search = (document.getElementById("c-search")?.value || "").toLowerCase();
   FILTERED_C = ALL_CORRECTIONS.filter(c => {
     const matchStatus = C_FILTER === "all" || c.status === C_FILTER;
     const s = `${c.evaluator_name||""} ${c.original_agent_name||""} ${c.requested_by||""} ${c.correction_reason||""}`.toLowerCase();
-    const matchSearch = !search || s.includes(search);
-
-    let matchDate = true;
-    if (dateFrom || dateTo) {
-      const dateStr = (c.requested_at||"").split("T")[0];
-      if (dateFrom && dateStr < dateFrom) matchDate = false;
-      if (dateTo   && dateStr > dateTo)   matchDate = false;
-    }
-
-    return matchStatus && matchSearch && matchDate;
+    return matchStatus && (!search || s.includes(search));
   });
   C_PAGE = 0;
   renderCorrectionsTable();
@@ -1253,10 +1279,9 @@ function openCorrModal(id) {
   // Store normalized on active correction for resolveCorrection to use
   ACTIVE_CORRECTION._typeNorm = typeNorm;
 
-  const isAgente   = typeNorm === "Cambio de agente";
-  const isScore    = typeNorm.includes("score") || typeNorm.includes("Score");
+  const isAgente  = typeNorm === "Cambio de agente";
+  const isScore   = typeNorm.includes("score") || typeNorm.includes("Score");
   const isEliminar = typeNorm.includes("Eliminar");
-  const isQueue    = typeNorm === "Cambio de queue";
 
   document.getElementById("c-modal-title").textContent = `${typeNorm} — ${c.original_agent_name||"Agente"}`;
   document.getElementById("c-modal-sub").textContent =
@@ -1349,23 +1374,6 @@ function openCorrModal(id) {
             </div>`).join("")}
         ` : ""}
       </div>`;
-  } else if (isQueue) {
-    editableSection = `
-      <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:14px;padding:16px;margin-bottom:16px;">
-        <div style="font-size:11px;font-weight:800;color:#0284c7;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">
-          🔀 Cambio de Queue
-        </div>
-        <div class="field-grid" style="margin-bottom:12px;">
-          <div><span style="font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px;">Queue original</span>
-            <div class="field-val">${esc(c.original_queue_key||"—")}</div></div>
-          <div>
-            <span style="font-size:11px;color:#0f172a;font-weight:700;display:block;margin-bottom:4px;">Nuevo queue ${isPending?"(editable)":""}</span>
-            ${isPending
-              ? `<select class="m-select" id="c-new-queue"><option value="">Cargando…</option></select>`
-              : `<div class="field-val" style="color:#16a34a;font-weight:700;">${esc(c.new_queue_key||"Sin especificar")}</div>`}
-          </div>
-        </div>
-      </div>`;
   } else if (isEliminar) {
     editableSection = `
       <div style="background:#fee2e2;border:1.5px solid #fca5a5;border-radius:14px;padding:16px;margin-bottom:16px;">
@@ -1423,23 +1431,6 @@ function openCorrModal(id) {
   document.getElementById("c-btn-reject").style.display  = isPending ? "" : "none";
 
   document.getElementById("c-modal-overlay").classList.add("active");
-
-  // Load queues dynamically if queue change type, filtered by campaign
-  if (isQueue && isPending) {
-    const campana = c.campaign_key || "Aplazo";
-    fetch(`${SB_URL}/rest/v1/qa_queues?select=queue&campana=ilike.${encodeURIComponent(campana)}&order=queue`, { headers: H })
-      .then(r => r.json())
-      .then(data => {
-        const sel = document.getElementById("c-new-queue");
-        if (!sel) return;
-        sel.innerHTML = `<option value="">Selecciona un queue</option>` +
-          (data||[]).map(q => `<option value="${esc(q.queue)}" ${q.queue===c.new_queue_key?"selected":""}>${esc(q.queue)}</option>`).join("");
-      })
-      .catch(() => {
-        const sel = document.getElementById("c-new-queue");
-        if (sel) sel.innerHTML = `<option value="">Error al cargar queues</option>`;
-      });
-  }
 }
 
 function closeCorrModal() {
@@ -1456,12 +1447,10 @@ async function resolveCorrection(newStatus) {
   const typeNorm = ACTIVE_CORRECTION._typeNorm || ACTIVE_CORRECTION.correction_type || "";
   const isAgente = typeNorm === "Cambio de agente";
   const isScore  = typeNorm.includes("score") || typeNorm.includes("Score");
-  const isQueue  = typeNorm === "Cambio de queue";
 
   // Pick up any editable fields the manager may have filled in
   const newAgentName  = document.getElementById("c-new-agent-name")?.value?.trim() || ACTIVE_CORRECTION.new_agent_name || null;
   const newAgentId    = document.getElementById("c-new-agent-id")?.value?.trim()   || ACTIVE_CORRECTION.new_agent_identifier || null;
-  const newQueueKey   = document.getElementById("c-new-queue")?.value || ACTIVE_CORRECTION.new_queue_key || null;
   const newScoreRaw   = document.getElementById("c-new-score-raw")?.value   ? parseFloat(document.getElementById("c-new-score-raw").value)   : ACTIVE_CORRECTION.new_score_raw;
   const newScoreFinal = document.getElementById("c-new-score-final")?.value ? parseFloat(document.getElementById("c-new-score-final").value) : ACTIVE_CORRECTION.new_score_final;
 
@@ -1508,9 +1497,6 @@ async function resolveCorrection(newStatus) {
       corrUpdate.new_agent_name       = newAgentName;
       corrUpdate.new_agent_identifier = newAgentId;
     }
-    if (isQueue) {
-      corrUpdate.new_queue_key = newQueueKey;
-    }
     if (isScore) {
       corrUpdate.new_score_raw   = newScoreRaw;
       corrUpdate.new_score_final = newScoreFinal;
@@ -1538,9 +1524,6 @@ async function resolveCorrection(newStatus) {
       if (isAgente) {
         if (newAgentName) evalUpdate.agent_name       = newAgentName;
         if (newAgentId)   evalUpdate.agent_identifier = newAgentId;
-      }
-      if (isQueue && newQueueKey) {
-        evalUpdate.queue_key = newQueueKey;
       }
       if (isScore) {
         if (newScoreRaw   != null) evalUpdate.score_raw   = newScoreRaw;
@@ -1577,6 +1560,180 @@ async function resolveCorrection(newStatus) {
     if (btnA) btnA.disabled = false;
     if (btnR) btnR.disabled = false;
   }
+}/* ═══════════════════════════════════
+   ══ FEEDBACK QUALITY ══
+═══════════════════════════════════ */
+let ALL_SURVEYS = [], FILTERED_FQ = [], FQ_PAGE = 0;
+const FQ_PAGE_SIZE = 25;
+
+function howScore(val) {
+  if (val === "Constructivo y respetuoso") return 100;
+  if (val === "Neutro") return 50;
+  return 0;
+}
+
+function calcFQS(row) {
+  if (!row.score_utilidad) return null;
+  const score = ((row.score_utilidad / 5) * 100) * 0.50;
+  const what  = (row.feedback_completo ? 100 : 0) * 0.25;
+  const how   = howScore(row.feedback_entrega) * 0.25;
+  return score + what + how;
+}
+
+function fqsColor(v) {
+  if (v >= 80) return { bg:"#dcfce7", color:"#166534" };
+  if (v >= 60) return { bg:"#fef9c3", color:"#854d0e" };
+  return { bg:"#fee2e2", color:"#991b1b" };
+}
+
+async function loadFeedbackQuality() {
+  showLoadingRows("fq-tbody", 9);
+  try {
+    const r = await fetch(
+      `${SB_URL}/rest/v1/qa_feedback_surveys?select=*&order=created_at.desc`,
+      { headers: H }
+    );
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    ALL_SURVEYS = await r.json();
+
+    // Populate evaluator dropdown
+    const evaluators = [...new Set(ALL_SURVEYS.map(s => s.evaluator_name).filter(Boolean))].sort();
+    const sel = document.getElementById("fq-evaluator");
+    if (sel) {
+      const current = sel.value;
+      sel.innerHTML = `<option value="">Todos los evaluadores</option>` +
+        evaluators.map(e => `<option value="${e}" ${e===current?"selected":""}>${e}</option>`).join("");
+    }
+
+    updateFQKPIs(ALL_SURVEYS);
+    applyFQFilters();
+  } catch(e) {
+    console.error(e);
+    showToast("Error al cargar encuestas: " + e.message, true);
+  }
+}
+
+function updateFQKPIs(data) {
+  const completed = data.filter(s => s.survey_status === "completed");
+  const dismissed = data.filter(s => s.survey_status === "dismissed");
+  const total = data.length;
+  const answerRate = total > 0 ? (completed.length / total * 100).toFixed(1) + "%" : "—";
+  const globalFQS = completed.length > 0
+    ? (completed.reduce((s, r) => s + (calcFQS(r) ?? 0), 0) / completed.length).toFixed(1) + "%"
+    : "—";
+  document.getElementById("fq-completed").textContent   = completed.length;
+  document.getElementById("fq-dismissed").textContent   = dismissed.length;
+  document.getElementById("fq-answer-rate").textContent = answerRate;
+  document.getElementById("fq-global-fqs").textContent  = globalFQS;
+}
+
+function applyFQFilters() {
+  const search    = (document.getElementById("fq-search")?.value || "").toLowerCase();
+  const dateFrom  = document.getElementById("fq-date-from")?.value || "";
+  const dateTo    = document.getElementById("fq-date-to")?.value || "";
+  const evaluator = document.getElementById("fq-evaluator")?.value || "";
+  const status    = document.getElementById("fq-status")?.value || "";
+
+  FILTERED_FQ = ALL_SURVEYS.filter(s => {
+    const matchSearch    = !search || `${s.evaluator_name||""} ${s.agent_name||""}`.toLowerCase().includes(search);
+    const matchEvaluator = !evaluator || s.evaluator_name === evaluator;
+    const matchStatus    = !status || s.survey_status === status;
+    const dateStr        = (s.created_at||"").split("T")[0];
+    const matchDate      = (!dateFrom || dateStr >= dateFrom) && (!dateTo || dateStr <= dateTo);
+    return matchSearch && matchEvaluator && matchStatus && matchDate;
+  });
+
+  FQ_PAGE = 0;
+  renderFQTable();
+}
+
+function renderFQTable() {
+  const tbody = document.getElementById("fq-tbody");
+  if (!FILTERED_FQ.length) {
+    tbody.innerHTML = `<tr><td colspan="9" class="state-msg"><strong>Sin resultados</strong></td></tr>`;
+    updateFQPag(0); return;
+  }
+
+  const slice = FILTERED_FQ.slice(FQ_PAGE * FQ_PAGE_SIZE, (FQ_PAGE + 1) * FQ_PAGE_SIZE);
+  tbody.innerHTML = slice.map(s => {
+    const fqs = calcFQS(s);
+    const isDismissed = s.survey_status === "dismissed";
+    const date = s.created_at ? new Date(s.created_at).toLocaleDateString("es-MX") : "—";
+
+    const scorePill = s.score_utilidad
+      ? `<span style="font-weight:800;font-size:13px;">${"★".repeat(s.score_utilidad)}${"☆".repeat(5 - s.score_utilidad)}</span>`
+      : `<span style="color:#94a3b8;font-size:11px;">—</span>`;
+
+    const whatPill = s.feedback_completo !== null && s.feedback_completo !== undefined
+      ? s.feedback_completo
+        ? `<span class="badge badge-green">Sí</span>`
+        : `<span class="badge badge-red">No</span>`
+      : `<span style="color:#94a3b8;font-size:11px;">—</span>`;
+
+    const howMap = {
+      "Constructivo y respetuoso": `<span class="badge badge-green">👍 Constructivo</span>`,
+      "Neutro":                    `<span class="badge badge-yellow">😐 Neutro</span>`,
+      "Podría mejorar la forma":   `<span class="badge badge-red">👎 Mejorable</span>`
+    };
+    const howPill = s.feedback_entrega ? (howMap[s.feedback_entrega] || esc(s.feedback_entrega)) : `<span style="color:#94a3b8;font-size:11px;">—</span>`;
+
+    const fqsPill = fqs !== null
+      ? `<span style="background:${fqsColor(fqs).bg};color:${fqsColor(fqs).color};font-weight:800;border-radius:8px;padding:3px 10px;font-size:12px;">${fqs.toFixed(1)}%</span>`
+      : `<span style="color:#94a3b8;font-size:11px;">—</span>`;
+
+    const statusPillHtml = isDismissed
+      ? `<span class="badge badge-gray">Omitida</span>`
+      : `<span class="badge badge-green">Completada</span>`;
+
+    return `<tr>
+      <td class="muted-td" style="font-size:12px;white-space:nowrap;">${date}</td>
+      <td class="agent" style="font-size:12px;">${esc(s.evaluator_name||"—")}</td>
+      <td style="font-size:12px;">${esc(s.agent_name||"—")}</td>
+      <td style="text-align:center;">${scorePill}</td>
+      <td style="text-align:center;">${whatPill}</td>
+      <td style="text-align:center;">${howPill}</td>
+      <td style="font-size:11px;color:#64748b;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${esc(s.feedback_que_falto||"")}">${esc(s.feedback_que_falto||"—")}</td>
+      <td style="text-align:center;">${fqsPill}</td>
+      <td style="text-align:center;">${statusPillHtml}</td>
+    </tr>`;
+  }).join("");
+
+  updateFQPag(FILTERED_FQ.length);
+}
+
+function updateFQPag(total) {
+  const pages = Math.ceil(total / FQ_PAGE_SIZE);
+  const start = total ? FQ_PAGE * FQ_PAGE_SIZE + 1 : 0;
+  const end   = Math.min((FQ_PAGE + 1) * FQ_PAGE_SIZE, total);
+  document.getElementById("fq-pag-info").textContent = total ? `Mostrando ${start}–${end} de ${total}` : "Sin resultados";
+  document.getElementById("fq-prev").disabled = FQ_PAGE === 0;
+  document.getElementById("fq-next").disabled = FQ_PAGE >= pages - 1 || !total;
+}
+
+function changeFQPage(dir) { FQ_PAGE += dir; renderFQTable(); }
+
+function exportFQCSV() {
+  const headers = ["Fecha","Evaluador","Agente","Score (1-5)","What (Completo)","How","¿Qué faltó?","FQS","Estatus"];
+  const rows = FILTERED_FQ.map(s => {
+    const fqs = calcFQS(s);
+    return [
+      (s.created_at||"").split("T")[0],
+      s.evaluator_name || "",
+      s.agent_name || "",
+      s.score_utilidad ?? "",
+      s.feedback_completo !== null && s.feedback_completo !== undefined ? (s.feedback_completo ? "Sí" : "No") : "",
+      s.feedback_entrega || "",
+      s.feedback_que_falto || "",
+      fqs !== null ? fqs.toFixed(1) + "%" : "",
+      s.survey_status === "completed" ? "Completada" : "Omitida"
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(",");
+  });
+  const csv = [headers.map(h => `"${h}"`).join(","), ...rows].join("\r\n");
+  const blob = new Blob(["\ufeff" + csv], { type:"text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = "feedback_quality.csv";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 </script>
 </body>
