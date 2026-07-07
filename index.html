@@ -339,7 +339,20 @@
       <div><label>Fecha fin</label><input type="date" id="endDate"></div>
       <div><label>Campaña</label><select id="campaignFilter"><option value="">Todas</option></select></div>
       <div><label>LOB</label><select id="lobFilter"><option value="">Todos</option></select></div>
-      <div><label>Queue</label><select id="queueFilter"><option value="">Todas</option></select></div>
+      <div style="position:relative;">
+        <label>Queue</label>
+        <div id="queueMultiBtn" onclick="toggleQueueDropdown()" style="width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #e2e8f0;font-size:13px;background:#f8fafc;color:#0f172a;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;">
+          <span id="queueMultiLabel">Todas</span>
+          <span style="color:#94a3b8;font-size:10px;">▼</span>
+        </div>
+        <div id="queueMultiDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.15);z-index:200;max-height:220px;overflow-y:auto;margin-top:2px;">
+          <div style="padding:8px 10px;border-bottom:1px solid #f1f5f9;display:flex;gap:8px;">
+            <input type="text" id="queueMultiSearch" placeholder="Buscar queue…" onclick="event.stopPropagation()" oninput="filterQueueCheckboxes()" style="flex:1;padding:5px 8px;border-radius:7px;border:1px solid #e2e8f0;font-size:12px;background:#f8fafc;margin-bottom:0;">
+            <button onclick="clearQueueSelection();event.stopPropagation()" style="width:auto;padding:4px 8px;font-size:11px;border-radius:7px;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;">Limpiar</button>
+          </div>
+          <div id="queueCheckboxList" style="padding:4px 0;"></div>
+        </div>
+      </div>
       <div style="position:relative;">
         <label>Agente</label>
         <div id="agentMultiBtn" onclick="toggleAgentDropdown()" style="width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #e2e8f0;font-size:13px;background:#f8fafc;color:#0f172a;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;">
@@ -754,12 +767,21 @@ function getFilters() {
     endDate   : document.getElementById("endDate").value,
     campaign  : document.getElementById("campaignFilter").value,
     lob       : document.getElementById("lobFilter").value,
-    queue     : document.getElementById("queueFilter").value,
-    agents    : getSelectedAgentIds(), // array, empty = all
-    agent     : getSelectedAgentIds().length === 1 ? getSelectedAgentIds()[0] : "", // legacy single
-    evaluators: getSelectedEvaluators(), // array, empty = all
-    evaluator : getSelectedEvaluators().length === 1 ? getSelectedEvaluators()[0] : "" // legacy single
+    queues    : getSelectedQueues(),
+    queue     : getSelectedQueues().length === 1 ? getSelectedQueues()[0] : "",
+    agents    : getSelectedAgentIds(),
+    agent     : getSelectedAgentIds().length === 1 ? getSelectedAgentIds()[0] : "",
+    evaluators: getSelectedEvaluators(),
+    evaluator : getSelectedEvaluators().length === 1 ? getSelectedEvaluators()[0] : ""
   };
+}
+
+function applyQueueFilter(query, filters) {
+  if (filters.queues && filters.queues.length > 0) {
+    if (filters.queues.length === 1) return query.eq("queue_key", filters.queues[0]);
+    return query.in("queue_key", filters.queues);
+  }
+  return query;
 }
 
 function applyEvaluatorFilter(query, filters) {
@@ -783,7 +805,7 @@ function applyBaseFilters(query, filters) {
   if (filters.endDate)   query = query.lte("created_date_cdmx", filters.endDate);
   if (filters.campaign)  query = query.eq("campaign_key", filters.campaign);
   if (filters.lob)       query = query.eq("lob_key", filters.lob);
-  if (filters.queue)     query = query.eq("queue_key", filters.queue);
+  query = applyQueueFilter(query, filters);
   if (filters.agents && filters.agents.length > 0) {
     if (filters.agents.length === 1) query = query.eq("agent_identifier", filters.agents[0]);
     else query = query.in("agent_identifier", filters.agents);
@@ -844,7 +866,7 @@ function fillAgentSelect(id, agentsMap) {
 }
 
 function getCurrentFilterValues() {
-  return { campaign: document.getElementById("campaignFilter")?.value||"", lob: document.getElementById("lobFilter")?.value||"", queue: document.getElementById("queueFilter")?.value||"", agents: getSelectedAgentIds(), evaluators: getSelectedEvaluators() };
+  return { campaign: document.getElementById("campaignFilter")?.value||"", lob: document.getElementById("lobFilter")?.value||"", queues: getSelectedQueues(), agents: getSelectedAgentIds(), evaluators: getSelectedEvaluators() };
 }
 
 function filterOptionsExcluding(excludeKey) {
@@ -852,7 +874,7 @@ function filterOptionsExcluding(excludeKey) {
   return filterOptionsData.filter(row => {
     if (excludeKey !== "campaign"  && sel.campaign  && row.campaign_key    !== sel.campaign)  return false;
     if (excludeKey !== "lob"       && sel.lob       && row.lob_key         !== sel.lob)       return false;
-    if (excludeKey !== "queue"     && sel.queue     && row.queue_key       !== sel.queue)     return false;
+    if (excludeKey !== "queue"     && sel.queues.length > 0 && !sel.queues.includes(row.queue_key)) return false;
     if (excludeKey !== "agent"     && sel.agents.length > 0 && !sel.agents.includes(row.agent_identifier)) return false;
     if (excludeKey !== "evaluator" && sel.evaluators.length > 0 && !sel.evaluators.includes(row.evaluator_name)) return false;
     return true;
@@ -863,7 +885,9 @@ function refreshAllFilterOptions() {
   const sel = getCurrentFilterValues();
   fillSelect("campaignFilter", [...new Set(filterOptionsExcluding("campaign").map(x=>x.campaign_key).filter(Boolean))]);
   fillSelect("lobFilter",      [...new Set(filterOptionsExcluding("lob").map(x=>x.lob_key).filter(Boolean))]);
-  fillSelect("queueFilter",    [...new Set(filterOptionsExcluding("queue").map(x=>x.queue_key).filter(Boolean))]);
+  const queues = [...new Set(filterOptionsExcluding("queue").map(x=>x.queue_key).filter(Boolean))];
+  buildQueueCheckboxes(queues);
+  updateQueueMultiLabel();
   const agents = filterOptionsExcluding("agent").filter(x=>x.agent_identifier&&x.agent_name).reduce((acc,x)=>{ acc[x.agent_identifier]=x.agent_name; return acc; }, {});
   fillAgentSelect("agentFilter", agents);
   const evaluators = [...new Set(filterOptionsExcluding("evaluator").map(x=>x.evaluator_name).filter(Boolean))];
@@ -871,7 +895,6 @@ function refreshAllFilterOptions() {
   updateEvaluatorMultiLabel();
   restoreSelectValue("campaignFilter", sel.campaign);
   restoreSelectValue("lobFilter",      sel.lob);
-  restoreSelectValue("queueFilter",    sel.queue);
 }
 
 function restoreSelectValue(id, value) {
@@ -924,7 +947,7 @@ async function loadExecutiveCards(filters) {
     let pq = supabaseClient.from("qa_v_evaluations_base").select("score_final,critical_error_triggered,weekly_zero_triggered").gte("created_date_cdmx", prevStart).lte("created_date_cdmx", prevEnd);
     if (filters.campaign)  pq = pq.eq("campaign_key", filters.campaign);
     if (filters.lob)       pq = pq.eq("lob_key", filters.lob);
-    if (filters.queue)     pq = pq.eq("queue_key", filters.queue);
+    pq = applyQueueFilter(pq, filters);
     if (filters.agent)     pq = pq.eq("agent_identifier", filters.agent);
     pq = applyEvaluatorFilter(pq, filters);
     const prevData = await fetchAllRows(pq);
@@ -986,7 +1009,7 @@ async function loadPareto(filters) {
   if (filters.endDate)   q = q.lte("created_at", filters.endDate + "T23:59:59");
   if (filters.campaign)  q = q.eq("campaign_key", filters.campaign);
   if (filters.lob)       q = q.eq("lob_key", filters.lob);
-  if (filters.queue)     q = q.eq("queue_key", filters.queue);
+  q = applyQueueFilter(q, filters);
   if (filters.agent)     q = q.eq("agent_identifier", filters.agent);
   q = applyEvaluatorFilter(q, filters);
   const data = await fetchAllRows(q);
@@ -1034,7 +1057,7 @@ async function buildRubricDetailTable() {
   detView.innerHTML = '<div class="muted" style="padding:12px 0;"><span class="loading-spinner"></span> Cargando detalle...</div>';
   const filters = getFilters();
   let q = supabaseClient.from("qa_v_evaluation_responses_detail").select("agent_identifier,rubric_item,field_key,calculated_score,weight,failed_item,is_bonus");
-  if (filters.startDate) q=q.gte("created_at",filters.startDate+"T00:00:00"); if(filters.endDate) q=q.lte("created_at",filters.endDate+"T23:59:59"); if(filters.campaign) q=q.eq("campaign_key",filters.campaign); if(filters.lob) q=q.eq("lob_key",filters.lob); if(filters.queue) q=q.eq("queue_key",filters.queue); if(filters.agent) q=q.eq("agent_identifier",filters.agent); q = applyEvaluatorFilter(q, filters);
+  if (filters.startDate) q=q.gte("created_at",filters.startDate+"T00:00:00"); if(filters.endDate) q=q.lte("created_at",filters.endDate+"T23:59:59"); if(filters.campaign) q=q.eq("campaign_key",filters.campaign); if(filters.lob) q=q.eq("lob_key",filters.lob); q = applyQueueFilter(q, filters); if(filters.agent) q=q.eq("agent_identifier",filters.agent); q = applyEvaluatorFilter(q, filters);
   const rawData = await fetchAllRows(q);
   if (!rawData||rawData.length===0){detView.innerHTML='<div class="muted" style="padding:12px;">No hay datos de rubros para este periodo.</div>';return;}
   const data=rawData.filter(r=>!r.is_bonus);
@@ -1087,7 +1110,7 @@ function getCriticalShortName(label) {
 }
 async function loadCriticalErrors(filters) {
   let q=supabaseClient.from("qa_v_policy_flags_detail").select("*");
-  if(filters.startDate)q=q.gte("created_date_cdmx",filters.startDate);if(filters.endDate)q=q.lte("created_date_cdmx",filters.endDate);if(filters.campaign)q=q.eq("campaign_key",filters.campaign);if(filters.lob)q=q.eq("lob_key",filters.lob);if(filters.queue)q=q.eq("queue_key",filters.queue);if(filters.agent)q=q.eq("agent_identifier",filters.agent);q = applyEvaluatorFilter(q, filters);
+  if(filters.startDate)q=q.gte("created_date_cdmx",filters.startDate);if(filters.endDate)q=q.lte("created_date_cdmx",filters.endDate);if(filters.campaign)q=q.eq("campaign_key",filters.campaign);if(filters.lob)q=q.eq("lob_key",filters.lob);q = applyQueueFilter(q, filters);if(filters.agent)q=q.eq("agent_identifier",filters.agent);q = applyEvaluatorFilter(q, filters);
   const data=await fetchAllRows(q);
   const grouped={};
   (data||[]).forEach(row=>{const lbl=row.policy_flag||row.display_label||row.field_key||row.policy_flag_id||"Unknown";grouped[lbl]=(grouped[lbl]||0)+1;});
@@ -1291,7 +1314,7 @@ async function loadRubricTable(filters) {
     if(filters.endDate)   q=q.lte("created_at",filters.endDate+"T23:59:59");
     if(filters.campaign)  q=q.eq("campaign_key",filters.campaign);
     if(filters.lob)       q=q.eq("lob_key",filters.lob);
-    if(filters.queue)     q=q.eq("queue_key",filters.queue);
+    q = applyQueueFilter(q, filters);
     q = applyEvaluatorFilter(q, filters);
     const agentIds = getSelectedAgentIds();
     if (agentIds.length > 0) q = q.in("agent_identifier", agentIds);
@@ -1951,6 +1974,66 @@ function getSelectedEvaluators() {
 }
 
 /* ═══════════════════════════════════════════════
+   MULTI-SELECT QUEUE FILTER
+═══════════════════════════════════════════════ */
+let selectedQueues = new Set();
+
+function toggleQueueDropdown() {
+  const dd = document.getElementById("queueMultiDropdown");
+  dd.style.display = dd.style.display === "none" ? "block" : "none";
+}
+
+document.addEventListener("click", e => {
+  const btn = document.getElementById("queueMultiBtn");
+  const dd  = document.getElementById("queueMultiDropdown");
+  if (btn && dd && !btn.contains(e.target) && !dd.contains(e.target)) {
+    dd.style.display = "none";
+  }
+});
+
+function buildQueueCheckboxes(queuesList) {
+  const container = document.getElementById("queueCheckboxList");
+  if (!container) return;
+  const sorted = [...queuesList].sort((a,b) => String(a).localeCompare(String(b), "es", {sensitivity:"base"}));
+  container.innerHTML = sorted.map(name => `
+    <label style="display:flex;align-items:center;gap:8px;padding:5px 12px;cursor:pointer;font-size:11px;color:#0f172a;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''" class="queue-checkbox-item" data-name="${name.toLowerCase()}">
+      <input type="checkbox" value="${name}" onchange="onQueueCheckboxChange(this)" ${selectedQueues.has(name)?"checked":""} style="width:13px;height:13px;accent-color:#62d3f5;cursor:pointer;">
+      <span>${name}</span>
+    </label>`).join("");
+}
+
+function onQueueCheckboxChange(checkbox) {
+  if (checkbox.checked) selectedQueues.add(checkbox.value);
+  else selectedQueues.delete(checkbox.value);
+  updateQueueMultiLabel();
+}
+
+function updateQueueMultiLabel() {
+  const label = document.getElementById("queueMultiLabel");
+  if (!label) return;
+  if (selectedQueues.size === 0) label.textContent = "Todas";
+  else if (selectedQueues.size === 1) label.textContent = [...selectedQueues][0];
+  else label.textContent = `${selectedQueues.size} queues`;
+}
+
+function clearQueueSelection() {
+  selectedQueues.clear();
+  document.querySelectorAll("#queueCheckboxList input[type=checkbox]").forEach(cb => cb.checked = false);
+  updateQueueMultiLabel();
+}
+
+function filterQueueCheckboxes() {
+  const q = (document.getElementById("queueMultiSearch")?.value || "").toLowerCase();
+  document.querySelectorAll(".queue-checkbox-item").forEach(item => {
+    item.style.display = item.dataset.name.includes(q) ? "" : "none";
+  });
+}
+
+function getSelectedQueues() {
+  return selectedQueues.size > 0 ? [...selectedQueues] : [];
+}
+
+/* ═══════════════════════════════════════════════
    CSV EXPORT
 ═══════════════════════════════════════════════ */
 function exportTableToCSV(tableEl, filename) {
@@ -2036,7 +2119,7 @@ async function loadFallas() {
     if (filters.endDate)   q = q.lte("created_at", filters.endDate + "T23:59:59");
     if (filters.campaign)  q = q.eq("campaign_key", filters.campaign);
     if (filters.lob)       q = q.eq("lob_key", filters.lob);
-    if (filters.queue)     q = q.eq("queue_key", filters.queue);
+    q = applyQueueFilter(q, filters);
     q = applyEvaluatorFilter(q, filters);
     const agentIds = getSelectedAgentIds();
     if (agentIds.length > 0) q = q.in("agent_identifier", agentIds);
@@ -2056,7 +2139,7 @@ async function loadFallas() {
       .lte("created_at", lastSunday.toISOString().split("T")[0] + "T23:59:59");
     if (filters.campaign)  qPrev = qPrev.eq("campaign_key", filters.campaign);
     if (filters.lob)       qPrev = qPrev.eq("lob_key", filters.lob);
-    if (filters.queue)     qPrev = qPrev.eq("queue_key", filters.queue);
+    qPrev = applyQueueFilter(qPrev, filters);
     qPrev = applyEvaluatorFilter(qPrev, filters);
     if (agentIds.length > 0) qPrev = qPrev.in("agent_identifier", agentIds);
     const prevRaw = await fetchAllRows(qPrev);
